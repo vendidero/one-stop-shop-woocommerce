@@ -1,0 +1,16 @@
+/.* export-ignore
+/*.md export-ignore
+/*.yml export-ignore
+/node_modules* export-ignore
+/tests export-ignore
+/bin export-ignore
+/composer.* export-ignore
+/phpcs.xml export-ignore
+/phpunit.* export-ignore
+/renovate.json export-ignore
+/package.json export-ignore
+/package-lock.json export-ignore
+/none export-ignore
+/Gruntfile.js export-ignore
+/webpack.config.js export-ignore
+/postcss.config.js export-ignore
