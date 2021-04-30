@@ -27,17 +27,27 @@ class Package {
 		self::includes();
 		self::init_hooks();
 
-		// add_action( 'admin_init', array( __CLASS__, 'test' ) );
+		//add_action( 'admin_init', array( __CLASS__, 'test' ) );
 	}
 
 	public static function test() {
-		Queue::start( 'QUARTERLY', wc_string_to_timestamp( '2020-01-01' ) );
+		Queue::start( 'quarterly' );
 
+		/*$generator = new AsyncReportGenerator();
+		$generator->next();
+		$generator->complete();
+		*/
 		exit();
 	}
 
 	protected static function init_hooks() {
 		add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', array( __CLASS__, 'query_taxable_country' ), 10, 2 );
+
+		foreach( array_keys( Queue::get_available_types() ) as $type ) {
+			add_action( 'oss_woocommerce_' . $type, function( $args ) use ( $type ) {
+				Queue::next( $type, $args );
+			}, 10, 1 );
+		}
 	}
 
 	public static function query_taxable_country( $query, $query_vars ) {
@@ -148,5 +158,11 @@ class Package {
 		}
 
 		$logger->{$type}( $message, array( 'source' => 'one-stop-shop-woocommerce' ) );
+	}
+
+	public static function extended_log( $message, $type = 'info' ) {
+		if ( apply_filters( 'one_stop_shop_woocommerce_enable_extended_logging', true ) ) {
+			self::log( $message, $type );
+		}
 	}
 }
