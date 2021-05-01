@@ -40,16 +40,8 @@ class AsyncReportGenerator {
 		return $this->type;
 	}
 
-	public function get_batch_size() {
-		return 50;
-	}
-
 	public function get_args() {
 		return $this->args;
-	}
-
-	protected function use_date_paid() {
-		return apply_filters( 'oss_woocommerce_use_date_paid', true );
 	}
 
 	public function get_id() {
@@ -58,17 +50,6 @@ class AsyncReportGenerator {
 
 	public function reset() {
 		delete_option( $this->get_id() . '_tmp' );
-	}
-
-	protected function get_temporary_result() {
-		return (array) get_option( $this->get_id() . '_tmp_result', array() );
-	}
-
-	protected function get_order_statuses() {
-		$statuses = array_keys( wc_get_order_statuses() );
-		$statuses = array_diff( $statuses, array( 'wc-refunded', 'wc-pending', 'wc-cancelled', 'wc-failed' ) );
-
-		return apply_filters( 'oss_woocommerce_valid_order_statuses', $statuses );
 	}
 
 	/**
@@ -161,39 +142,53 @@ class AsyncReportGenerator {
 		}
 	}
 
+	/**
+	 * @return Report
+	 */
 	public function complete() {
 		Package::extended_log( sprintf( 'Completed called' ) );
 
 		$tmp_result = $this->get_temporary_result();
-		$result     = array(
-			'countries' => array(),
-			'totals'    => array(
-				'net_total' => 0,
-				'tax_total' => 0,
-			),
-		);
+		$report     = new Report( $this->get_id() );
+		$tax_total  = 0;
+		$net_total  = 0;
 
 		foreach( $tmp_result as $country => $tax_data ) {
-			$result['countries'][ $country ] = array();
-
 			foreach( $tax_data as $percent => $totals ) {
-				$result['totals']['tax_total'] += (float) $totals['tax_total'];
-				$result['totals']['net_total'] += (float) $totals['net_total'];
+				$tax_total += (float) $totals['tax_total'];
+				$net_total += (float) $totals['net_total'];
 
-				$result['countries'][ $country ][ $percent ] = array(
-					'net_total' => (float) wc_remove_number_precision( $totals['net_total'] ),
-					'tax_total' => (float) wc_remove_number_precision( $totals['tax_total'] ),
-				);
+				$report->set_country_net_total( $country, $percent, (float) wc_remove_number_precision( $totals['net_total'] ) );
+				$report->set_country_tax_total( $country, $percent, (float) wc_remove_number_precision( $totals['tax_total'] ) );
 			}
 		}
 
-		$result['totals']['tax_total'] = wc_format_decimal( wc_round_tax_total( wc_remove_number_precision( $result['totals']['tax_total'] ) ), '' );
-		$result['totals']['net_total'] = wc_format_decimal( wc_remove_number_precision( $result['totals']['net_total'] ), '' );
+		$report->set_net_total( wc_remove_number_precision( $net_total ) );
+		$report->set_tax_total( wc_remove_number_precision( $tax_total ) );
+		$report->save();
 
-		update_option( $this->get_id() . '_result', $result );
 		delete_option( $this->get_id() . '_tmp_result' );
 
-		return true;
+		return $report;
+	}
+
+	protected function get_batch_size() {
+		return apply_filters( 'oss_woocommerce_report_batch_size', 50 );
+	}
+
+	protected function use_date_paid() {
+		return apply_filters( 'oss_woocommerce_report_use_date_paid', true );
+	}
+
+	protected function get_temporary_result() {
+		return (array) get_option( $this->get_id() . '_tmp_result', array() );
+	}
+
+	protected function get_order_statuses() {
+		$statuses = array_keys( wc_get_order_statuses() );
+		$statuses = array_diff( $statuses, array( 'wc-refunded', 'wc-pending', 'wc-cancelled', 'wc-failed' ) );
+
+		return apply_filters( 'oss_woocommerce_valid_order_statuses', $statuses );
 	}
 
 	/**

@@ -139,15 +139,15 @@ class Queue {
 		 */
 		$queue->cancel_all( 'oss_woocommerce_' . $type );
 
-		$success = $generator->complete();
-		$status  = 'failed';
+		$report = $generator->complete();
+		$status = 'failed';
 
-		if ( $success ) {
+		if ( is_a( $report, '\Vendidero\OneStopShop\Report' ) ) {
 			$reports_available = Queue::get_report_keys();
 			$status            = 'completed';
 
-			if ( ! in_array( $generator->get_id(), $reports_available ) ) {
-				$reports_available[ $type ][] = $generator->get_id();
+			if ( ! in_array( $report->get_id(), $reports_available ) ) {
+				$reports_available[ $type ][] = $report->get_id();
 
 				update_option( 'oss_woocommerce_reports', $reports_available );
 			}

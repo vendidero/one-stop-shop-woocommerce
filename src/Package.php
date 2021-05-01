@@ -17,7 +17,7 @@ class Package {
 	const VERSION = '1.0.0';
 
 	/**
-	 * Init the package - load the REST API Server class.
+	 * Init the package
 	 */
 	public static function init() {
 		if ( ! self::has_dependencies() ) {
@@ -27,22 +27,35 @@ class Package {
 		self::includes();
 		self::init_hooks();
 
-		//add_action( 'admin_init', array( __CLASS__, 'test' ) );
+		// add_action( 'admin_init', array( __CLASS__, 'test' ) );
 	}
 
 	public static function test() {
 		Queue::start( 'quarterly' );
 
-		/*$generator = new AsyncReportGenerator();
+		/*
+		$generator = new AsyncReportGenerator();
 		$generator->next();
 		$generator->complete();
 		*/
+
+		// $csv = new CSVExporter( 'oss_quarterly_report_2021-04-01_2021-06-30' );
+		// $csv->export();
+
+		// $report = new Report( 'oss_quarterly_report_2021-04-01_2021-06-30' );
+
 		exit();
 	}
 
 	protected static function init_hooks() {
+		/**
+		 * Support a taxable country field within Woo order queries
+		 */
 		add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', array( __CLASS__, 'query_taxable_country' ), 10, 2 );
 
+		/**
+		 * Listen to action scheduler hooks for report generation
+		 */
 		foreach( array_keys( Queue::get_available_types() ) as $type ) {
 			add_action( 'oss_woocommerce_' . $type, function( $args ) use ( $type ) {
 				Queue::next( $type, $args );
@@ -88,6 +101,11 @@ class Package {
 		// include_once self::get_path() . '/includes/wc-gzd-dhl-core-functions.php';
 	}
 
+	/**
+	 * Returns a list of EU countries except base country.
+	 *
+	 * @return string[]
+	 */
 	public static function get_non_base_eu_countries() {
 		$countries    = WC()->countries->get_european_union_countries( 'eu_vat' );
 		$base_country = wc_get_base_location()['country'];
