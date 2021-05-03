@@ -48,8 +48,19 @@ class AsyncReportGenerator {
 		return sanitize_key( 'oss_' . $this->type . '_report_' . $this->args['start'] . '_' . $this->args['end'] );
 	}
 
-	public function reset() {
-		delete_option( $this->get_id() . '_tmp' );
+	public function delete() {
+		$report = new Report( $this->get_id() );
+		$report->delete();
+
+		delete_option( $this->get_id() . '_tmp_result' );
+	}
+
+	public function start() {
+		$report = new Report( $this->get_id() );
+		$report->reset();
+		$report->save();
+
+		return $report;
 	}
 
 	/**
@@ -165,6 +176,7 @@ class AsyncReportGenerator {
 
 		$report->set_net_total( wc_remove_number_precision( $net_total ) );
 		$report->set_tax_total( wc_remove_number_precision( $tax_total ) );
+		$report->set_status( 'completed' );
 		$report->save();
 
 		delete_option( $this->get_id() . '_tmp_result' );

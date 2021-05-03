@@ -27,8 +27,151 @@ class Package {
 		self::includes();
 		self::init_hooks();
 
+		if ( is_admin() ) {
+			Admin::init();
+		}
+
 		// add_action( 'admin_init', array( __CLASS__, 'test' ) );
 	}
+
+	/**
+	 * @param $id
+	 *
+	 * @return false|Report
+	 */
+	public static function get_report( $id ) {
+		$report = new Report( $id );
+
+		if ( $report->exists() ) {
+			return $report;
+		}
+
+		return false;
+	}
+
+	public static function get_report_data( $id ) {
+		$id_parts = explode( '_', $id );
+		$data     = array(
+			'id'         => $id,
+			'type'       => $id_parts[1],
+			'date_start' => wc_string_to_datetime( $id_parts[3] ),
+			'date_end'   => wc_string_to_datetime( $id_parts[4] ),
+		);
+
+		return $data;
+	}
+
+	public static function get_report_title( $id ) {
+		$args  = self::get_report_data( $id );
+		$title = _x( 'Report', 'oss', 'oss-woocommerce' );
+
+		if ( 'quarterly' === $args['type'] ) {
+			$date_start = $args['date_start'];
+			$quarter    = 1;
+			$month_num  = $date_start->date_i18n( 'n' );
+
+			if ( 4 == $month_num ) {
+				$quarter = 2;
+			} elseif ( 7 == $month_num ) {
+				$quarter = 3;
+			} elseif ( 10 == $month_num ) {
+				$quarter = 4;
+			}
+
+			$title = sprintf( _x( 'Q%1$s/%2$s', 'oss', 'oss-woocommerce' ), $quarter, $date_start->date_i18n( 'Y' ) );
+		} elseif( 'monthly' === $args['type'] ) {
+			$date_start = $args['date_start'];
+			$month_num  = $date_start->date_i18n( 'm' );
+
+			$title = sprintf( _x( '%1$s/%2$s', 'oss', 'oss-woocommerce' ), $month_num, $date_start->date_i18n( 'Y' ) );
+		} elseif( 'yearly' === $args['type'] ) {
+			$date_start = $args['date_start'];
+
+			$title = sprintf( _x( '%1$s', 'oss', 'oss-woocommerce' ), $date_start->date_i18n( 'Y' ) );
+		} elseif( 'custom' === $args['type'] ) {
+			$date_start = $args['date_start'];
+			$date_end   = $args['date_end'];
+
+			$title = sprintf( _x( '%1$s - %2$s', 'oss', 'oss-woocommerce' ), $date_start->date_i18n( 'Y-m-d' ), $date_end->date_i18n( 'Y-m-d' ) );
+		}
+
+		return $title;
+	}
+
+	public static function get_reports( $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'type'    => '',
+			'limit'   => -1,
+			'offset'  => 0,
+			'orderby' => 'date_start'
+		) );
+
+		$ids = Queue::get_report_ids();
+
+		if ( ! empty( $args['type'] ) ) {
+			$report_ids = array_key_exists( $args['type'], $ids ) ? $ids[ $args['type'] ] : array();
+		} else {
+			$report_ids = array_merge( ...array_values( $ids ) );
+		}
+
+		$reports_sorted = array();
+
+		foreach( $report_ids as $id ) {
+			$reports_sorted[] = self::get_report_data( $id );
+		}
+
+		if ( array_key_exists( $args['orderby'], array( 'date_start', 'date_end' ) ) ) {
+			usort($reports_sorted, function( $a, $b ) use ( $args ) {
+				if ( $a[ $args['orderby'] ] == $b[ $args['orderby'] ] ) {
+					return 0;
+				}
+
+				return $a[ $args['orderby'] ] < $b[ $args['orderby'] ] ? -1 : 1;
+			} );
+		}
+
+		if ( -1 !== $args['limit'] ) {
+			$reports_sorted = array_slice( $reports_sorted, $args['offset'], $args['limit'] );
+		}
+
+		$reports = array();
+
+		foreach( $reports_sorted as $data ) {
+			$reports[] = new Report( $data['id'] );
+		}
+
+		return $reports;
+ 	}
+
+ 	public static function clear_caches() {
+		delete_transient( 'oss_reports_counts' );
+    }
+
+ 	public static function get_report_counts() {
+	    $types     = array_keys( Package::get_available_types() );
+	    $cache_key = 'oss_reports_counts';
+	    $counts    = get_transient( $cache_key );
+
+	    if ( false === $counts ) {
+		    $counts = array();
+
+		    foreach( $types as $type ) {
+			    $counts[ $type ] = 0;
+		    }
+
+		    foreach( self::get_reports() as $report ) {
+		    	if ( ! array_key_exists( $report->get_type(), $counts ) ) {
+		    		continue;
+			    }
+
+			    $counts[ $report->get_type() ] += 1;
+		    }
+
+		    set_transient( $cache_key, $counts );
+	    }
+
+	    return (array) $counts;
+    }
 
 	public static function test() {
 		Queue::start( 'quarterly' );
@@ -56,11 +199,45 @@ class Package {
 		/**
 		 * Listen to action scheduler hooks for report generation
 		 */
-		foreach( array_keys( Queue::get_available_types() ) as $type ) {
-			add_action( 'oss_woocommerce_' . $type, function( $args ) use ( $type ) {
-				Queue::next( $type, $args );
-			}, 10, 1 );
+		foreach( Queue::get_reports_running() as $id => $status ) {
+			if ( 'pending' === $status ) {
+				$data = Package::get_report_data( $id );
+				$type = $data['type'];
+
+				add_action( 'oss_woocommerce_' . $id, function( $args ) use ( $type ) {
+					Queue::next( $type, $args );
+				}, 10, 1 );
+			}
 		}
+	}
+
+	public static function get_available_types() {
+		return array(
+			'quarterly' => _x( 'Quarterly', 'oss', 'oss-woocommerce' ),
+			'yearly'    => _x( 'Yearly', 'oss', 'oss-woocommerce' ),
+			'monthly'   => _x( 'Monthly', 'oss', 'oss-woocommerce' ),
+			'custom'    => _x( 'Custom', 'oss', 'oss-woocommerce' )
+		);
+	}
+
+	public static function get_type_title( $type ) {
+		$types = Package::get_available_types();
+
+		return array_key_exists( $type, $types ) ? $types[ $type ] : '';
+	}
+
+	public static function get_statuses() {
+		return array(
+			'pending'   => _x( 'Pending', 'oss', 'oss-woocommerce' ),
+			'completed' => _x( 'Completed', 'oss', 'oss-woocommerce' ),
+			'failed'    => _x( 'Failed', 'oss', 'oss-woocommerce' )
+		);
+	}
+
+	public static function get_status_title( $status ) {
+		$statuses = Package::get_statuses();
+
+		return array_key_exists( $status, $statuses ) ? $statuses[ $status ] : '';
 	}
 
 	public static function query_taxable_country( $query, $query_vars ) {

@@ -18,10 +18,10 @@ class Report {
 
 	public function __construct( $id, $args = array() ) {
 		$this->id         = $id;
-		$id_parts         = explode( '_', $id );
-		$this->type       = $id_parts[1];
-		$this->date_start = wc_string_to_datetime( $id_parts[3] );
-		$this->date_end   = wc_string_to_datetime( $id_parts[4] );
+		$data             = Package::get_report_data( $this->id );
+		$this->type       = $data['type'];
+		$this->date_start = $data['date_start'];
+		$this->date_end   = $data['date_end'];
 
 		if ( empty( $args ) ) {
 			$args = (array) get_option( $this->id . '_result', array() );
@@ -29,7 +29,8 @@ class Report {
 
 		$args = wp_parse_args( $args, array(
 			'countries' => array(),
-			'totals'    => array()
+			'totals'    => array(),
+			'meta'      => array(),
 		) );
 
 		$args['totals'] = wp_parse_args( $args['totals'], array(
@@ -37,7 +38,33 @@ class Report {
 			'tax_total' => 0
 		) );
 
+		$args['meta'] = wp_parse_args( $args['meta'], array(
+			'date_requested' => null,
+			'status'         => 'pending'
+		) );
+
+		$this->set_date_requested( $args['meta']['date_requested'] );
+		$this->set_status( $args['meta']['status'] );
+
 		$this->args = $args;
+	}
+
+	public function exists() {
+		return get_option( $this->id . '_result', false );
+	}
+
+	public function get_title() {
+		$title = Package::get_report_title( $this->get_id() );
+
+		if ( $this->get_date_requested() ) {
+			$title = $title . ' @ ' . $this->get_date_requested()->date_i18n();
+		}
+
+		return $title;
+	}
+
+	public function get_url() {
+		return admin_url( 'admin.php?page=oss-reports&report=' . $this->get_id() );
 	}
 
 	public function get_type() {
@@ -54,6 +81,28 @@ class Report {
 
 	public function get_date_end() {
 		return $this->date_end;
+	}
+
+	public function get_status() {
+		return $this->args['meta']['status'];
+	}
+
+	public function get_date_requested() {
+		return is_null( $this->args['meta']['date_requested'] ) ? null : wc_string_to_datetime( $this->args['meta']['date_requested'] );
+	}
+
+	public function set_date_requested( $date ) {
+		if ( is_numeric( $date ) ) {
+			$date = new \WC_DateTime( "@" . $date );
+		} elseif ( ! empty( $date ) ) {
+			$date = wc_string_to_datetime( $date );
+		}
+
+		$this->args['meta']['date_requested'] = is_a( $date, 'WC_DateTime' ) ? $date->date_i18n( 'Y-m-d' ) : null;
+	}
+
+	public function set_status( $status ) {
+		$this->args['meta']['status'] = $status;
 	}
 
 	public function get_tax_total() {
@@ -74,6 +123,15 @@ class Report {
 
 	public function get_countries() {
 		return array_keys( $this->args['countries'] );
+	}
+
+	public function reset() {
+		$this->args['countries'] = array();
+
+		$this->set_net_total( 0 );
+		$this->set_tax_total( 0 );
+		$this->set_date_requested( new \WC_DateTime() );
+		$this->set_status( 'pending' );
 	}
 
 	public function get_tax_rates_by_country( $country ) {
@@ -146,9 +204,15 @@ class Report {
 
 	public function save() {
 		update_option( $this->id . '_result', $this->args );
+		Package::clear_caches();
+
+		return $this->id;
 	}
 
 	public function delete() {
 		delete_option( $this->id . '_result' );
+		Package::clear_caches();
+
+		return true;
 	}
 }
