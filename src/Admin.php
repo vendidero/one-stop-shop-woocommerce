@@ -46,11 +46,11 @@ class Admin {
 	    }
 
 	    if ( ! is_null( $start_date ) ) {
-	        $start_date = wc_string_to_datetime( $start_date );
+	        $start_date = Package::string_to_datetime( $start_date );
         }
 
 		if ( ! is_null( $end_date ) ) {
-			$end_date = wc_string_to_datetime( $end_date );
+			$end_date = Package::string_to_datetime( $end_date );
 		}
 
 	    $generator_id = Queue::start( $report_type, $start_date, $end_date );
@@ -208,12 +208,83 @@ class Admin {
 		<?php
 	}
 
+	public static function render_actions( $actions ) {
+		foreach ( $actions as $action_name => $action ) {
+			if ( isset( $action['url'] ) ) {
+				$target = isset( $action['target'] ) ? $action['target'] : '_self';
+
+				printf( '<a class="button oss-woo-action-button oss-woo-action-button-%1$s %1$s" href="%2$s" aria-label="%3$s" title="%3$s" target="%4$s">%5$s</a>', esc_attr( $action_name ), esc_url( $action['url'] ), esc_attr( isset( $action['title'] ) ? $action['title'] : $action_name ), $target, esc_html( isset( $action['title'] ) ? $action['title'] : $action_name ) );
+			}
+		}
+	}
+
+	/**
+	 * @param Report $report
+	 *
+	 * @return array[]
+	 */
+	public static function get_report_actions( $report ) {
+		$actions = array(
+			'view' => array(
+				'url' => $report->get_url(),
+				'title' => _x( 'View', 'oss', 'oss-woocommerce' )
+			),
+			'export' => array(
+				'url' => add_query_arg(
+					array(
+						'action'    => 'oss-export-report',
+						'report_id' => $report->get_id(),
+					), wp_nonce_url( admin_url( 'admin-get.php' ), 'oss-export-report' )
+				),
+				'title' => _x( 'Export', 'oss', 'oss-woocommerce' )
+			),
+			'refresh' => array(
+				'url' => add_query_arg(
+					array(
+						'action'    => 'oss-refresh-report',
+						'report_id' => $report->get_id(),
+					), wp_nonce_url( admin_url( 'admin-get.php' ), 'oss-refresh-report' )
+				),
+				'title' => _x( 'Refresh', 'oss', 'oss-woocommerce' )
+			),
+			'delete' => array(
+				'url' => add_query_arg(
+					array(
+						'action'    => 'oss-delete-report',
+						'report_id' => $report->get_id(),
+					), wp_nonce_url( admin_url( 'admin-get.php' ), 'oss-delete-report' )
+				),
+				'title' => _x( 'Delete', 'oss', 'oss-woocommerce' )
+			),
+		);
+
+		if ( 'completed' !== $report->get_status() ) {
+			$actions['cancel'] = $actions['delete'];
+			$actions['cancel']['title'] = _x( 'Cancel', 'oss', 'oss-woocommerce' );
+
+			unset( $actions['view'] );
+			unset( $actions['refresh'] );
+			unset( $actions['delete'] );
+		}
+
+		return $actions;
+	}
+
 	public static function render_report_details() {
+	    global $wp_list_table;
+
 	    $report_id = wc_clean( $_GET['report'] );
 
 	    if ( ! $report = Package::get_report( $report_id ) ) {
 	        return;
 	    }
+
+	    if ( 'completed' !== $report->get_status() ) {
+	        return;
+	    }
+
+	    $actions = self::get_report_actions( $report );
+	    unset( $actions['view'] );
 
 		$columns = array(
 			'country'   => _x( 'Country', 'oss', 'oss-woocommerce' ),
@@ -225,6 +296,12 @@ class Admin {
 	    ?>
         <div class="wrap oss-reports oss-report-<?php echo esc_attr( $report->get_id() ); ?>">
             <h1 class="wp-heading-inline"><?php echo $report->get_title(); ?></h1>
+
+            <?php foreach( $actions as $action_type => $action ) : ?>
+                <a class="page-title-action button-<?php echo esc_attr( $action_type ); ?>" href="<?php echo esc_url( $action['url'] ); ?>"><?php echo esc_html( $action['title'] ); ?></a>
+            <?php endforeach; ?>
+
+            <p class="summary"><?php echo $report->get_date_start()->date_i18n( wc_date_format() ); ?> - <?php echo $report->get_date_end()->date_i18n( wc_date_format() ); ?>: <?php echo wc_price( $report->get_net_total() ); ?> (<?php echo wc_price( $report->get_tax_total() ); ?>)</p>
 
             <hr class="wp-header-end" />
 

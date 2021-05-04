@@ -14,6 +14,13 @@ class Queue {
 		}
 
 		$args       = self::get_timeframe( $type, $date, $end_date );
+		$interval   = $args['start']->diff( $args['end'] );
+
+		// Minimum span is 1d
+		if ( $interval->d <= 0 ) {
+			return false;
+		}
+
 		$generator  = new AsyncReportGenerator( $type, $args );
 		$queue_args = $generator->get_args();
 		$queue      = self::get_queue();
@@ -72,7 +79,7 @@ class Queue {
 	}
 
 	public static function get_queue() {
-		return WC()->queue();
+		return function_exists( 'WC' ) ? WC()->queue() : false;
 	}
 
 	public static function is_running( $id ) {
@@ -145,7 +152,7 @@ class Queue {
 			$reports_available = Queue::get_report_ids();
 			$status            = 'completed';
 
-			if ( ! in_array( $report->get_id(), $reports_available[ $type ] ) ) {
+			if ( 'observer' !== $report->get_type() && ! in_array( $report->get_id(), $reports_available[ $type ] ) ) {
 				array_unshift( $reports_available[ $type ], $report->get_id() );
 				update_option( 'oss_woocommerce_reports', $reports_available );
 			}
@@ -162,6 +169,56 @@ class Queue {
 		}
 
 		update_option( 'oss_woocommerce_reports_running', $running );
+
+		if ( 'observer' === $report->get_type() ) {
+			self::update_observer( $report );
+		}
+	}
+
+	public static function get_observer_report( $year = null ) {
+		if ( is_null( $year ) ) {
+			$year = date( 'Y' );
+		}
+
+		$report_id = get_option( 'oss_woocommerce_observer_report_' . $year );
+		$report    = false;
+
+		if ( ! empty( $report_id ) ) {
+			$report = Package::get_report( $report_id );
+		}
+
+		return $report;
+	}
+
+	/**
+	 * @param Report $report
+	 */
+	protected static function update_observer( $report ) {
+		$end  = $report->get_date_end();
+		$year = $end->date( 'Y' );
+
+		if ( ! $observer_report = self::get_observer_report( $year ) ) {
+			$observer_report = $report;
+		} else {
+			$observer_report->set_net_total( $observer_report->get_net_total( false ) + $report->get_net_total( false ) );
+			$observer_report->set_tax_total( $observer_report->get_tax_total( false ) + $report->get_tax_total( false ) );
+
+			foreach( $report->get_countries() as $country ) {
+				foreach( $report->get_tax_rates_by_country( $country ) as $tax_rate ) {
+					$observer_report->set_country_tax_total( $country, $tax_rate, ( $observer_report->get_country_tax_total( $country, $tax_rate, false ) + $report->get_country_tax_total( $country, $tax_rate, false ) ) );
+					$observer_report->get_country_net_total( $country, $tax_rate, ( $observer_report->get_country_net_total( $country, $tax_rate, false ) + $report->get_country_net_total( $country, $tax_rate, false ) ) );
+				}
+			}
+
+			// Delete the tmp report
+			$report->delete();
+		}
+
+		$observer_report->set_date_requested( $report->get_date_requested() );
+		$observer_report->set_id( $report->get_id() );
+		$observer_report->save();
+
+		update_option( 'oss_woocommerce_observer_report_' . $year, $observer_report->get_id() );
 	}
 
 	public static function get_report_ids() {
@@ -194,7 +251,7 @@ class Queue {
 		}
 
 		if ( 'quarterly' === $type ) {
-			$month       = $start_indicator->date_i18n( 'n' );
+			$month       = $start_indicator->date( 'n' );
 			$quarter     = (int) ceil( $month / 3 );
 			$start_month = 'Jan';
 			$end_month   = 'Mar';
@@ -210,18 +267,39 @@ class Queue {
 				$end_month   = 'Dec';
 			}
 
-			$date_start = new \WC_DateTime( "first day of " . $start_month . " " . $start_indicator->date_i18n( 'Y' ) . " midnight" );
-			$date_end   = new \WC_DateTime( "last day of " . $end_month . " " . $start_indicator->date_i18n( 'Y' ) . " midnight" );
+			$date_start = new \WC_DateTime( "first day of " . $start_month . " " . $start_indicator->format( 'Y' ) . " midnight" );
+			$date_end   = new \WC_DateTime( "last day of " . $end_month . " " . $start_indicator->format( 'Y' ) . " midnight" );
 		} elseif ( 'monthly' === $type ) {
-			$month = $start_indicator->date_i18n( 'M' );
+			$month = $start_indicator->format( 'M' );
 
-			$date_start = new \WC_DateTime( "first day of " . $month . " " . $start_indicator->date_i18n( 'Y' ) . " midnight" );
-			$date_end   = new \WC_DateTime( "last day of " . $month . " " . $start_indicator->date_i18n( 'Y' ) . " midnight" );
+			$date_start = new \WC_DateTime( "first day of " . $month . " " . $start_indicator->format( 'Y' ) . " midnight" );
+			$date_end   = new \WC_DateTime( "last day of " . $month . " " . $start_indicator->format( 'Y' ) . " midnight" );
 		} elseif ( 'yearly' === $type ) {
 			$date_end   = clone $start_indicator;
-			$date_start = clone $date_end;
+			$date_start = clone $start_indicator;
 
-			$date_start->modify( '-1 year' );
+			$date_end->modify( "last day of dec " . $start_indicator->format( 'Y' ) . " midnight" );
+			$date_start->modify( "first day of jan " . $start_indicator->format( 'Y' ) . " midnight" );
+		} elseif ( 'observer' === $type ) {
+			$date_start = clone $start_indicator;
+			$report     = self::get_observer_report( $date_start->format( 'Y' ) );
+
+			if ( ! $report ) {
+				// Calculate starting with the first day of the current year until yesterday
+				$date_end   = clone $date_start;
+				$date_start = new \WC_DateTime( "first day of jan " . $start_indicator->format( 'Y' ) . " midnight" );
+			} else {
+				// In case a report has already been generated lets do only calculate the timeframe between the end of the last report and now
+				$date_end   = clone $date_start;
+				$date_end->setTime( 0, 0 );
+
+				$date_start = clone $report->get_date_end();
+				$date_start->modify( '+1 day' );
+
+				if ( $date_start > $date_end ) {
+					$date_start = clone $date_end;
+				}
+			}
 		} else {
 			if ( is_null( $date_end ) ) {
 				$date_end = clone $start_indicator;
@@ -229,6 +307,17 @@ class Queue {
 			}
 
 			$date_start = clone $start_indicator;
+		}
+
+		/**
+		 * Always set start and end time to midnight
+		 */
+		if ( $date_start ) {
+			$date_start->setTime( 0, 0 );
+		}
+
+		if ( $date_end ) {
+			$date_end->setTime( 0, 0 );
 		}
 
 		return array(

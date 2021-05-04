@@ -18,8 +18,8 @@ class AsyncReportGenerator {
 		$default_start->modify( '-1 year' );
 
 		$args = wp_parse_args( $args, array(
-			'start'  => $default_start->date_i18n(),
-			'end'    => $default_end->date_i18n(),
+			'start'  => $default_start->format( 'Y-m-d' ),
+			'end'    => $default_end->format( 'Y-m-d' ),
 			'limit'  => $this->get_batch_size(),
 			'status' => $this->get_order_statuses(),
 			'offset' => 0,
@@ -27,9 +27,10 @@ class AsyncReportGenerator {
 
 		foreach( array( 'start', 'end' ) as $date_field ) {
 			if ( is_a( $args[ $date_field ], 'WC_DateTime' ) ) {
-				$args[ $date_field ] = $args[ $date_field ]->date_i18n();
+				$args[ $date_field ] = $args[ $date_field ]->format( 'Y-m-d' );
 			} elseif( is_numeric( $args[ $date_field ] ) ) {
-				$args[ $date_field ] = date( 'Y-m-d', $args[ $date_field ] );
+				$date = new \WC_DateTime( '@' . $args[ $date_field ] );
+				$args[ $date_field ] = $date->format( 'Y-m-d' );
 			}
 		}
 
@@ -64,6 +65,38 @@ class AsyncReportGenerator {
 	}
 
 	/**
+	 * @param \WC_Order $order
+	 *
+	 * @return mixed
+	 */
+	protected function get_order_taxable_country( $order ) {
+		$taxable_country_type = ! empty( $order->get_shipping_country() ) ? 'shipping' : 'billing';
+		$taxable_country      = 'shipping' === $taxable_country_type ? $order->get_shipping_country() : $order->get_billing_country();
+
+		return $taxable_country;
+	}
+
+	/**
+	 * @param \WC_Order $order
+	 *
+	 * @return bool
+	 */
+	protected function include_order( $order ) {
+		$taxable_country = $this->get_order_taxable_country( $order );
+		$included        = true;
+
+		if ( ! in_array( $taxable_country, Package::get_non_base_eu_countries() ) ) {
+			$included = false;
+		}
+
+		if ( $order->get_total_tax() == 0 ) {
+			$included = false;
+		}
+
+		return apply_filters( "oss_woocommerce_report_include_order", $included, $order );
+	}
+
+	/**
 	 * @return true|\WP_Error
 	 */
 	public function next() {
@@ -86,7 +119,7 @@ class AsyncReportGenerator {
 			$date_key         => $args['start'] . '...' . $args['end'],
 			'offset'          => $args['offset'],
 			'taxable_country' => Package::get_non_base_eu_countries(),
-			'type'            => 'shop_order',
+			'type'            => array( 'shop_order' ),
 			'status'          => $args['status']
 		);
 
@@ -99,14 +132,14 @@ class AsyncReportGenerator {
 
 		if ( ! empty( $orders ) ) {
 			foreach( $orders as $order ) {
-				$taxable_country_type = ! empty( $order->get_shipping_country() ) ? 'shipping' : 'billing';
-				$taxable_country      = 'shipping' === $taxable_country_type ? $order->get_shipping_country() : $order->get_billing_country();
+				$taxable_country = $this->get_order_taxable_country( $order );
 
-				if ( ! in_array( $taxable_country, Package::get_non_base_eu_countries() ) ) {
+				if ( ! $this->include_order( $order ) ) {
+					Package::extended_log( sprintf( 'Skipping order #%1$s based on taxable country %2$s, tax total: %3$s', $order->get_order_number(), $taxable_country, $order->get_total_tax() ) );
 					continue;
 				}
 
-				Package::extended_log( sprintf( 'Processing order #%1$s based on %2$s country (%3$s)', $order->get_order_number(), $taxable_country_type, $taxable_country ) );
+				Package::extended_log( sprintf( 'Processing order #%1$s based on taxable country %2$s', $order->get_order_number(), $taxable_country ) );
 
 				if ( ! isset( $tax_data[ $taxable_country ] ) ) {
 					$tax_data[ $taxable_country ] = array();
@@ -114,10 +147,10 @@ class AsyncReportGenerator {
 
 				foreach ( $order->get_taxes() as $key => $tax ) {
 					$refunded    = (float) $order->get_total_tax_refunded_by_rate_id( $tax->get_rate_id() );
-					$tax_percent = $this->get_rate_percent( $tax->get_rate_id(), $order );
+					$tax_percent = (float) Package::get_tax_rate_percent( $tax->get_rate_id(), $order );
 					$tax_total   = (float) $tax->get_tax_total() + (float) $tax->get_shipping_tax_total() - $refunded;
 
-					if ( $tax_percent <= 0 || $tax_total <= 0 ) {
+					if ( $tax_percent <= 0 || $tax_total == 0 ) {
 						continue;
 					}
 

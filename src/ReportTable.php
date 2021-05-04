@@ -2,8 +2,6 @@
 
 namespace Vendidero\OneStopShop;
 
-use Vendidero\StoreaBill\Admin\Admin;
-use Vendidero\StoreaBill\Admin\Notices;
 use WC_DateTime;
 use WP_List_Table;
 use WP_Query;
@@ -404,56 +402,9 @@ class ReportTable extends WP_List_Table {
 	protected function column_actions( $report ) {
 		do_action( "{$this->get_hook_prefix()}actions_start", $report );
 
-		$actions = array(
-            'view' => array(
-                'url' => $report->get_url(),
-                'title' => _x( 'View', 'oss', 'oss-woocommerce' )
-            ),
-            'delete' => array(
-                'url' => add_query_arg(
-                    array(
-                        'action'    => 'oss-delete-report',
-                        'report_id' => $report->get_id(),
-                    ), wp_nonce_url( admin_url( 'admin-get.php' ), 'oss-delete-report' )
-                ),
-                'title' => _x( 'Delete', 'oss', 'oss-woocommerce' )
-            ),
-            'refresh' => array(
-	            'url' => add_query_arg(
-		            array(
-			            'action'    => 'oss-refresh-report',
-			            'report_id' => $report->get_id(),
-		            ), wp_nonce_url( admin_url( 'admin-get.php' ), 'oss-refresh-report' )
-	            ),
-	            'title' => _x( 'Refresh', 'oss', 'oss-woocommerce' )
-            ),
-            'export' => array(
-	            'url' => add_query_arg(
-		            array(
-			            'action'    => 'oss-export-report',
-			            'report_id' => $report->get_id(),
-		            ), wp_nonce_url( admin_url( 'admin-get.php' ), 'oss-export-report' )
-	            ),
-	            'title' => _x( 'Export', 'oss', 'oss-woocommerce' )
-            ),
-        );
+		$actions = Admin::get_report_actions( $report );
 
-		if ( 'completed' !== $report->get_status() ) {
-		    $actions['cancel'] = $actions['delete'];
-		    $actions['cancel']['title'] = _x( 'Cancel', 'oss', 'oss-woocommerce' );
-
-			unset( $actions['view'] );
-			unset( $actions['refresh'] );
-		    unset( $actions['delete'] );
-		}
-
-		foreach ( $actions as $action_name => $action ) {
-			if ( isset( $action['url'] ) ) {
-				$target       = isset( $action['target'] ) ? $action['target'] : '_self';
-
-				printf( '<a class="button oss-woo-action-button oss-woo-action-button-%1$s %1$s" href="%2$s" aria-label="%3$s" title="%3$s" target="%4$s">%5$s</a>', esc_attr( $action_name ), esc_url( $action['url'] ), esc_attr( isset( $action['title'] ) ? $action['title'] : $action_name ), $target, esc_html( isset( $action['title'] ) ? $action['title'] : $action_name ) );
-			}
-		}
+        Admin::render_actions( $actions );
 
 		do_action( "{$this->get_hook_prefix()}actions_end", $report );
 	}

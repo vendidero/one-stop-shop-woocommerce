@@ -31,7 +31,76 @@ class Package {
 			Admin::init();
 		}
 
-		// add_action( 'admin_init', array( __CLASS__, 'test' ) );
+		//add_action( 'admin_init', array( __CLASS__, 'test' ) );
+	}
+
+	public static function test() {
+		// Queue::start( 'quarterly' );
+
+		/*
+		$generator = new AsyncReportGenerator();
+		$generator->next();
+		$generator->complete();
+		*/
+
+		// $csv = new CSVExporter( 'oss_quarterly_report_2021-04-01_2021-06-30' );
+		// $csv->export();
+
+		// $report = new Report( 'oss_quarterly_report_2021-04-01_2021-06-30' );
+
+		$date_start = new \WC_DateTime( "now" );
+		$date_start->modify( '-1 day' );
+
+		Queue::start( 'observer', $date_start );
+
+		// Refund test
+		// $order = wc_get_order( 100 );
+		exit();
+	}
+
+	public static function string_to_datetime( $time_string ) {
+		if ( ! is_numeric( $time_string ) ) {
+			$time_string = strtotime( $time_string );
+		}
+
+		$date_time = $time_string;
+
+		if ( ! is_a( $time_string, 'WC_DateTime' ) ) {
+			$date_time = new \WC_DateTime( "@{$time_string}", new \DateTimeZone( 'UTC' ) );
+		}
+
+		return $date_time;
+	}
+
+	/**
+	 * @param $rate_id
+	 * @param \WC_Order $order
+	 */
+	public static function get_tax_rate_percent( $rate_id, $order ) {
+		$taxes      = $order->get_taxes();
+		$percentage = null;
+
+		foreach( $taxes as $tax ) {
+			if ( $tax->get_rate_id() == $rate_id ) {
+				if ( is_callable( array( $tax, 'get_rate_percent' ) ) ) {
+					$percentage = $tax->get_rate_percent();
+				}
+			}
+		}
+
+		/**
+		 * WC_Order_Item_Tax::get_rate_percent returns null by default.
+		 * Fallback to global tax rates (DB) in case the percentage is not available within order data.
+		 */
+		if ( is_null( $percentage ) || '' === $percentage ) {
+			$percentage = \WC_Tax::get_rate_percent_value( $rate_id );
+		}
+
+		if ( ! is_numeric( $percentage ) ) {
+			$percentage = 0;
+		}
+
+		return $percentage;
 	}
 
 	/**
@@ -54,8 +123,8 @@ class Package {
 		$data     = array(
 			'id'         => $id,
 			'type'       => $id_parts[1],
-			'date_start' => wc_string_to_datetime( $id_parts[3] ),
-			'date_end'   => wc_string_to_datetime( $id_parts[4] ),
+			'date_start' => self::string_to_datetime( $id_parts[3] ),
+			'date_end'   => self::string_to_datetime( $id_parts[4] ),
 		);
 
 		return $data;
@@ -137,7 +206,9 @@ class Package {
 		$reports = array();
 
 		foreach( $reports_sorted as $data ) {
-			$reports[] = new Report( $data['id'] );
+			if ( $report = Package::get_report( $data['id'] ) ) {
+				$reports[] = $report;
+			}
 		}
 
 		return $reports;
@@ -173,23 +244,6 @@ class Package {
 	    return (array) $counts;
     }
 
-	public static function test() {
-		Queue::start( 'quarterly' );
-
-		/*
-		$generator = new AsyncReportGenerator();
-		$generator->next();
-		$generator->complete();
-		*/
-
-		// $csv = new CSVExporter( 'oss_quarterly_report_2021-04-01_2021-06-30' );
-		// $csv->export();
-
-		// $report = new Report( 'oss_quarterly_report_2021-04-01_2021-06-30' );
-
-		exit();
-	}
-
 	protected static function init_hooks() {
 		/**
 		 * Support a taxable country field within Woo order queries
@@ -209,6 +263,32 @@ class Package {
 				}, 10, 1 );
 			}
 		}
+
+		add_action( 'init', array( __CLASS__, 'setup_recurring_observer' ), 10 );
+		add_action( 'oss_woocommerce_daily_observer', array( __CLASS__, 'update_observer_report' ), 10 );
+	}
+
+	public static function update_observer_report() {
+		$date_start = new \WC_DateTime();
+		$date_start->modify( '-1 day' );
+
+		Queue::start( 'observer', $date_start );
+	}
+
+	public static function setup_recurring_observer() {
+		if ( $queue = Queue::get_queue() ) {
+			// Schedule once per day at 3:00
+			if ( null === $queue->get_next( 'oss_woocommerce_daily_observer', array(), 'oss_woocommerce' ) ) {
+				$timestamp = strtotime('tomorrow midnight' );
+				$date      = new \WC_DateTime();
+
+				$date->setTimestamp( $timestamp );
+				$date->modify( '+3 hours' );
+
+				$queue->cancel_all( 'oss_woocommerce_daily_observer', array(), 'oss_woocommerce' );
+				$queue->schedule_recurring( $date->getTimestamp(), DAY_IN_SECONDS, 'oss_woocommerce_daily_observer', array(), 'oss_woocommerce' );
+			}
+		}
 	}
 
 	public static function get_available_types() {
@@ -216,7 +296,8 @@ class Package {
 			'quarterly' => _x( 'Quarterly', 'oss', 'oss-woocommerce' ),
 			'yearly'    => _x( 'Yearly', 'oss', 'oss-woocommerce' ),
 			'monthly'   => _x( 'Monthly', 'oss', 'oss-woocommerce' ),
-			'custom'    => _x( 'Custom', 'oss', 'oss-woocommerce' )
+			'custom'    => _x( 'Custom', 'oss', 'oss-woocommerce' ),
+			'observer'  => '',
 		);
 	}
 
