@@ -73,12 +73,23 @@ class Report {
 		return $this->type;
 	}
 
+	public function set_type( $type ) {
+		$this->set_id_part( $type, 'type' );
+	}
+
 	public function set_id( $id ) {
 		$this->id         = $id;
 		$data             = Package::get_report_data( $this->id );
 		$this->type       = $data['type'];
 		$this->date_start = $data['date_start'];
 		$this->date_end   = $data['date_end'];
+	}
+
+	public function set_id_part( $value, $part = 'type' ) {
+		$data          = Package::get_report_data( $this->id );
+		$data[ $part ] = $value;
+
+		$this->set_id( Package::get_report_id( $data ) );
 	}
 
 	public function get_id() {
@@ -89,12 +100,28 @@ class Report {
 		return $this->date_start;
 	}
 
+	public function set_date_start( $date ) {
+		$date = Package::string_to_datetime( $date );
+
+		$this->set_id_part( $date->format( 'Y-m-d' ), 'date_start' );
+	}
+
 	public function get_date_end() {
 		return $this->date_end;
 	}
 
+	public function set_date_end( $date ) {
+		$date = Package::string_to_datetime( $date );
+
+		$this->set_id_part( $date->format( 'Y-m-d' ), 'date_end' );
+	}
+
 	public function get_status() {
 		return $this->args['meta']['status'];
+	}
+
+	public function set_status( $status ) {
+		$this->args['meta']['status'] = $status;
 	}
 
 	public function get_date_requested() {
@@ -107,10 +134,6 @@ class Report {
 		}
 
 		$this->args['meta']['date_requested'] = is_a( $date, 'WC_DateTime' ) ? $date->date( 'Y-m-d' ) : null;
-	}
-
-	public function set_status( $status ) {
-		$this->args['meta']['status'] = $status;
 	}
 
 	public function get_tax_total( $round = true ) {
@@ -204,6 +227,15 @@ class Report {
 
 	public function save() {
 		update_option( $this->id . '_result', $this->args );
+
+		$reports_available = Package::get_report_ids();
+
+		if ( ! in_array( $this->get_id(), $reports_available[ $this->get_type() ] ) ) {
+			// Add new report to start of the list
+			array_unshift( $reports_available[ $this->get_type() ], $this->get_id() );
+			update_option( 'oss_woocommerce_reports', $reports_available );
+		}
+
 		Package::clear_caches();
 
 		return $this->id;
@@ -211,8 +243,32 @@ class Report {
 
 	public function delete() {
 		delete_option( $this->id . '_result' );
+
+		$reports_available = Package::get_report_ids();
+
+		if ( in_array( $this->get_id(), $reports_available[ $this->get_type() ] ) ) {
+			$reports_available[ $this->get_type() ] = array_diff( $reports_available[ $this->get_type() ], array( $this->get_id() ) );
+			update_option( 'oss_woocommerce_reports', $reports_available );
+		}
+
 		Package::clear_caches();
 
 		return true;
+	}
+
+	public function get_export_link() {
+		return add_query_arg( array( 'action' => 'oss_export_report', 'report_id' => $this->get_id() ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_export_report' ) );
+	}
+
+	public function get_delete_link() {
+		return add_query_arg( array( 'action' => 'oss_delete_report', 'report_id' => $this->get_id() ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_delete_report' ) );
+	}
+
+	public function get_refresh_link() {
+		return add_query_arg( array( 'action' => 'oss_refresh_report', 'report_id' => $this->get_id() ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_refresh_report' ) );
+	}
+
+	public function get_cancel_link() {
+		return add_query_arg( array( 'action' => 'oss_cancel_report', 'report_id' => $this->get_id() ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_cancel_report' ) );
 	}
 }

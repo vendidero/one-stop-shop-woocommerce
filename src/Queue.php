@@ -7,19 +7,14 @@ defined( 'ABSPATH' ) || exit;
 class Queue {
 
 	public static function start( $type = 'quarterly', $date = null, $end_date = null ) {
-		$types = Package::get_available_types();
+		$types = Package::get_available_report_types( true );
 
 		if ( ! array_key_exists( $type, $types ) ) {
 			return false;
 		}
 
-		$args       = self::get_timeframe( $type, $date, $end_date );
-		$interval   = $args['start']->diff( $args['end'] );
-
-		// Minimum span is 1d
-		if ( $interval->d <= 0 ) {
-			return false;
-		}
+		$args     = self::get_timeframe( $type, $date, $end_date );
+		$interval = $args['start']->diff( $args['end'] );
 
 		$generator  = new AsyncReportGenerator( $type, $args );
 		$queue_args = $generator->get_args();
@@ -30,13 +25,6 @@ class Queue {
 		$report = $generator->start();
 
 		if ( is_a( $report, '\Vendidero\OneStopShop\Report' ) && $report->exists() ) {
-			$reports_available = Queue::get_report_ids();
-
-			if ( ! in_array( $report->get_id(), $reports_available[ $type ] ) ) {
-				array_unshift( $reports_available[ $type ], $report->get_id() );
-				update_option( 'oss_woocommerce_reports', $reports_available );
-			}
-
 			Package::log( sprintf( 'Starting new %1$s', $report->get_title() ) );
 			Package::extended_log( sprintf( 'Default report arguments: %s', wc_print_r( $queue_args, true ) ) );
 
@@ -58,18 +46,56 @@ class Queue {
 		return false;
 	}
 
+	public static function get_batch_size() {
+		return apply_filters( 'oss_woocommerce_report_batch_size', 50 );
+	}
+
+	public static function use_date_paid() {
+		return apply_filters( 'oss_woocommerce_report_use_date_paid', true );
+	}
+
+	public static function get_order_statuses() {
+		$statuses = array_keys( wc_get_order_statuses() );
+		$statuses = array_diff( $statuses, array( 'wc-refunded', 'wc-pending', 'wc-cancelled', 'wc-failed' ) );
+
+		return apply_filters( 'oss_woocommerce_valid_order_statuses', $statuses );
+	}
+
+	public static function get_order_query_args( $args, $date_field = 'date_created' ) {
+		/**
+		 * Add one day to the end date to capture timestamps (including time data) in between
+		 */
+		if ( 'date_paid' === $date_field ) {
+			$args['start'] = strtotime( $args['start'] );
+			$args['end']   = strtotime( $args['end'] ) + DAY_IN_SECONDS;
+		}
+
+		$query_args = array(
+			'limit'           => $args['limit'],
+			'orderby'         => 'date',
+			'order'           => 'ASC',
+			$date_field       => $args['start'] . '...' . $args['end'],
+			'offset'          => $args['offset'],
+			'taxable_country' => Package::get_non_base_eu_countries(),
+			'type'            => array( 'shop_order' ),
+			'status'          => $args['status']
+		);
+
+		return $query_args;
+	}
+
 	public static function cancel( $id ) {
 		$data      = Package::get_report_data( $id );
 		$generator = new AsyncReportGenerator( $data['type'], $data );
 		$queue     = self::get_queue();
 		$running   = self::get_reports_running();
 
-		$generator->delete();
-
-		if ( array_key_exists( $id, $running ) ) {
+		if ( self::is_running( $id ) ) {
 			unset( $running[ $id ] );
 			Package::log( sprintf( 'Cancelled %s', Package::get_report_title( $id ) ) );
 			update_option( 'oss_woocommerce_reports_running', $running );
+
+			$generator->delete();
 		}
 
 		/**
@@ -149,13 +175,7 @@ class Queue {
 		$status = 'failed';
 
 		if ( is_a( $report, '\Vendidero\OneStopShop\Report' ) && $report->exists() ) {
-			$reports_available = Queue::get_report_ids();
-			$status            = 'completed';
-
-			if ( 'observer' !== $report->get_type() && ! in_array( $report->get_id(), $reports_available[ $type ] ) ) {
-				array_unshift( $reports_available[ $type ], $report->get_id() );
-				update_option( 'oss_woocommerce_reports', $reports_available );
-			}
+			$status = 'completed';
 		}
 
 		Package::log( sprintf( 'Completed %1$s. Status: %2$s', $report->get_title(), $status ) );
@@ -175,21 +195,6 @@ class Queue {
 		}
 	}
 
-	public static function get_observer_report( $year = null ) {
-		if ( is_null( $year ) ) {
-			$year = date( 'Y' );
-		}
-
-		$report_id = get_option( 'oss_woocommerce_observer_report_' . $year );
-		$report    = false;
-
-		if ( ! empty( $report_id ) ) {
-			$report = Package::get_report( $report_id );
-		}
-
-		return $report;
-	}
-
 	/**
 	 * @param Report $report
 	 */
@@ -197,7 +202,7 @@ class Queue {
 		$end  = $report->get_date_end();
 		$year = $end->date( 'Y' );
 
-		if ( ! $observer_report = self::get_observer_report( $year ) ) {
+		if ( ! $observer_report = Package::get_observer_report( $year ) ) {
 			$observer_report = $report;
 		} else {
 			$observer_report->set_net_total( $observer_report->get_net_total( false ) + $report->get_net_total( false ) );
@@ -206,31 +211,25 @@ class Queue {
 			foreach( $report->get_countries() as $country ) {
 				foreach( $report->get_tax_rates_by_country( $country ) as $tax_rate ) {
 					$observer_report->set_country_tax_total( $country, $tax_rate, ( $observer_report->get_country_tax_total( $country, $tax_rate, false ) + $report->get_country_tax_total( $country, $tax_rate, false ) ) );
-					$observer_report->get_country_net_total( $country, $tax_rate, ( $observer_report->get_country_net_total( $country, $tax_rate, false ) + $report->get_country_net_total( $country, $tax_rate, false ) ) );
+					$observer_report->set_country_net_total( $country, $tax_rate, ( $observer_report->get_country_net_total( $country, $tax_rate, false ) + $report->get_country_net_total( $country, $tax_rate, false ) ) );
 				}
 			}
 
-			// Delete the tmp report
-			$report->delete();
+			// Delete the old observer report
+			$observer_report->delete();
 		}
 
+		// Delete the tmp report
+		$report->delete();
+
 		$observer_report->set_date_requested( $report->get_date_requested() );
-		$observer_report->set_id( $report->get_id() );
+		// Use the last report date as new end date
+		$observer_report->set_date_end( $report->get_date_end() );
 		$observer_report->save();
 
 		update_option( 'oss_woocommerce_observer_report_' . $year, $observer_report->get_id() );
-	}
 
-	public static function get_report_ids() {
-		$reports = (array) get_option( 'oss_woocommerce_reports', array() );
-
-		foreach( array_keys( Package::get_available_types() ) as $type ) {
-			if ( ! array_key_exists( $type, $reports ) ) {
-				$reports[ $type ] = array();
-			}
-		}
-
-		return $reports;
+		do_action( 'oss_woocommerce_updated_observer', $observer_report );
 	}
 
 	public static function get_reports_running() {
@@ -282,7 +281,7 @@ class Queue {
 			$date_start->modify( "first day of jan " . $start_indicator->format( 'Y' ) . " midnight" );
 		} elseif ( 'observer' === $type ) {
 			$date_start = clone $start_indicator;
-			$report     = self::get_observer_report( $date_start->format( 'Y' ) );
+			$report     = Package::get_observer_report( $date_start->format( 'Y' ) );
 
 			if ( ! $report ) {
 				// Calculate starting with the first day of the current year until yesterday

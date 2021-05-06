@@ -2,6 +2,8 @@
 
 namespace Vendidero\OneStopShop;
 
+use Automattic\WooCommerce\Admin\Notes\Notes;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -31,10 +33,38 @@ class Package {
 			Admin::init();
 		}
 
-		//add_action( 'admin_init', array( __CLASS__, 'test' ) );
+		Tax::init();
+
+		// add_action( 'admin_init', array( __CLASS__, 'test' ) );
 	}
 
 	public static function test() {
+		Tax::adjust_tax_rates();
+		exit();
+
+		$yesterday = new \WC_DateTime();
+		$yesterday->modify( '-2 day' );
+
+		$time_frame = Queue::get_timeframe( 'observer', $yesterday );
+
+		$date_key = 'date_paid';
+		$args = array(
+			'start' => $time_frame['start']->format( 'Y-m-d' ),
+			'end' => $time_frame['end']->format( 'Y-m-d' ),
+			'offset' => 0,
+			'limit' => 50,
+			'status' => Queue::get_order_statuses()
+		);
+
+		$query_args = Queue::get_order_query_args( $args, $date_key );
+
+		var_dump($query_args);
+
+		$orders = wc_get_orders( $query_args );
+
+		var_dump($orders);
+		exit();
+
 		// Queue::start( 'quarterly' );
 
 		/*
@@ -58,15 +88,74 @@ class Package {
 		exit();
 	}
 
+	public static function get_report_ids( $include_observer = true ) {
+		$reports = (array) get_option( 'oss_woocommerce_reports', array() );
+
+		foreach( array_keys( Package::get_available_report_types() ) as $type ) {
+			if ( ! array_key_exists( $type, $reports ) ) {
+				$reports[ $type ] = array();
+			}
+		}
+
+		if ( ! $include_observer ) {
+			$reports['observer'] = array();
+		}
+
+		return $reports;
+	}
+
+	public static function get_delivery_threshold() {
+		return 5;
+	}
+
+	public static function get_delivery_notification_threshold() {
+		return self::get_delivery_threshold() * 0.95;
+	}
+
+	public static function get_delivery_threshold_left() {
+		$net_total = 0;
+
+		if ( $observer_report = self::get_observer_report() ) {
+			$net_total = $observer_report->get_net_total();
+		}
+
+		$total_left = self::get_delivery_threshold() - $net_total;
+
+		if ( $total_left <= 0 ) {
+			$total_left = 0;
+		}
+
+		return $total_left;
+	}
+
+	public static function get_observer_report( $year = null ) {
+		if ( is_null( $year ) ) {
+			$year = date( 'Y' );
+		}
+
+		$report_id = get_option( 'oss_woocommerce_observer_report_' . $year );
+		$report    = false;
+
+		if ( ! empty( $report_id ) ) {
+			$report = Package::get_report( $report_id );
+		}
+
+		return $report;
+	}
+
 	public static function string_to_datetime( $time_string ) {
-		if ( ! is_numeric( $time_string ) ) {
+		if ( is_string( $time_string ) && ! is_numeric( $time_string ) ) {
 			$time_string = strtotime( $time_string );
 		}
 
 		$date_time = $time_string;
 
-		if ( ! is_a( $time_string, 'WC_DateTime' ) ) {
-			$date_time = new \WC_DateTime( "@{$time_string}", new \DateTimeZone( 'UTC' ) );
+		if ( is_numeric( $date_time ) ) {
+			$date_time = new \WC_DateTime( "@{$date_time}", new \DateTimeZone( 'UTC' ) );
+		}
+
+		if ( ! is_a( $date_time, 'WC_DateTime' ) ) {
+			return null;
 		}
 
 		return $date_time;
@@ -118,6 +207,24 @@ class Package {
 		return false;
 	}
 
+	public static function get_report_id( $parts ) {
+		$parts = wp_parse_args( $parts, array(
+			'type'       => 'daily',
+			'date_start' => date( 'Y-m-d' ),
+			'date_end'   => date( 'Y-m-d' ),
+		) );
+
+		if ( is_a( $parts['date_start'], 'WC_DateTime' ) ) {
+			$parts['date_start'] = $parts['date_start']->format( 'Y-m-d' );
+		}
+
+		if ( is_a( $parts['date_end'], 'WC_DateTime' ) ) {
+			$parts['date_end'] = $parts['date_end']->format( 'Y-m-d' );
+		}
+
+		return 'oss_' . $parts['type'] . '_report_' . $parts['date_start'] . '_' . $parts['date_end'];
+	}
+
 	public static function get_report_data( $id ) {
 		$id_parts = explode( '_', $id );
 		$data     = array(
@@ -162,6 +269,11 @@ class Package {
 			$date_end   = $args['date_end'];
 
 			$title = sprintf( _x( '%1$s - %2$s', 'oss', 'oss-woocommerce' ), $date_start->date_i18n( 'Y-m-d' ), $date_end->date_i18n( 'Y-m-d' ) );
+		}  elseif( 'observer' === $args['type'] ) {
+			$date_start = $args['date_start'];
+			$date_end   = $args['date_end'];
+
+			$title = sprintf( _x( 'Observer %1$s - %2$s', 'oss', 'oss-woocommerce' ), $date_start->date_i18n( 'Y-m-d' ), $date_end->date_i18n( 'Y-m-d' ) );
 		}
 
 		return $title;
@@ -169,13 +281,14 @@ class Package {
 
 	public static function get_reports( $args = array() ) {
 		$args = wp_parse_args( $args, array(
-			'type'    => '',
-			'limit'   => -1,
-			'offset'  => 0,
-			'orderby' => 'date_start'
+			'type'             => '',
+			'limit'            => -1,
+			'offset'           => 0,
+			'orderby'          => 'date_start',
+			'include_observer' => false,
 		) );
 
-		$ids = Queue::get_report_ids();
+		$ids = self::get_report_ids( $args['include_observer'] );
 
 		if ( ! empty( $args['type'] ) ) {
 			$report_ids = array_key_exists( $args['type'], $ids ) ? $ids[ $args['type'] ] : array();
@@ -219,7 +332,7 @@ class Package {
     }
 
  	public static function get_report_counts() {
-	    $types     = array_keys( Package::get_available_types() );
+	    $types     = array_keys( Package::get_available_report_types() );
 	    $cache_key = 'oss_reports_counts';
 	    $counts    = get_transient( $cache_key );
 
@@ -245,6 +358,10 @@ class Package {
     }
 
 	protected static function init_hooks() {
+		if ( ! self::is_integration() ) {
+			add_action( 'init', array( __CLASS__, 'load_plugin_textdomain' ) );
+		}
+
 		/**
 		 * Support a taxable country field within Woo order queries
 		 */
@@ -266,6 +383,73 @@ class Package {
 
 		add_action( 'init', array( __CLASS__, 'setup_recurring_observer' ), 10 );
 		add_action( 'oss_woocommerce_daily_observer', array( __CLASS__, 'update_observer_report' ), 10 );
+		add_action( 'oss_woocommerce_updated_observer', array( __CLASS__, 'maybe_send_notification' ), 10 );
+
+		add_action( 'wc_admin_daily', array( '\Vendidero\OneStopShop\Admin', 'queue_wc_admin_notes' ) );
+
+		add_action( 'woocommerce_email_classes', array( __CLASS__, 'register_emails' ), 10 );
+	}
+
+	public static function load_plugin_textdomain() {
+		if ( function_exists( 'determine_locale' ) ) {
+			$locale = determine_locale();
+		} else {
+			// @todo Remove when start supporting WP 5.0 or later.
+			$locale = is_admin() ? get_user_locale() : get_locale();
+		}
+
+		$locale = apply_filters( 'plugin_locale', $locale, 'oss-woocommerce' );
+
+		unload_textdomain( 'oss-woocommerce' );
+		load_textdomain( 'oss-woocommerce', trailingslashit( WP_LANG_DIR ) . 'oss-woocommerce/oss-woocommerce-' . $locale . '.mo' );
+		load_plugin_textdomain( 'oss-woocommerce', false, plugin_basename( dirname( __FILE__ ) ) . '/i18n/languages/' );
+	}
+
+	public static function register_emails( $emails ) {
+		$mails = array(
+			'\Vendidero\OneStopShop\DeliveryThresholdEmailNotification'
+		);
+
+		foreach( $mails as $mail ) {
+			$emails[ self::sanitize_email_class( $mail ) ] = new $mail();
+		}
+
+		return $emails;
+	}
+
+	protected static function sanitize_email_class( $class ) {
+		return 'oss_woocommerce_' . sanitize_key( str_replace( __NAMESPACE__ . '\\', '', $class ) );
+	}
+
+	public static function observer_report_needs_notification() {
+		$needs_notification = false;
+
+		if ( $report = Package::get_observer_report() ) {
+			$net_total = $report->get_net_total();
+			$threshold = Package::get_delivery_notification_threshold();
+
+			if ( $net_total >= $threshold ) {
+				$needs_notification = true;
+			}
+		}
+
+		return apply_filters( 'oss_woocommerce_observer_report_needs_notification', $needs_notification );
+	}
+
+	/**
+	 * @param Report $observer_report
+	 */
+	public static function maybe_send_notification( $observer_report ) {
+		if ( Package::observer_report_needs_notification() ) {
+			if ( 'yes' !== get_option( 'oss_woocommerce_notification_sent_' . $observer_report->get_date_start()->format( 'Y' ) ) ) {
+				$mails = WC()->mailer()->get_emails();
+				$mail  = self::sanitize_email_class( '\Vendidero\OneStopShop\DeliveryThresholdEmailNotification' );
+
+				if ( isset( $mails[ $mail ] ) ) {
+					$mails[ $mail ]->trigger( $observer_report );
+				}
+			}
+		}
 	}
 
 	public static function update_observer_report() {
@@ -291,23 +475,28 @@ class Package {
 		}
 	}
 
-	public static function get_available_types() {
-		return array(
+	public static function get_available_report_types( $include_observer = false ) {
+		$types = array(
 			'quarterly' => _x( 'Quarterly', 'oss', 'oss-woocommerce' ),
 			'yearly'    => _x( 'Yearly', 'oss', 'oss-woocommerce' ),
 			'monthly'   => _x( 'Monthly', 'oss', 'oss-woocommerce' ),
 			'custom'    => _x( 'Custom', 'oss', 'oss-woocommerce' ),
-			'observer'  => '',
 		);
+
+		if ( $include_observer ) {
+			$types['observer'] = _x( 'Observer', 'oss', 'oss-woocommerce' );
+		}
+
+		return $types;
 	}
 
 	public static function get_type_title( $type ) {
-		$types = Package::get_available_types();
+		$types = Package::get_available_report_types( true );
 
 		return array_key_exists( $type, $types ) ? $types[ $type ] : '';
 	}
 
-	public static function get_statuses() {
+	public static function get_report_statuses() {
 		return array(
 			'pending'   => _x( 'Pending', 'oss', 'oss-woocommerce' ),
 			'completed' => _x( 'Completed', 'oss', 'oss-woocommerce' ),
@@ -315,8 +504,8 @@ class Package {
 		);
 	}
 
-	public static function get_status_title( $status ) {
-		$statuses = Package::get_statuses();
+	public static function get_report_status_title( $status ) {
+		$statuses = Package::get_report_statuses();
 
 		return array_key_exists( $status, $statuses ) ? $statuses[ $status ] : '';
 	}
@@ -375,6 +564,22 @@ class Package {
 	public static function install() {
 		self::init();
 		Install::install();
+	}
+
+	public static function deactivate() {
+		if ( Admin::supports_wc_admin() ) {
+			foreach( Admin::get_notes() as $oss_note ) {
+				$note_name  = 'oss_' . $oss_note::get_id();
+				$data_store = \WC_Data_Store::load( 'admin-note' );
+				$note_ids   = $data_store->get_notes_with_name( $note_name );
+
+				if ( ! empty( $note_ids ) ) {
+					if ( $note = Notes::get_note( $note_ids[0] ) ) {
+						$note->delete( true );
+					}
+				}
+			}
+		}
 	}
 
 	public static function install_integration() {

@@ -20,8 +20,8 @@ class AsyncReportGenerator {
 		$args = wp_parse_args( $args, array(
 			'start'  => $default_start->format( 'Y-m-d' ),
 			'end'    => $default_end->format( 'Y-m-d' ),
-			'limit'  => $this->get_batch_size(),
-			'status' => $this->get_order_statuses(),
+			'limit'  => Queue::get_batch_size(),
+			'status' => Queue::get_order_statuses(),
 			'offset' => 0,
 		) );
 
@@ -100,28 +100,9 @@ class AsyncReportGenerator {
 	 * @return true|\WP_Error
 	 */
 	public function next() {
-		$date_key = $this->use_date_paid() ? 'date_paid' : 'date_created';
-		$args     = $this->args;
-
-		/**
-		 * Add/remove one day to make sure we do find orders of the same day too
-		 * as the date_paid is stored as timestamp meta data.
-		 */
-		if ( 'date_paid' === $date_key ) {
-			$args['start'] = strtotime( $args['start'] ) - DAY_IN_SECONDS;
-			$args['end']   = strtotime( $args['end'] ) + DAY_IN_SECONDS;
-		}
-
-		$query_args = array(
-			'limit'           => $args['limit'],
-			'orderby'         => 'date',
-			'order'           => 'ASC',
-			$date_key         => $args['start'] . '...' . $args['end'],
-			'offset'          => $args['offset'],
-			'taxable_country' => Package::get_non_base_eu_countries(),
-			'type'            => array( 'shop_order' ),
-			'status'          => $args['status']
-		);
+		$date_key   = Queue::use_date_paid() ? 'date_paid' : 'date_created';
+		$args       = $this->args;
+		$query_args = Queue::get_order_query_args( $args, $date_key );
 
 		Package::extended_log( sprintf( 'Building next order query: %s', wc_print_r( $query_args, true ) ) );
 
@@ -217,23 +198,8 @@ class AsyncReportGenerator {
 		return $report;
 	}
 
-	protected function get_batch_size() {
-		return apply_filters( 'oss_woocommerce_report_batch_size', 50 );
-	}
-
-	protected function use_date_paid() {
-		return apply_filters( 'oss_woocommerce_report_use_date_paid', true );
-	}
-
 	protected function get_temporary_result() {
 		return (array) get_option( $this->get_id() . '_tmp_result', array() );
-	}
-
-	protected function get_order_statuses() {
-		$statuses = array_keys( wc_get_order_statuses() );
-		$statuses = array_diff( $statuses, array( 'wc-refunded', 'wc-pending', 'wc-cancelled', 'wc-failed' ) );
-
-		return apply_filters( 'oss_woocommerce_valid_order_statuses', $statuses );
 	}
 
 	/**

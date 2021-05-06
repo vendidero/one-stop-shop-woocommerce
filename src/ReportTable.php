@@ -156,13 +156,15 @@ class ReportTable extends WP_List_Table {
 		$per_page        = apply_filters( "{$this->get_hook_prefix()}edit_per_page", $per_page );
 		$this->counts    = Package::get_report_counts();
 		$paged           = $this->get_pagenum();
+		$report_type     = isset( $_REQUEST['type'] ) ? wc_clean( $_REQUEST['type'] ) : '';
+		$report_type     = in_array( $report_type, Package::get_available_report_types( true ) ) ? $report_type : '';
 
 		$args = array(
 			'limit'       => $per_page,
 			'paginate'    => true,
 			'offset'      => ( $paged - 1 ) * $per_page,
 			'count_total' => true,
-            'type'        => '',
+            'type'        => $report_type,
 		);
 
 		$this->items = $this->get_reports( $args );
@@ -226,7 +228,7 @@ class ReportTable extends WP_List_Table {
 
 		$type_links['all'] = $this->get_edit_link( $all_args, $all_inner_html, $class );
 
-		foreach ( Package::get_available_types() as $type => $title ) {
+		foreach ( Package::get_available_report_types() as $type => $title ) {
 			$class = '';
 
 			if ( empty( $num_reports[ $type ] ) ) {
@@ -433,7 +435,7 @@ class ReportTable extends WP_List_Table {
 	public function column_status( $report ) {
 		$status = $report->get_status();
 
-		return '<span class="oss-woo-status report-status-' . esc_attr( $status ) . '">' . esc_html( Package::get_status_title( $status ) ) . '</span>';
+		return '<span class="oss-woo-status report-status-' . esc_attr( $status ) . '">' . esc_html( Package::get_report_status_title( $status ) ) . '</span>';
 	}
 
 	/**

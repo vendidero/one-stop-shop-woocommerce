@@ -2,6 +2,9 @@
 
 namespace Vendidero\OneStopShop;
 
+use Automattic\WooCommerce\Admin\Notes\Note;
+use Automattic\WooCommerce\Admin\Notes\Notes;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -21,16 +24,198 @@ class Admin {
 		add_action( 'load-woocommerce_page_oss-reports', array( __CLASS__, 'setup_table' ) );
 		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ), 15 );
 
-		add_action( 'admin_post_create_oss_report', array( __CLASS__, 'create_report' ) );
+		add_action( 'admin_post_oss_create_report', array( __CLASS__, 'create_report' ) );
+
+		foreach( array( 'delete', 'refresh', 'cancel', 'export' ) as $action ) {
+			add_action( 'admin_post_oss_' .  $action. '_report', array( __CLASS__, $action . '_report' ) );
+        }
+
+		add_action( 'admin_notices', array( __CLASS__, 'admin_notices' ) );
+		add_action( 'admin_post_oss_hide_notice', array( __CLASS__, 'hide_notice' ) );
+
+		add_action( 'admin_init', array( __CLASS__, 'queue_wc_admin_notes' ) );
+	}
+
+	public static function admin_notices() {
+		$screen         = get_current_screen();
+		$screen_id      = $screen ? $screen->id : '';
+		$supports_notes = self::supports_wc_admin();
+
+		if ( ! $supports_notes || in_array( $screen_id, array( 'dashboard', 'plugins' ) ) ) {
+			foreach( self::get_notes() as $note ) {
+			    if ( $note::is_enabled() ) {
+			        $note::render();
+                }
+            }
+		}
+    }
+
+	/**
+	 * @return AdminNote[]
+	 */
+    public static function get_notes() {
+	    return array( 'Vendidero\OneStopShop\DeliveryThresholdWarning' );
+    }
+
+    public static function supports_wc_admin() {
+	    $supports_notes = class_exists( 'Automattic\WooCommerce\Admin\Notes\Note' );
+
+	    try {
+		    $data_store = \WC_Data_Store::load( 'admin-note' );
+	    } catch( \Exception $e ) {
+		    $supports_notes = false;
+	    }
+
+	    return $supports_notes;
+    }
+
+	public static function queue_wc_admin_notes() {
+	    if ( self::supports_wc_admin() ) {
+		    foreach( self::get_notes() as $oss_note ) {
+			    $note_name  = 'oss_' . $oss_note::get_id();
+			    $data_store = \WC_Data_Store::load( 'admin-note' );
+			    $note_ids   = $data_store->get_notes_with_name( $note_name );
+
+			    if ( empty( $note_ids ) && $oss_note::is_enabled() ) {
+				    $note = new Note();
+				    $note->set_title( $oss_note::get_title() );
+				    $note->set_content( $oss_note::get_content() );
+				    $note->set_content_data( (object) array() );
+				    $note->set_type( 'update' );
+				    $note->set_name( 'oss_' . $oss_note::get_id() );
+				    $note->set_source( 'oss-woocommerce' );
+				    $note->set_status( Note::E_WC_ADMIN_NOTE_UNACTIONED );
+
+				    foreach ( $oss_note::get_actions() as $action ) {
+					    $note->add_action(
+						    'oss_' . sanitize_key( $action['title'] ),
+						    $action['title'],
+						    $action['url'],
+						    'disabled',
+						    $action['is_primary'] ? true : false
+					    );
+				    }
+
+				    $note->save();
+			    } elseif ( $oss_note::is_enabled() ) {
+				    if ( $note = Notes::get_note( $note_ids[0] ) ) {
+					    $note->set_status( Note::E_WC_ADMIN_NOTE_UNACTIONED );
+					    $note->save();
+				    }
+			    }
+		    }
+        }
+    }
+
+    public static function get_threshold_notice_content() {
+	    return sprintf( _x( 'Seems like you have reached (or are close to reaching) the delivery threshold for the current year. Please make sure to check the <a href="%s" target="_blank">report details</a> and take action in case necessary.', 'oss', 'oss-woocommerce' ), esc_url( Package::get_observer_report()->get_url() ) );
+    }
+
+	public static function get_threshold_notice_title() {
+        return _x( 'Delivery threshold reached (OSS)', 'oss', 'oss-woocommerce' );
+	}
+
+	public static function hide_notice() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? $_GET['_wpnonce'] : '', 'oss_hide_notice' ) ) {
+			wp_die();
+		}
+
+		$notice_id = isset( $_GET['notice'] ) ? wc_clean( $_GET['notice'] ) : '';
+
+		foreach( self::get_notes() as $note ) {
+		    if ( $note::get_id() == $notice_id ) {
+		        update_option( 'oss_hide_notice_' . sanitize_key( $note::get_id() ), 'yes' );
+		        break;
+            }
+        }
+
+		wp_safe_redirect( wp_get_referer() );
+		exit();
+	}
+
+	public static function delete_report() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? $_GET['_wpnonce'] : '', 'oss_delete_report' ) ) {
+			wp_die();
+		}
+
+		$report_id = isset( $_GET['report_id'] ) ? wc_clean( $_GET['report_id'] ) : '';
+
+		if ( ! empty( $report_id ) && ( $report = Package::get_report( $report_id ) ) ) {
+		    $report->delete();
+
+		    wp_safe_redirect( add_query_arg( array( 'report_deleted' => $report_id ), self::get_clean_referer() ) );
+		    exit();
+        }
+
+		wp_safe_redirect( wp_get_referer() );
+		exit();
+    }
+
+    protected static function get_clean_referer() {
+	    $referer = wp_get_referer();
+
+	    return remove_query_arg( array( 'report_created', 'report_deleted', 'report_restarted', 'report_cancelled' ), $referer );
+    }
+
+	public static function export_report() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? $_GET['_wpnonce'] : '', 'oss_export_report' ) ) {
+			wp_die();
+		}
+
+		$report_id = isset( $_GET['report_id'] ) ? wc_clean( $_GET['report_id'] ) : '';
+
+		if ( ! empty( $report_id ) && ( $report = Package::get_report( $report_id ) ) ) {
+			$csv = new CSVExporter( $report_id );
+			$csv->export();
+		} else {
+			wp_safe_redirect( wp_get_referer() );
+			exit();
+        }
+	}
+
+	public static function refresh_report() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? $_GET['_wpnonce'] : '', 'oss_refresh_report' ) ) {
+			wp_die();
+		}
+
+		$report_id = isset( $_GET['report_id'] ) ? wc_clean( $_GET['report_id'] ) : '';
+
+		if ( ! empty( $report_id ) && ( $report = Package::get_report( $report_id ) ) ) {
+			Queue::start( $report->get_type(), $report->get_date_start(), $report->get_date_end() );
+
+			wp_safe_redirect( add_query_arg( array( 'report_restarted' => $report_id ), self::get_clean_referer() ) );
+			exit();
+		}
+
+		wp_safe_redirect( wp_get_referer() );
+		exit();
+	}
+
+	public static function cancel_report() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? $_GET['_wpnonce'] : '', 'oss_cancel_report' ) ) {
+			wp_die();
+		}
+
+		$report_id = isset( $_GET['report_id'] ) ? wc_clean( $_GET['report_id'] ) : '';
+
+		if ( ! empty( $report_id ) && Queue::is_running( $report_id ) ) {
+			Queue::cancel( $report_id );
+
+			wp_safe_redirect( add_query_arg( array( 'report_cancelled' => $report_id ), self::get_clean_referer() ) );
+			exit();
+		}
+
+		wp_safe_redirect( wp_get_referer() );
+		exit();
 	}
 
 	public static function create_report() {
-	    if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_POST['_wpnonce'] ) ? $_POST['_wpnonce'] : '', 'create_oss_report' ) ) {
+	    if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_POST['_wpnonce'] ) ? $_POST['_wpnonce'] : '', 'oss_create_report' ) ) {
 	        wp_die();
         }
 
 	    $report_type = ! empty( $_POST['report_type'] ) ? wc_clean( $_POST['report_type'] ) : 'yearly';
-	    $report_type = array_key_exists( $report_type, Package::get_available_types() ) ? $report_type : 'yearly';
+	    $report_type = array_key_exists( $report_type, Package::get_available_report_types() ) ? $report_type : 'yearly';
 	    $start_date  = null;
 		$end_date    = null;
 
@@ -55,7 +240,7 @@ class Admin {
 
 	    $generator_id = Queue::start( $report_type, $start_date, $end_date );
 
-		wp_safe_redirect( admin_url( 'admin.php?page=oss-reports&created=' . $generator_id ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=oss-reports&report_created=' . $generator_id ) );
 		exit();
 	}
 
@@ -115,7 +300,7 @@ class Admin {
                             </th>
                             <td id="oss-report-type-data">
                                 <select name="report_type" id="oss-report-type" class="wc-enhanced-select">
-                                    <?php foreach( Package::get_available_types() as $type => $title ) : ?>
+                                    <?php foreach( Package::get_available_report_types() as $type => $title ) : ?>
                                         <option value="<?php echo esc_attr( $type ); ?>"><?php echo esc_html( $title ); ?></option>
                                     <?php endforeach; ?>
                                 </select>
@@ -173,8 +358,8 @@ class Admin {
                 <div class="oss-actions">
                     <button type="submit" class="oss-new-report-button button button-primary" value="<?php echo esc_attr_x( 'Start report', 'oss', 'oss-woocommerce' ); ?>"><?php echo esc_attr_x( 'Start report', 'oss', 'oss-woocommerce' ); ?></button>
                 </div>
-                <?php wp_nonce_field( 'create_oss_report' ); ?>
-                <input type="hidden" name="action" value="create_oss_report" />
+                <?php wp_nonce_field( 'oss_create_report' ); ?>
+                <input type="hidden" name="action" value="oss_create_report" />
             </form>
         </div>
         <?php
@@ -230,30 +415,15 @@ class Admin {
 				'title' => _x( 'View', 'oss', 'oss-woocommerce' )
 			),
 			'export' => array(
-				'url' => add_query_arg(
-					array(
-						'action'    => 'oss-export-report',
-						'report_id' => $report->get_id(),
-					), wp_nonce_url( admin_url( 'admin-get.php' ), 'oss-export-report' )
-				),
+				'url' => $report->get_export_link(),
 				'title' => _x( 'Export', 'oss', 'oss-woocommerce' )
 			),
 			'refresh' => array(
-				'url' => add_query_arg(
-					array(
-						'action'    => 'oss-refresh-report',
-						'report_id' => $report->get_id(),
-					), wp_nonce_url( admin_url( 'admin-get.php' ), 'oss-refresh-report' )
-				),
+				'url' => $report->get_refresh_link(),
 				'title' => _x( 'Refresh', 'oss', 'oss-woocommerce' )
 			),
 			'delete' => array(
-				'url' => add_query_arg(
-					array(
-						'action'    => 'oss-delete-report',
-						'report_id' => $report->get_id(),
-					), wp_nonce_url( admin_url( 'admin-get.php' ), 'oss-delete-report' )
-				),
+				'url' => $report->get_delete_link(),
 				'title' => _x( 'Delete', 'oss', 'oss-woocommerce' )
 			),
 		);
@@ -265,6 +435,13 @@ class Admin {
 			unset( $actions['view'] );
 			unset( $actions['refresh'] );
 			unset( $actions['delete'] );
+			unset( $actions['export'] );
+		}
+
+		if ( 'observer' === $report->get_type() ) {
+		    unset( $actions['delete'] );
+		    unset( $actions['refresh'] );
+		    unset( $actions['cancel'] );
 		}
 
 		return $actions;
@@ -396,7 +573,7 @@ class Admin {
 	}
 
 	public static function register_settings( $settings ) {
-		$settings[] = new Settings();
+		$settings[] = new SettingsPage();
 	}
 
 	public static function get_screen_ids() {
