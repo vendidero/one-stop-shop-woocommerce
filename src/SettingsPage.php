@@ -25,9 +25,7 @@ class SettingsPage extends \WC_Settings_Page {
 	 * @return array
 	 */
 	public function get_sections() {
-		$sections = array(
-			'' => _x( 'General', 'oss', 'oss-woocommerce' ),
-		);
+		$sections = Settings::get_sections();
 
 		return apply_filters( 'woocommerce_get_sections_' . $this->id, $sections );
 	}
@@ -38,11 +36,7 @@ class SettingsPage extends \WC_Settings_Page {
 	 * @return array
 	 */
 	public function get_settings( $current_section = '' ) {
-		$settings = array();
-
-		if ( '' === $current_section ) {
-			$settings = Settings::get_settings();
-		}
+		$settings = Settings::get_settings( $current_section );
 
 		return apply_filters( 'woocommerce_get_settings_' . $this->id, $settings );
 	}

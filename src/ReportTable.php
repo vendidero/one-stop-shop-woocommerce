@@ -77,7 +77,7 @@ class ReportTable extends WP_List_Table {
 	 * @return string
 	 */
 	public function handle_bulk_actions( $action, $ids, $redirect_to ) {
-		$ids         = array_reverse( array_map( 'absint', $ids ) );
+		$ids         = array_reverse( wc_clean( $ids ) );
 		$changed     = 0;
 
 		if( 'delete' === $action ) {
@@ -136,7 +136,7 @@ class ReportTable extends WP_List_Table {
 	}
 
 	public function get_page_option() {
-		return 'oss_woocommerce_reports_per_page';
+		return 'woocommerce_page_oss_reports_per_page';
 	}
 
 	public function get_reports( $args ) {
@@ -157,14 +157,15 @@ class ReportTable extends WP_List_Table {
 		$this->counts    = Package::get_report_counts();
 		$paged           = $this->get_pagenum();
 		$report_type     = isset( $_REQUEST['type'] ) ? wc_clean( $_REQUEST['type'] ) : '';
-		$report_type     = in_array( $report_type, Package::get_available_report_types( true ) ) ? $report_type : '';
+		$report_type     = in_array( $report_type, array_keys( Package::get_available_report_types( true ) ) ) ? $report_type : '';
 
 		$args = array(
-			'limit'       => $per_page,
-			'paginate'    => true,
-			'offset'      => ( $paged - 1 ) * $per_page,
-			'count_total' => true,
-            'type'        => $report_type,
+			'limit'            => $per_page,
+			'paginate'         => true,
+			'offset'           => ( $paged - 1 ) * $per_page,
+			'count_total'      => true,
+            'type'             => $report_type,
+            'include_observer' => 'observer' === $report_type ? true : false,
 		);
 
 		$this->items = $this->get_reports( $args );
@@ -210,6 +211,7 @@ class ReportTable extends WP_List_Table {
 		$type_links       = array();
 		$num_reports      = $this->counts;
 		$total_reports    = array_sum( (array) $num_reports );
+		$total_reports    = $total_reports - ( isset( $num_reports['observer'] ) ? $num_reports['observer'] : 0 );
 		$class            = '';
 		$all_args         = array();
 
@@ -228,7 +230,7 @@ class ReportTable extends WP_List_Table {
 
 		$type_links['all'] = $this->get_edit_link( $all_args, $all_inner_html, $class );
 
-		foreach ( Package::get_available_report_types() as $type => $title ) {
+		foreach ( Package::get_available_report_types( true ) as $type => $title ) {
 			$class = '';
 
 			if ( empty( $num_reports[ $type ] ) ) {

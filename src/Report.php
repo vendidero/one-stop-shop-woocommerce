@@ -163,6 +163,8 @@ class Report {
 		$this->set_tax_total( 0 );
 		$this->set_date_requested( new \WC_DateTime() );
 		$this->set_status( 'pending' );
+
+		delete_option( $this->id . '_tmp_result' );
 	}
 
 	public function get_tax_rates_by_country( $country ) {
@@ -236,6 +238,8 @@ class Report {
 			update_option( 'oss_woocommerce_reports', $reports_available );
 		}
 
+		delete_option( $this->id . '_tmp_result' );
+
 		Package::clear_caches();
 
 		return $this->id;
@@ -243,12 +247,17 @@ class Report {
 
 	public function delete() {
 		delete_option( $this->id . '_result' );
+		delete_option( $this->id . '_tmp_result' );
 
 		$reports_available = Package::get_report_ids();
 
 		if ( in_array( $this->get_id(), $reports_available[ $this->get_type() ] ) ) {
 			$reports_available[ $this->get_type() ] = array_diff( $reports_available[ $this->get_type() ], array( $this->get_id() ) );
 			update_option( 'oss_woocommerce_reports', $reports_available );
+		}
+
+		if ( 'observer' === $this->get_type() ) {
+			delete_option( 'oss_woocommerce_observer_report_' . $this->get_date_start()->format( 'Y' ) );
 		}
 
 		Package::clear_caches();

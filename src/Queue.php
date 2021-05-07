@@ -36,7 +36,10 @@ class Queue {
 			);
 
 			$running = self::get_reports_running();
-			$running[ $generator->get_id() ] = 'pending';
+
+			if ( ! in_array( $generator->get_id(), $running ) ) {
+				$running[] = $generator->get_id();
+			}
 
 			update_option( 'oss_woocommerce_reports_running', $running );
 
@@ -44,6 +47,36 @@ class Queue {
 		}
 
 		return false;
+	}
+
+	public static function get_queue_details( $report_id ) {
+		$details = array(
+			'next_date'   => null,
+			'link'        => admin_url( 'admin.php?page=wc-status&tab=action-scheduler&s=' . esc_attr( $report_id ) .'&status=pending' ),
+			'order_count' => 0,
+		);
+
+		if ( $queue = self::get_queue() ) {
+
+			if ( $next_date = $queue->get_next( 'oss_woocommerce_' . $report_id ) ) {
+				$details['next_date'] = $next_date;
+			}
+
+			$results = $queue->search( array(
+				'hook'   => 'oss_woocommerce_' . $report_id,
+				'status' => \ActionScheduler_Store::STATUS_PENDING
+			) );
+
+			if ( ! empty( $results ) ) {
+				$action    = array_values( $results )[0];
+				$args      = $action->get_args();
+				$processed = isset( $args['args']['orders_processed'] ) ? (int) $args['args']['orders_processed'] : 0;
+
+				$details['order_count'] = absint( $processed );
+			}
+		}
+
+		return $details;
 	}
 
 	public static function get_batch_size() {
@@ -91,10 +124,11 @@ class Queue {
 		$running   = self::get_reports_running();
 
 		if ( self::is_running( $id ) ) {
-			unset( $running[ $id ] );
-			Package::log( sprintf( 'Cancelled %s', Package::get_report_title( $id ) ) );
-			update_option( 'oss_woocommerce_reports_running', $running );
+			$running = array_diff( $running, array( $id ) );
 
+			Package::log( sprintf( 'Cancelled %s', Package::get_report_title( $id ) ) );
+
+			update_option( 'oss_woocommerce_reports_running', $running );
 			$generator->delete();
 		}
 
@@ -111,22 +145,8 @@ class Queue {
 	public static function is_running( $id ) {
 		$running = self::get_reports_running();
 
-		if ( array_key_exists( $id, $running ) && 'pending' === $running[ $id ] ) {
-			if ( self::get_queue()->get_next( 'oss_woocommerce_' . $id ) ) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	public static function is_completed( $id ) {
-		$running = self::get_reports_running();
-
-		if ( array_key_exists( $id, $running ) && 'completed' === $running[ $id ] ) {
-			if ( ! self::get_queue()->get_next( 'oss_woocommerce_' . $id ) ) {
-				return true;
-			}
+		if ( in_array( $id, $running ) && self::get_queue()->get_next( 'oss_woocommerce_' . $id ) ) {
+			return true;
 		}
 
 		return false;
@@ -182,10 +202,8 @@ class Queue {
 
 		$running = self::get_reports_running();
 
-		if ( ! array_key_exists( $generator->get_id(), $running ) ) {
-			$running[ $generator->get_id() ] = $status;
-		} else {
-			$running[ $generator->get_id() ] = $status;
+		if ( in_array( $generator->get_id(), $running ) ) {
+			$running = array_diff( $running, array( $generator->get_id() ) );
 		}
 
 		update_option( 'oss_woocommerce_reports_running', $running );
@@ -230,6 +248,19 @@ class Queue {
 		update_option( 'oss_woocommerce_observer_report_' . $year, $observer_report->get_id() );
 
 		do_action( 'oss_woocommerce_updated_observer', $observer_report );
+	}
+
+	/**
+	 * @return false|Report
+	 */
+	public static function get_running_observer() {
+		foreach( self::get_reports_running() as $id ) {
+			if ( strstr( $id, 'observer_' ) ) {
+				return Package::get_report( $id );
+			}
+		}
+
+		return false;
 	}
 
 	public static function get_reports_running() {

@@ -30,10 +30,46 @@ class Admin {
 			add_action( 'admin_post_oss_' .  $action. '_report', array( __CLASS__, $action . '_report' ) );
         }
 
+		add_action( 'admin_post_oss_switch_procedure', array( __CLASS__, 'switch_procedure' ) );
+		add_action( 'admin_post_oss_init_observer', array( __CLASS__, 'init_observer' ) );
+
 		add_action( 'admin_notices', array( __CLASS__, 'admin_notices' ) );
 		add_action( 'admin_post_oss_hide_notice', array( __CLASS__, 'hide_notice' ) );
 
 		add_action( 'admin_init', array( __CLASS__, 'queue_wc_admin_notes' ) );
+		add_filter( 'woocommerce_screen_ids', array( __CLASS__, 'add_table_view' ), 10 );
+
+		add_filter( 'set-screen-option', array( __CLASS__, 'set_screen_option' ), 10, 3 );
+		add_filter( 'set_screen_option_woocommerce_page_wc_gzd_shipments_per_page', array( __CLASS__, 'set_screen_option' ), 10, 3 );
+
+		if ( ! has_action( 'woocommerce_admin_field_html' ) ) {
+			add_action( 'woocommerce_admin_field_html', array( __CLASS__, 'html_field' ), 10, 1 );
+        }
+	}
+
+	public static function html_field( $value ) {
+		?>
+        <tr valign="top">
+            <th class="forminp forminp-html" id="<?php echo esc_attr( $value['id'] ); ?>">
+                <label><?php echo esc_attr( $value['title'] ); ?><?php echo( isset( $value['desc_tip'] ) && ! empty( $value['desc_tip'] ) ? wc_help_tip( $value['desc_tip'] ) : '' ); // WPCS: XSS ok. ?></label>
+            </th>
+            <td class="forminp"><?php echo $value['html']; ?></td>
+        </tr>
+		<?php
+	}
+
+	public static function add_table_view( $screen_ids ) {
+		$screen_ids[] = 'woocommerce_page_oss-reports';
+
+		return $screen_ids;
+	}
+
+	public static function set_screen_option( $new_value, $option, $value ) {
+		if ( in_array( $option, array( 'woocommerce_page_oss_reports_per_page' ) ) ) {
+			return absint( $value );
+		}
+
+		return $new_value;
 	}
 
 	public static function admin_notices() {
@@ -113,6 +149,34 @@ class Admin {
 
 	public static function get_threshold_notice_title() {
         return _x( 'Delivery threshold reached (OSS)', 'oss', 'oss-woocommerce' );
+	}
+
+	public static function init_observer() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? $_GET['_wpnonce'] : '', 'oss_init_observer' ) ) {
+			wp_die();
+		}
+
+		if ( ! Queue::get_running_observer() ) {
+			Package::update_observer_report();
+		}
+
+		wp_safe_redirect( wp_get_referer() );
+		exit();
+	}
+
+	public static function switch_procedure() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? $_GET['_wpnonce'] : '', 'oss_switch_procedure' ) ) {
+			wp_die();
+		}
+
+		if ( Package::oss_procedure_is_enabled() ) {
+			update_option( 'oss_use_oss_procedure', 'no' );
+		} else {
+		    update_option( 'woocommerce_tax_based_on', 'shipping' );
+            update_option( 'oss_use_oss_procedure', 'yes' );
+
+            Tax::import_oss_tax_rates();
+		}
 	}
 
 	public static function hide_notice() {
@@ -248,12 +312,6 @@ class Admin {
 		add_submenu_page( 'woocommerce', _x( 'OSS', 'oss', 'oss-woocommerce' ), _x( 'One Stop Shop', 'oss', 'oss-woocommerce' ), 'manage_woocommerce', 'oss-reports', array( __CLASS__, 'render_report_page' ) );
 	}
 
-	public static function get_reports_notices() {
-	    foreach( Queue::get_reports_running() as $type => $reports ) {
-
-        }
-    }
-
 	protected static function render_create_report() {
 	    $years   = array();
 		$years[] = date( 'Y' );
@@ -344,12 +402,12 @@ class Admin {
                         </tr>
                         <tr id="oss-report-timeframe-wrapper" class="oss-report-hidden oss-report-custom">
                             <th scope="row">
-                                <label for="sab-exporter-start-date"><?php echo esc_html_x( 'Date range', 'storeabill-core', 'storeabill' ); ?></label>
+                                <label for="oss-report-date-start"><?php echo esc_html_x( 'Date range', 'storeabill-core', 'storeabill' ); ?></label>
                             </th>
-                            <td id="sab-exporter-date-range">
-                                <input type="text" size="11" placeholder="yyyy-mm-dd" value="" name="date_start" class="range_datepicker from" autocomplete="off" /><?php //@codingStandardsIgnoreLine ?>
+                            <td id="oss-report-custom-data">
+                                <input type="text" size="11" placeholder="yyyy-mm-dd" value="" id="oss-report-date-start" name="date_start" class="oss_range_datepicker from" autocomplete="off" /><?php //@codingStandardsIgnoreLine ?>
                                 <span>&ndash;</span>
-                                <input type="text" size="11" placeholder="yyyy-mm-dd" value="" name="date_end" class="range_datepicker to" autocomplete="off" /><?php //@codingStandardsIgnoreLine ?>
+                                <input type="text" size="11" placeholder="yyyy-mm-dd" value="" name="date_end" class="oss_range_datepicker to" autocomplete="off" /><?php //@codingStandardsIgnoreLine ?>
                             </td>
                         </tr>
                         </tbody>
@@ -439,9 +497,7 @@ class Admin {
 		}
 
 		if ( 'observer' === $report->get_type() ) {
-		    unset( $actions['delete'] );
 		    unset( $actions['refresh'] );
-		    unset( $actions['cancel'] );
 		}
 
 		return $actions;
@@ -453,10 +509,6 @@ class Admin {
 	    $report_id = wc_clean( $_GET['report'] );
 
 	    if ( ! $report = Package::get_report( $report_id ) ) {
-	        return;
-	    }
-
-	    if ( 'completed' !== $report->get_status() ) {
 	        return;
 	    }
 
@@ -478,33 +530,37 @@ class Admin {
                 <a class="page-title-action button-<?php echo esc_attr( $action_type ); ?>" href="<?php echo esc_url( $action['url'] ); ?>"><?php echo esc_html( $action['title'] ); ?></a>
             <?php endforeach; ?>
 
-            <p class="summary"><?php echo $report->get_date_start()->date_i18n( wc_date_format() ); ?> - <?php echo $report->get_date_end()->date_i18n( wc_date_format() ); ?>: <?php echo wc_price( $report->get_net_total() ); ?> (<?php echo wc_price( $report->get_tax_total() ); ?>)</p>
-
-            <hr class="wp-header-end" />
-
-            <table class="oss-report-details widefat" cellspacing="0">
-                <thead>
-                <tr>
-			        <?php foreach ( $columns as $key => $column ) : ?>
-				       <th class="oss-report-table-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $column ); ?></th>
-			        <?php endforeach; ?>
-                </tr>
-                </thead>
-                <tbody>
-		        <?php
-		        foreach ( $report->get_countries() as $country ) :
-		            foreach( $report->get_tax_rates_by_country( $country ) as $tax_rate ) :
-			        ?>
+            <?php if ( 'completed' === $report->get_status() ) : ?>
+                <p class="summary"><?php echo $report->get_date_start()->date_i18n( wc_date_format() ); ?> &ndash; <?php echo $report->get_date_end()->date_i18n( wc_date_format() ); ?>: <?php echo wc_price( $report->get_net_total() ); ?> (<?php echo wc_price( $report->get_tax_total() ); ?>)</p>
+                <hr class="wp-header-end" />
+                <table class="wp-list-table widefat fixed striped posts oss-report-details" cellspacing="0">
+                    <thead>
                     <tr>
-                        <td class="oss-report-table-country"><?php echo esc_html( $country ); ?></td>
-                        <td class="oss-report-table-tax_rate"><?php echo esc_html( sprintf( _x( '%1$s %%', 'oss', 'oss-woocommerce' ), $tax_rate ) ); ?></td>
-                        <td class="oss-report-table-net_total"><?php echo wc_price( $report->get_country_net_total( $country, $tax_rate ) ); ?></td>
-                        <td class="oss-report-table-tax_total"><?php echo wc_price( $report->get_country_tax_total( $country, $tax_rate ) ); ?></td>
+                        <?php foreach ( $columns as $key => $column ) : ?>
+                           <th class="oss-report-table-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $column ); ?></th>
+                        <?php endforeach; ?>
                     </tr>
-		            <?php endforeach; ?>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    <?php
+                    foreach ( $report->get_countries() as $country ) :
+                        foreach( $report->get_tax_rates_by_country( $country ) as $tax_rate ) :
+                        ?>
+                        <tr>
+                            <td class="oss-report-table-country"><?php echo esc_html( $country ); ?></td>
+                            <td class="oss-report-table-tax_rate"><?php echo esc_html( sprintf( _x( '%1$s %%', 'oss', 'oss-woocommerce' ), $tax_rate ) ); ?></td>
+                            <td class="oss-report-table-net_total"><?php echo wc_price( $report->get_country_net_total( $country, $tax_rate ) ); ?></td>
+                            <td class="oss-report-table-tax_total"><?php echo wc_price( $report->get_country_tax_total( $country, $tax_rate ) ); ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else :
+	            $details = Queue::get_queue_details( $report_id );
+                ?>
+                <p class="summary"><?php printf( _x( 'Currently processed %1$s orders. Next iteration is scheduled for %2$s. <a href="%3$s">Find pending actions</a>', 'oss', 'oss-woocommerce' ), $details['order_count'], $details['next_date'] ? $details['next_date']->date_i18n( wc_date_format() . ' @ ' . wc_time_format() ) : _x( 'Not yet known', 'oss', 'oss-woocommerce' ), esc_url( $details['link'] ) ); ?></p>
+            <?php endif; ?>
         </div>
         <?php
 	}
@@ -548,16 +604,16 @@ class Admin {
             $report_ids = array();
 
             if ( isset( $_REQUEST['ids'] ) ) {
-                $report_ids = explode( ',', $_REQUEST['ids'] );
-            } elseif ( ! empty( $_REQUEST['document'] ) ) {
-                $report_ids = array_map( 'intval', $_REQUEST['reports'] );
+                $report_ids = explode( ',', wc_clean( $_REQUEST['ids'] ) );
+            } elseif ( ! empty( $_REQUEST['report'] ) ) {
+                $report_ids = wc_clean( $_REQUEST['report'] );
             }
 
             if ( ! empty( $report_ids ) ) {
                 $sendback = $wp_list_table->handle_bulk_actions( $doaction, $report_ids, $sendback );
             }
 
-            $sendback = remove_query_arg( array( 'action', 'action2', '_status', 'bulk_edit', 'report' ), $sendback );
+            $sendback = remove_query_arg( array( 'action', 'action2', '_status', 'bulk_edit', 'report', 'report_created' ), $sendback );
 
             wp_redirect( $sendback );
             exit();
@@ -573,16 +629,15 @@ class Admin {
 	}
 
 	public static function register_settings( $settings ) {
-		$settings[] = new SettingsPage();
+	    if ( ! Package::is_integration() ) {
+		    $settings[] = new SettingsPage();
+	    }
+
+	    return $settings;
 	}
 
 	public static function get_screen_ids() {
-		$screen_ids = array();
-
-		foreach ( wc_get_order_types() as $type ) {
-			$screen_ids[] = $type;
-			$screen_ids[] = 'edit-' . $type;
-		}
+		$screen_ids = array( "woocommerce_page_wc-settings", "woocommerce_page_oss-reports", "product" );
 
 		return $screen_ids;
 	}
@@ -590,8 +645,9 @@ class Admin {
 	public static function admin_styles() {
 		$screen    = get_current_screen();
 		$screen_id = $screen ? $screen->id : '';
+		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
-		wp_register_style( 'oss_woo', Package::get_url() . '/assets/styles/admin.css', array(), Package::get_version() );
+		wp_register_style( 'oss_woo', Package::get_url() . '/assets/css/admin' . $suffix . '.css', array(), Package::get_version() );
 
 		// Admin styles for WC pages only.
 		if ( in_array( $screen_id, self::get_screen_ids() ) ) {
@@ -604,35 +660,25 @@ class Admin {
 
 		$screen    = get_current_screen();
 		$screen_id = $screen ? $screen->id : '';
+		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+		$deps      = array( 'jquery', 'woocommerce_admin' );
 
-		/*
+		if ( in_array( $screen_id, array( 'woocommerce_page_oss-reports' ) ) ) {
+		    $deps[] = 'jquery-ui-datepicker';
+		}
 
-		wp_register_script( 'storeabill_woo_admin_edit_order', Package::get_build_url() . '/admin/edit-order.js', array( 'woocommerce_admin', 'storeabill_admin_global', 'wc-admin-order-meta-boxes' ), Package::get_version() );
-		wp_register_script( 'storeabill_woo_admin_bulk_actions', Package::get_build_url() . '/admin/bulk-actions.js', array( 'woocommerce_admin', 'storeabill_admin_global' ), Package::get_version() );
+		wp_register_script( 'oss-admin', Package::get_assets_url() . '/js/admin' . $suffix . '.js', $deps, Package::get_version() );
 
-		if ( 'edit-shop_order' === $screen_id ) {
-			wp_enqueue_script( 'storeabill_woo_admin_bulk_actions' );
-
-			$bulk_actions = array();
-
-			foreach( \Vendidero\StoreaBill\Admin\Admin::get_bulk_actions_handlers( 'shop_order' ) as $handler ) {
-				$bulk_actions[ sanitize_key( $handler->get_action() ) ] = array(
-					'title' => $handler->get_title(),
-					'nonce' => wp_create_nonce( $handler->get_nonce_action() ),
-				);
-			}
+		if ( in_array( $screen_id, self::get_screen_ids() ) ) {
+			wp_enqueue_script( 'oss-admin' );
 
 			wp_localize_script(
-				'storeabill_woo_admin_bulk_actions',
-				'storeabill_admin_bulk_actions_params',
+				'oss-admin',
+				'oss_admin_params',
 				array(
-					'ajax_url'               => admin_url( 'admin-ajax.php' ),
-					'bulk_actions'           => $bulk_actions,
-					'table_type'             => 'post',
-					'object_input_type_name' => 'post_type',
+					'ajax_url' => admin_url( 'admin-ajax.php' ),
 				)
 			);
 		}
-		*/
 	}
 }

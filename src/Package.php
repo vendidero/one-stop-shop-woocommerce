@@ -39,7 +39,7 @@ class Package {
 	}
 
 	public static function test() {
-		Tax::adjust_tax_rates();
+		Tax::import_oss_tax_rates();
 		exit();
 
 		$yesterday = new \WC_DateTime();
@@ -88,10 +88,18 @@ class Package {
 		exit();
 	}
 
+	public static function oss_procedure_is_enabled() {
+		return 'yes' === get_option( 'oss_use_oss_procedure' );
+	}
+
+	public static function enable_auto_observer() {
+		return 'yes' === get_option( 'oss_enable_auto_observation' );
+	}
+
 	public static function get_report_ids( $include_observer = true ) {
 		$reports = (array) get_option( 'oss_woocommerce_reports', array() );
 
-		foreach( array_keys( Package::get_available_report_types() ) as $type ) {
+		foreach( array_keys( Package::get_available_report_types( $include_observer ) ) as $type ) {
 			if ( ! array_key_exists( $type, $reports ) ) {
 				$reports[ $type ] = array();
 			}
@@ -128,6 +136,26 @@ class Package {
 		return $total_left;
 	}
 
+	/**
+	 * @param null $year
+	 *
+	 * @return false|Report
+	 */
+	public static function get_completed_observer_report( $year = null ) {
+		$observer_report = self::get_observer_report( $year );
+
+		if ( ! $observer_report || 'completed' !== $observer_report->get_status() ) {
+			return false;
+		}
+
+		return $observer_report;
+	}
+
+	/**
+	 * @param null $year
+	 *
+	 * @return false|Report
+	 */
 	public static function get_observer_report( $year = null ) {
 		if ( is_null( $year ) ) {
 			$year = date( 'Y' );
@@ -273,7 +301,7 @@ class Package {
 			$date_start = $args['date_start'];
 			$date_end   = $args['date_end'];
 
-			$title = sprintf( _x( 'Observer %1$s - %2$s', 'oss', 'oss-woocommerce' ), $date_start->date_i18n( 'Y-m-d' ), $date_end->date_i18n( 'Y-m-d' ) );
+			$title = sprintf( _x( 'Observer %1$s', 'oss', 'oss-woocommerce' ), $date_start->date_i18n( 'Y' ) );
 		}
 
 		return $title;
@@ -332,7 +360,7 @@ class Package {
     }
 
  	public static function get_report_counts() {
-	    $types     = array_keys( Package::get_available_report_types() );
+	    $types     = array_keys( Package::get_available_report_types( true ) );
 	    $cache_key = 'oss_reports_counts';
 	    $counts    = get_transient( $cache_key );
 
@@ -343,7 +371,7 @@ class Package {
 			    $counts[ $type ] = 0;
 		    }
 
-		    foreach( self::get_reports() as $report ) {
+		    foreach( self::get_reports( array( 'include_observer' => true ) ) as $report ) {
 		    	if ( ! array_key_exists( $report->get_type(), $counts ) ) {
 		    		continue;
 			    }
@@ -370,24 +398,23 @@ class Package {
 		/**
 		 * Listen to action scheduler hooks for report generation
 		 */
-		foreach( Queue::get_reports_running() as $id => $status ) {
-			if ( 'pending' === $status ) {
-				$data = Package::get_report_data( $id );
-				$type = $data['type'];
+		foreach( Queue::get_reports_running() as $id ) {
+			$data = Package::get_report_data( $id );
+			$type = $data['type'];
 
-				add_action( 'oss_woocommerce_' . $id, function( $args ) use ( $type ) {
-					Queue::next( $type, $args );
-				}, 10, 1 );
-			}
+			add_action( 'oss_woocommerce_' . $id, function( $args ) use ( $type ) {
+				Queue::next( $type, $args );
+			}, 10, 1 );
 		}
 
-		add_action( 'init', array( __CLASS__, 'setup_recurring_observer' ), 10 );
-		add_action( 'oss_woocommerce_daily_observer', array( __CLASS__, 'update_observer_report' ), 10 );
-		add_action( 'oss_woocommerce_updated_observer', array( __CLASS__, 'maybe_send_notification' ), 10 );
+		if ( Package::enable_auto_observer() ) {
+			add_action( 'init', array( __CLASS__, 'setup_recurring_observer' ), 10 );
+			add_action( 'oss_woocommerce_daily_observer', array( __CLASS__, 'update_observer_report' ), 10 );
+			add_action( 'oss_woocommerce_updated_observer', array( __CLASS__, 'maybe_send_notification' ), 10 );
 
-		add_action( 'wc_admin_daily', array( '\Vendidero\OneStopShop\Admin', 'queue_wc_admin_notes' ) );
-
-		add_action( 'woocommerce_email_classes', array( __CLASS__, 'register_emails' ), 10 );
+			add_action( 'wc_admin_daily', array( '\Vendidero\OneStopShop\Admin', 'queue_wc_admin_notes' ) );
+			add_action( 'woocommerce_email_classes', array( __CLASS__, 'register_emails' ), 10 );
+		}
 	}
 
 	public static function load_plugin_textdomain() {
@@ -453,14 +480,17 @@ class Package {
 	}
 
 	public static function update_observer_report() {
-		$date_start = new \WC_DateTime();
-		$date_start->modify( '-1 day' );
+		if ( Package::enable_auto_observer() ) {
+			$date_start = new \WC_DateTime();
+			$date_start->modify( '-1 day' );
 
-		Queue::start( 'observer', $date_start );
+			Queue::start( 'observer', $date_start );
+		}
 	}
 
 	public static function setup_recurring_observer() {
 		if ( $queue = Queue::get_queue() ) {
+
 			// Schedule once per day at 3:00
 			if ( null === $queue->get_next( 'oss_woocommerce_daily_observer', array(), 'oss_woocommerce' ) ) {
 				$timestamp = strtotime('tomorrow midnight' );

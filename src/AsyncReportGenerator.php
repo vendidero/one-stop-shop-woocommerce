@@ -23,6 +23,7 @@ class AsyncReportGenerator {
 			'limit'  => Queue::get_batch_size(),
 			'status' => Queue::get_order_statuses(),
 			'offset' => 0,
+			'orders_processed' => 0,
 		) );
 
 		foreach( array( 'start', 'end' ) as $date_field ) {
@@ -100,9 +101,10 @@ class AsyncReportGenerator {
 	 * @return true|\WP_Error
 	 */
 	public function next() {
-		$date_key   = Queue::use_date_paid() ? 'date_paid' : 'date_created';
-		$args       = $this->args;
-		$query_args = Queue::get_order_query_args( $args, $date_key );
+		$date_key         = Queue::use_date_paid() ? 'date_paid' : 'date_created';
+		$args             = $this->args;
+		$query_args       = Queue::get_order_query_args( $args, $date_key );
+		$orders_processed = 0;
 
 		Package::extended_log( sprintf( 'Building next order query: %s', wc_print_r( $query_args, true ) ) );
 
@@ -156,8 +158,12 @@ class AsyncReportGenerator {
 
 					$tax_data[ $taxable_country ][ $tax_percent ]['net_total'] = (float) $tax_data[ $taxable_country ][ $tax_percent ]['net_total'];
 					$tax_data[ $taxable_country ][ $tax_percent ]['net_total'] += $net_total;
+
+					$orders_processed++;
 				}
 			}
+
+			$this->args['orders_processed'] = absint( $this->args['orders_processed'] ) + $orders_processed;
 
 			update_option( $this->get_id() . '_tmp_result', $tax_data );
 
@@ -192,8 +198,6 @@ class AsyncReportGenerator {
 		$report->set_tax_total( wc_remove_number_precision( $tax_total ) );
 		$report->set_status( 'completed' );
 		$report->save();
-
-		delete_option( $this->get_id() . '_tmp_result' );
 
 		return $report;
 	}
