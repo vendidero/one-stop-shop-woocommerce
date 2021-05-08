@@ -137,11 +137,11 @@ class Report {
 	}
 
 	public function get_tax_total( $round = true ) {
-		return (float) wc_format_decimal( $this->args['totals']['tax_total'], $round ? '' : false );
+		return $this->maybe_round( $this->args['totals']['tax_total'], $round );
 	}
 
 	public function get_net_total( $round = true ) {
-		return (float) wc_format_decimal( $this->args['totals']['net_total'], $round ? '' : false );
+		return $this->maybe_round( $this->args['totals']['net_total'], $round );
 	}
 
 	public function set_tax_total( $total ) {
@@ -184,7 +184,13 @@ class Report {
 			$tax_total = $this->args['countries'][ $country ][ $tax_rate ]['tax_total'];
 		}
 
-		return (float) wc_format_decimal( $tax_total, $round ? '' : false );
+		return $this->maybe_round( $tax_total, $round );
+	}
+
+	protected function maybe_round( $total, $round = true ) {
+		$decimals = is_numeric( $round ) ? (int) $round : '';
+
+		return (float) wc_format_decimal( $total, $round ? $decimals : false );
 	}
 
 	public function get_country_net_total( $country, $tax_rate, $round = true ) {
@@ -194,7 +200,7 @@ class Report {
 			$net_total = $this->args['countries'][ $country ][ $tax_rate ]['net_total'];
 		}
 
-		return (float) wc_format_decimal( $net_total, $round ? '' : false );
+		return $this->maybe_round( $net_total, $round );
 	}
 
 	public function set_country_tax_total( $country, $tax_rate, $tax_total = 0 ) {

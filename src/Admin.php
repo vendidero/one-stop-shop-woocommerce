@@ -242,9 +242,10 @@ class Admin {
 		}
 
 		$report_id = isset( $_GET['report_id'] ) ? wc_clean( $_GET['report_id'] ) : '';
+        $decimals  = isset( $_GET['decimals'] ) ? absint( $_GET['decimals'] ) : wc_get_price_decimals();
 
 		if ( ! empty( $report_id ) && ( $report = Package::get_report( $report_id ) ) ) {
-			$csv = new CSVExporter( $report_id );
+			$csv = new CSVExporter( $report_id, $decimals );
 			$csv->export();
 		} else {
 			wp_safe_redirect( wp_get_referer() );

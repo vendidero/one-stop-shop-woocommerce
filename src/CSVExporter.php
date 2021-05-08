@@ -32,8 +32,11 @@ class CSVExporter extends \WC_CSV_Exporter {
 
 	protected $report = null;
 
-	public function __construct( $id ) {
+	protected $decimals = 2;
+
+	public function __construct( $id, $decimals ) {
 		$this->report       = new Report( $id );
+		$this->decimals     = apply_filters( 'oss_woocommerce_csv_export_decimals', $decimals, $this );
 		$this->column_names = $this->get_default_column_names();
 		$this->filename     = sanitize_file_name( $this->report->get_id() . '.csv' );
 	}
@@ -57,6 +60,10 @@ class CSVExporter extends \WC_CSV_Exporter {
 		return $this->report;
 	}
 
+	public function get_decimals() {
+		return $this->decimals;
+	}
+
 	/**
 	 * Prepare data that will be exported.
 	 */
@@ -78,9 +85,9 @@ class CSVExporter extends \WC_CSV_Exporter {
 						} elseif( 'tax_rate' === $column_id ) {
 							$value = wc_format_decimal( $tax_rate, '' );
 						} elseif( 'taxable_base' === $column_id ) {
-							$value = $this->report->get_country_net_total( $country, $tax_rate );
+							$value = $this->report->get_country_net_total( $country, $tax_rate, $this->decimals );
 						} elseif( 'amount' === $column_id ) {
-							$value = $this->report->get_country_tax_total( $country, $tax_rate );
+							$value = $this->report->get_country_tax_total( $country, $tax_rate, $this->decimals );
 						} elseif ( is_callable( array( $this, "get_column_value_{$column_id}" ) ) ) {
 							$value = $this->{"get_column_value_{$column_id}"}( $country, $tax_rate );
 						} else {
