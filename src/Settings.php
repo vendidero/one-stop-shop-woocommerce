@@ -86,16 +86,27 @@ class Settings {
 		return ob_get_clean();
 	}
 
+	public static function before_save() {
+		/**
+		 * In case observer is switched on and the current report is outdated - queue the observer report now.
+		 */
+        if ( ! Package::enable_auto_observer() && isset( $_POST['oss_enable_auto_observation'] ) && Package::observer_report_is_outdated() ) {
+            update_option( 'oss_enable_auto_observation', 'yes' );
+            Package::update_observer_report();
+        }
+	}
+
 	protected static function get_observer_report_html() {
 		$observer_report = Package::get_completed_observer_report();
 
-		if ( ! $observer_report ) {
+		if ( ! $observer_report || Queue::get_running_observer() ) {
 		    $running = Package::get_observer_report() ? Package::get_observer_report() : Queue::get_running_observer();
 
 		    $status_link = $running ? '<a href="' . $running->get_url() . '">' . _x( 'See status', 'oss', 'oss-woocommerce' ) . '</a>' : '<a href="' . add_query_arg( array( 'action' => 'oss_init_observer' ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_init_observer' ) ) . '">' . _x( 'Start initial report', 'oss', 'oss-woocommerce' ) . '</a>';
-			ob_start();
+			$status_text = sprintf( ( $running ? _x( 'Report not yet completed. %s', 'oss', 'oss-woocommerce' ) : _x( 'Report not yet started. %s', 'oss', 'oss-woocommerce' ) ), $status_link );
+		    ob_start();
 			?>
-            <p class="oss-observer-details"><?php printf( _x( 'Report not yet completed or started. %s', 'oss', 'oss-woocommerce' ), $status_link ); ?></p>
+            <p class="oss-observer-details"><?php echo $status_text; ?></p>
             <?php
 			return ob_get_clean();
 		}

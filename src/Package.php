@@ -54,13 +54,20 @@ class Package {
 			$data = Package::get_report_data( $id );
 			$type = $data['type'];
 
+			// Skip open observer queue in case disabled
+			if ( 'observer' === $type && ! Package::enable_auto_observer() ) {
+				continue;
+			}
+
 			add_action( 'oss_woocommerce_' . $id, function( $args ) use ( $type ) {
 				Queue::next( $type, $args );
 			}, 10, 1 );
 		}
 
+		// Setup or cancel recurring observer task
+		add_action( 'init', array( __CLASS__, 'setup_recurring_observer' ), 10 );
+
 		if ( Package::enable_auto_observer() ) {
-			add_action( 'init', array( __CLASS__, 'setup_recurring_observer' ), 10 );
 			add_action( 'oss_woocommerce_daily_observer', array( __CLASS__, 'update_observer_report' ), 10 );
 			add_action( 'oss_woocommerce_updated_observer', array( __CLASS__, 'maybe_send_notification' ), 10 );
 
@@ -70,6 +77,9 @@ class Package {
 	}
 
 	public static function test() {
+		var_dump( self::observer_report_is_outdated() );
+		exit();
+
 		Tax::import_oss_tax_rates();
 		exit();
 
@@ -200,6 +210,23 @@ class Package {
 		}
 
 		return $report;
+	}
+
+	public static function observer_report_is_outdated() {
+		$is_outdated = true;
+
+		if ( $observer = self::get_observer_report() ) {
+			$date_end = $observer->get_date_end();
+			$now      = new \WC_DateTime();
+
+			$diff = $now->diff( $date_end );
+
+			if ( $diff->days <= 1 ) {
+				$is_outdated = false;
+			}
+		}
+
+		return $is_outdated;
 	}
 
 	public static function string_to_datetime( $time_string ) {
@@ -458,17 +485,20 @@ class Package {
 
 	public static function setup_recurring_observer() {
 		if ( $queue = Queue::get_queue() ) {
+			if ( Package::enable_auto_observer() ) {
+				// Schedule once per day at 3:00
+				if ( null === $queue->get_next( 'oss_woocommerce_daily_observer', array(), 'oss_woocommerce' ) ) {
+					$timestamp = strtotime('tomorrow midnight' );
+					$date      = new \WC_DateTime();
 
-			// Schedule once per day at 3:00
-			if ( null === $queue->get_next( 'oss_woocommerce_daily_observer', array(), 'oss_woocommerce' ) ) {
-				$timestamp = strtotime('tomorrow midnight' );
-				$date      = new \WC_DateTime();
+					$date->setTimestamp( $timestamp );
+					$date->modify( '+3 hours' );
 
-				$date->setTimestamp( $timestamp );
-				$date->modify( '+3 hours' );
-
-				$queue->cancel_all( 'oss_woocommerce_daily_observer', array(), 'oss_woocommerce' );
-				$queue->schedule_recurring( $date->getTimestamp(), DAY_IN_SECONDS, 'oss_woocommerce_daily_observer', array(), 'oss_woocommerce' );
+					$queue->cancel_all( 'oss_woocommerce_daily_observer', array(), 'oss_woocommerce' );
+					$queue->schedule_recurring( $date->getTimestamp(), DAY_IN_SECONDS, 'oss_woocommerce_daily_observer', array(), 'oss_woocommerce' );
+				}
+			} else {
+				$queue->cancel( 'oss_woocommerce_daily_observer', array(), 'oss_woocommerce' );
 			}
 		}
 	}

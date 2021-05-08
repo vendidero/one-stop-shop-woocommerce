@@ -36,6 +36,11 @@ class SettingsPage extends \WC_Settings_Page {
 		return apply_filters( 'woocommerce_get_sections_' . $this->id, $sections );
 	}
 
+	public function save() {
+		Settings::before_save();
+		parent::save();
+	}
+
 	/**
 	 * Get settings array.
 	 *

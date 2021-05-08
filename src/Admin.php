@@ -213,7 +213,16 @@ class Admin {
 		if ( ! empty( $report_id ) && ( $report = Package::get_report( $report_id ) ) ) {
 		    $report->delete();
 
-		    wp_safe_redirect( add_query_arg( array( 'report_deleted' => $report_id ), self::get_clean_referer() ) );
+		    $referer = self::get_clean_referer();
+
+			/**
+			 * Do not redirect deleted, refreshed reports back to report details page
+			 */
+			if ( strstr( $referer, '&report=' ) ) {
+				$referer = admin_url( 'admin.php?page=oss-reports' );
+			}
+
+		    wp_safe_redirect( add_query_arg( array( 'report_deleted' => $report_id ), $referer ) );
 		    exit();
         }
 
@@ -271,7 +280,16 @@ class Admin {
 		if ( ! empty( $report_id ) && Queue::is_running( $report_id ) ) {
 			Queue::cancel( $report_id );
 
-			wp_safe_redirect( add_query_arg( array( 'report_cancelled' => $report_id ), self::get_clean_referer() ) );
+			$referer = self::get_clean_referer();
+
+			/**
+			 * Do not redirect deleted, refreshed reports back to report details page
+			 */
+			if ( strstr( $referer, '&report=' ) ) {
+				$referer = admin_url( 'admin.php?page=oss-reports' );
+			}
+
+			wp_safe_redirect( add_query_arg( array( 'report_cancelled' => $report_id ), $referer ) );
 			exit();
 		}
 
@@ -504,7 +522,6 @@ class Admin {
 
 		if ( 'observer' === $report->get_type() ) {
 		    unset( $actions['refresh'] );
-			unset( $actions['delete'] );
 			unset( $actions['cancel'] );
 		}
 
