@@ -90,7 +90,13 @@ class Admin {
 	 * @return AdminNote[]
 	 */
     public static function get_notes() {
-	    return array( 'Vendidero\OneStopShop\DeliveryThresholdWarning' );
+	    $notes = array( 'Vendidero\OneStopShop\DeliveryThresholdWarning' );
+
+	    if ( ! Package::enable_auto_observer() ) {
+	        $notes = array();
+	    }
+
+	    return $notes;
     }
 
     public static function supports_wc_admin() {
@@ -498,6 +504,8 @@ class Admin {
 
 		if ( 'observer' === $report->get_type() ) {
 		    unset( $actions['refresh'] );
+			unset( $actions['delete'] );
+			unset( $actions['cancel'] );
 		}
 
 		return $actions;

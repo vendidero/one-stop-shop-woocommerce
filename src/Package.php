@@ -26,7 +26,6 @@ class Package {
 			return;
 		}
 
-		self::includes();
 		self::init_hooks();
 
 		if ( is_admin() ) {
@@ -36,6 +35,38 @@ class Package {
 		Tax::init();
 
 		// add_action( 'admin_init', array( __CLASS__, 'test' ) );
+	}
+
+	protected static function init_hooks() {
+		if ( ! self::is_integration() ) {
+			add_action( 'init', array( __CLASS__, 'load_plugin_textdomain' ) );
+		}
+
+		/**
+		 * Support a taxable country field within Woo order queries
+		 */
+		add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', array( __CLASS__, 'query_taxable_country' ), 10, 2 );
+
+		/**
+		 * Listen to action scheduler hooks for report generation
+		 */
+		foreach( Queue::get_reports_running() as $id ) {
+			$data = Package::get_report_data( $id );
+			$type = $data['type'];
+
+			add_action( 'oss_woocommerce_' . $id, function( $args ) use ( $type ) {
+				Queue::next( $type, $args );
+			}, 10, 1 );
+		}
+
+		if ( Package::enable_auto_observer() ) {
+			add_action( 'init', array( __CLASS__, 'setup_recurring_observer' ), 10 );
+			add_action( 'oss_woocommerce_daily_observer', array( __CLASS__, 'update_observer_report' ), 10 );
+			add_action( 'oss_woocommerce_updated_observer', array( __CLASS__, 'maybe_send_notification' ), 10 );
+
+			add_action( 'wc_admin_daily', array( '\Vendidero\OneStopShop\Admin', 'queue_wc_admin_notes' ) );
+			add_action( 'woocommerce_email_classes', array( __CLASS__, 'register_emails' ), 10 );
+		}
 	}
 
 	public static function test() {
@@ -113,11 +144,11 @@ class Package {
 	}
 
 	public static function get_delivery_threshold() {
-		return 5;
+		return apply_filters( 'oss_woocommerce_delivery_threshold', 10000 );
 	}
 
 	public static function get_delivery_notification_threshold() {
-		return self::get_delivery_threshold() * 0.95;
+		return apply_filters( 'oss_woocommerce_delivery_notification_threshold', self::get_delivery_threshold() * 0.95 );
 	}
 
 	public static function get_delivery_threshold_left() {
@@ -187,37 +218,6 @@ class Package {
 		}
 
 		return $date_time;
-	}
-
-	/**
-	 * @param $rate_id
-	 * @param \WC_Order $order
-	 */
-	public static function get_tax_rate_percent( $rate_id, $order ) {
-		$taxes      = $order->get_taxes();
-		$percentage = null;
-
-		foreach( $taxes as $tax ) {
-			if ( $tax->get_rate_id() == $rate_id ) {
-				if ( is_callable( array( $tax, 'get_rate_percent' ) ) ) {
-					$percentage = $tax->get_rate_percent();
-				}
-			}
-		}
-
-		/**
-		 * WC_Order_Item_Tax::get_rate_percent returns null by default.
-		 * Fallback to global tax rates (DB) in case the percentage is not available within order data.
-		 */
-		if ( is_null( $percentage ) || '' === $percentage ) {
-			$percentage = \WC_Tax::get_rate_percent_value( $rate_id );
-		}
-
-		if ( ! is_numeric( $percentage ) ) {
-			$percentage = 0;
-		}
-
-		return $percentage;
 	}
 
 	/**
@@ -385,38 +385,6 @@ class Package {
 	    return (array) $counts;
     }
 
-	protected static function init_hooks() {
-		if ( ! self::is_integration() ) {
-			add_action( 'init', array( __CLASS__, 'load_plugin_textdomain' ) );
-		}
-
-		/**
-		 * Support a taxable country field within Woo order queries
-		 */
-		add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', array( __CLASS__, 'query_taxable_country' ), 10, 2 );
-
-		/**
-		 * Listen to action scheduler hooks for report generation
-		 */
-		foreach( Queue::get_reports_running() as $id ) {
-			$data = Package::get_report_data( $id );
-			$type = $data['type'];
-
-			add_action( 'oss_woocommerce_' . $id, function( $args ) use ( $type ) {
-				Queue::next( $type, $args );
-			}, 10, 1 );
-		}
-
-		if ( Package::enable_auto_observer() ) {
-			add_action( 'init', array( __CLASS__, 'setup_recurring_observer' ), 10 );
-			add_action( 'oss_woocommerce_daily_observer', array( __CLASS__, 'update_observer_report' ), 10 );
-			add_action( 'oss_woocommerce_updated_observer', array( __CLASS__, 'maybe_send_notification' ), 10 );
-
-			add_action( 'wc_admin_daily', array( '\Vendidero\OneStopShop\Admin', 'queue_wc_admin_notes' ) );
-			add_action( 'woocommerce_email_classes', array( __CLASS__, 'register_emails' ), 10 );
-		}
-	}
-
 	public static function load_plugin_textdomain() {
 		if ( function_exists( 'determine_locale' ) ) {
 			$locale = determine_locale();
@@ -574,10 +542,6 @@ class Package {
 		return ( class_exists( 'WooCommerce' ) );
 	}
 
-	private static function includes() {
-		// include_once self::get_path() . '/includes/wc-gzd-dhl-core-functions.php';
-	}
-
 	/**
 	 * Returns a list of EU countries except base country.
 	 *
@@ -660,7 +624,7 @@ class Package {
 	public static function log( $message, $type = 'info' ) {
 		$logger = wc_get_logger();
 
-		if ( ! $logger || ! apply_filters( 'one_stop_shop_woocommerce_enable_logging', true ) ) {
+		if ( ! $logger || ! apply_filters( 'oss_woocommerce_enable_logging', true ) ) {
 			return;
 		}
 
@@ -672,7 +636,7 @@ class Package {
 	}
 
 	public static function extended_log( $message, $type = 'info' ) {
-		if ( apply_filters( 'one_stop_shop_woocommerce_enable_extended_logging', true ) ) {
+		if ( apply_filters( 'oss_woocommerce_enable_extended_logging', true ) ) {
 			self::log( $message, $type );
 		}
 	}

@@ -208,12 +208,13 @@ class ReportTable extends WP_List_Table {
 	 * @return array
 	 */
 	protected function get_views() {
-		$type_links       = array();
-		$num_reports      = $this->counts;
-		$total_reports    = array_sum( (array) $num_reports );
-		$total_reports    = $total_reports - ( isset( $num_reports['observer'] ) ? $num_reports['observer'] : 0 );
-		$class            = '';
-		$all_args         = array();
+		$type_links        = array();
+		$num_reports       = $this->counts;
+		$total_reports     = array_sum( (array) $num_reports );
+		$total_reports     = $total_reports - ( isset( $num_reports['observer'] ) ? $num_reports['observer'] : 0 );
+		$class             = '';
+		$all_args          = array();
+		$include_observers = Package::enable_auto_observer();
 
 		if ( empty( $class ) && ( $this->is_base_request() || isset( $_REQUEST['all_reports'] ) ) ) {
 			$class = 'current';
@@ -230,7 +231,7 @@ class ReportTable extends WP_List_Table {
 
 		$type_links['all'] = $this->get_edit_link( $all_args, $all_inner_html, $class );
 
-		foreach ( Package::get_available_report_types( true ) as $type => $title ) {
+		foreach ( Package::get_available_report_types( $include_observers ) as $type => $title ) {
 			$class = '';
 
 			if ( empty( $num_reports[ $type ] ) ) {

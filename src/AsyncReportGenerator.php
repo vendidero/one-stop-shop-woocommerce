@@ -130,7 +130,7 @@ class AsyncReportGenerator {
 
 				foreach ( $order->get_taxes() as $key => $tax ) {
 					$refunded    = (float) $order->get_total_tax_refunded_by_rate_id( $tax->get_rate_id() );
-					$tax_percent = (float) Package::get_tax_rate_percent( $tax->get_rate_id(), $order );
+					$tax_percent = (float) Tax::get_tax_rate_percent( $tax->get_rate_id(), $order );
 					$tax_total   = (float) $tax->get_tax_total() + (float) $tax->get_shipping_tax_total() - $refunded;
 
 					if ( $tax_percent <= 0 || $tax_total == 0 ) {

@@ -15,13 +15,21 @@ class Settings {
         );
     }
 
+    public static function get_description() {
+        return sprintf( _x( 'Find useful options regarding the <a href="https://ec.europa.eu/taxation_customs/business/vat/modernising-vat-cross-border-ecommerce_en" target="_blank" rel="noopener">One Stop Shop procedure</a> here.', 'oss', 'oss-woocommerce' ) );
+    }
+
+    public static function get_help_url() {
+        return '';
+    }
+
 	public static function get_settings( $current_section = '' ) {
 		$settings = array(
-			array( 'title' => '', 'type' => 'title', 'id' => 'oss_options' ),
+			array( 'title' => '', 'type' => 'title', 'id' => 'oss_options', 'desc' => Package::is_integration() ? '' : self::get_description() ),
 
 			array(
 				'title'    => _x( 'OSS status', 'oss', 'oss-woocommerce' ),
-				'desc'     => _x( 'Yes, I\'m currently participating in the <a href="https://ec.europa.eu/taxation_customs/business/vat/modernising-vat-cross-border-ecommerce_en" rel="noopener" target="_blank">OSS procedure</a>.', 'oss', 'oss-woocommerce' ),
+				'desc'     => _x( 'Yes, I\'m currently participating in the OSS procedure.', 'oss', 'oss-woocommerce' ),
 				'id'       => 'oss_use_oss_procedure',
 				'type'     => Package::is_integration() ? 'gzd_toggle' : 'checkbox',
 				'default'  => 'no',
@@ -29,8 +37,7 @@ class Settings {
 
 			array(
 				'title'    => _x( 'Observation', 'oss', 'oss-woocommerce' ),
-				'desc'     => _x( 'Automatically observe the delivery threshold of the current year.', 'oss', 'oss-woocommerce' ),
-				'desc_tip' => '<p class="oss-woocommerce-additional-desc wc-gzd-additional-desc">' . _x( 'This option will automatically calculate the amount applicable for the OSS procedure delivery threshold once per day for the current year. The report will only recalculated for the days which are not yet subject to the observation to save processing time.', 'oss', 'oss-woocommerce' ) . '</p>',
+				'desc'     => _x( 'Automatically observe the delivery threshold of the current year.', 'oss', 'oss-woocommerce' ) . '<p class="oss-woocommerce-additional-desc wc-gzd-additional-desc">' . _x( 'This option will automatically calculate the amount applicable for the OSS procedure delivery threshold once per day for the current year. The report will only recalculated for the days which are not yet subject to the observation to save processing time.', 'oss', 'oss-woocommerce' ) . '</p>',
 				'id'       => 'oss_enable_auto_observation',
 				'type'     => Package::is_integration() ? 'gzd_toggle' : 'checkbox',
 				'default'  => 'yes',
