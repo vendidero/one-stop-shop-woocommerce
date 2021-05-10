@@ -20,7 +20,7 @@ class SettingsPage extends \WC_Settings_Page {
 	}
 
 	public function output() {
-		echo '<h2>' . _x( 'One Stop Shop', 'oss', 'oss-woocommerce' ) . ' <a class="page-title-action" href="' . admin_url( 'admin.php?page=oss-reports' ) . '">' . _x( 'Reports', 'oss', 'oss-woocommerce' ) . '</a> <a class="page-title-action" target="_blank" href="' .  Settings::get_help_url() . '">' . _x( 'Learn More', 'oss', 'oss-woocommerce' ) . '</a></h2>';
+		echo '<h2 class="oss-woocommerce-settings-title">' . _x( 'One Stop Shop', 'oss', 'oss-woocommerce' ) . ' <a class="page-title-action" href="' . admin_url( 'admin.php?page=oss-reports' ) . '">' . _x( 'Reports', 'oss', 'oss-woocommerce' ) . '</a> <a class="page-title-action" target="_blank" href="' .  Settings::get_help_url() . '">' . _x( 'Learn More', 'oss', 'oss-woocommerce' ) . '</a></h2>';
 
 		parent::output();
 	}

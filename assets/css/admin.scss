@@ -8,6 +8,14 @@ p.oss-woocommerce-additional-desc {
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
 }
 
+h2.oss-woocommerce-settings-title {
+  margin-top: 1.5em;
+
+  .page-title-action {
+    top: 0;
+  }
+}
+
 .oss-add-tax-class-by-country-template {
   display: none;
 }
