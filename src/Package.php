@@ -621,7 +621,7 @@ class Package {
 	}
 
 	public static function extended_log( $message, $type = 'info' ) {
-		if ( apply_filters( 'oss_woocommerce_enable_extended_logging', true ) ) {
+		if ( apply_filters( 'oss_woocommerce_enable_extended_logging', false ) ) {
 			self::log( $message, $type );
 		}
 	}

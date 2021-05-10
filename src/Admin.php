@@ -553,6 +553,7 @@ class Admin {
 			'tax_total' => _x( 'Tax Total', 'oss', 'oss-woocommerce' ),
 		);
 
+		$countries = $report->get_countries();
 	    ?>
         <div class="wrap oss-reports oss-report-<?php echo esc_attr( $report->get_id() ); ?>">
             <h1 class="wp-heading-inline"><?php echo $report->get_title(); ?></h1>
@@ -564,29 +565,31 @@ class Admin {
             <?php if ( 'completed' === $report->get_status() ) : ?>
                 <p class="summary"><?php echo $report->get_date_start()->date_i18n( wc_date_format() ); ?> &ndash; <?php echo $report->get_date_end()->date_i18n( wc_date_format() ); ?>: <?php echo wc_price( $report->get_net_total() ); ?> (<?php echo wc_price( $report->get_tax_total() ); ?>)</p>
                 <hr class="wp-header-end" />
-                <table class="wp-list-table widefat fixed striped posts oss-report-details" cellspacing="0">
-                    <thead>
-                    <tr>
-                        <?php foreach ( $columns as $key => $column ) : ?>
-                           <th class="oss-report-table-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $column ); ?></th>
-                        <?php endforeach; ?>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php
-                    foreach ( $report->get_countries() as $country ) :
-                        foreach( $report->get_tax_rates_by_country( $country ) as $tax_rate ) :
-                        ?>
+                <?php if ( ! empty( $countries ) ) : ?>
+                    <table class="wp-list-table widefat fixed striped posts oss-report-details" cellspacing="0">
+                        <thead>
                         <tr>
-                            <td class="oss-report-table-country"><?php echo esc_html( $country ); ?></td>
-                            <td class="oss-report-table-tax_rate"><?php echo esc_html( sprintf( _x( '%1$s %%', 'oss', 'oss-woocommerce' ), $tax_rate ) ); ?></td>
-                            <td class="oss-report-table-net_total"><?php echo wc_price( $report->get_country_net_total( $country, $tax_rate ) ); ?></td>
-                            <td class="oss-report-table-tax_total"><?php echo wc_price( $report->get_country_tax_total( $country, $tax_rate ) ); ?></td>
+                            <?php foreach ( $columns as $key => $column ) : ?>
+                               <th class="oss-report-table-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $column ); ?></th>
+                            <?php endforeach; ?>
                         </tr>
+                        </thead>
+                        <tbody>
+                        <?php
+                        foreach ( $countries as $country ) :
+                            foreach( $report->get_tax_rates_by_country( $country ) as $tax_rate ) :
+                            ?>
+                            <tr>
+                                <td class="oss-report-table-country"><?php echo esc_html( $country ); ?></td>
+                                <td class="oss-report-table-tax_rate"><?php echo esc_html( sprintf( _x( '%1$s %%', 'oss', 'oss-woocommerce' ), $tax_rate ) ); ?></td>
+                                <td class="oss-report-table-net_total"><?php echo wc_price( $report->get_country_net_total( $country, $tax_rate ) ); ?></td>
+                                <td class="oss-report-table-tax_total"><?php echo wc_price( $report->get_country_tax_total( $country, $tax_rate ) ); ?></td>
+                            </tr>
+                            <?php endforeach; ?>
                         <?php endforeach; ?>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
             <?php else :
 	            $details = Queue::get_queue_details( $report_id );
                 ?>

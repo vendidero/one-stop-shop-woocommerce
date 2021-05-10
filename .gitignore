@@ -36,6 +36,8 @@ Thumbs.db
 /vendor/*
 /vendor/composer/*
 
+/build
+
 /release/
 
 composer.lock

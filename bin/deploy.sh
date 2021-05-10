@@ -231,10 +231,6 @@ cd "$GIT_PATH" || exit
 output 2 "Installing autoload packages..."
 # Install composer packages
 composer install --no-dev || exit "$?"
-# Run JS build
-output 2 "Running JS Build..."
-npm install
-npm run build || exit "$?"
 
 # Create GH branch with build and commit before doing a GH release
 if ! $SKIP_GH_BUILD; then
