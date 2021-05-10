@@ -118,7 +118,7 @@ class ReportTable extends WP_List_Table {
 		$bulk_action = isset( $_REQUEST['bulk_action'] ) ? wc_clean( wp_unslash( $_REQUEST['bulk_action'] ) ) : ''; // WPCS: input var ok, CSRF ok.
 
 		if ( 'delete' === $bulk_action ) {
-			$this->add_notice( sprintf( _nx( '%d reports deleted.', '%d reports deleted.', $number, 'oss', 'oss-woocommerce' ), number_format_i18n( $number ) ) );
+			$this->add_notice( sprintf( _nx( '%d report deleted.', '%d reports deleted.', $number, 'oss', 'oss-woocommerce' ), number_format_i18n( $number ) ) );
 		}
 
 		do_action( "{$this->get_hook_prefix()}bulk_notice", $bulk_action, $this );

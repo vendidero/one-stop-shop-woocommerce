@@ -2,7 +2,7 @@
 /**
  * Plugin Name: One Stop Shop for WooCommerce
  * Plugin URI: https://github.com/vendidero/one-stop-shop-woocommerce
- * Description: Helper to improve One Stop Shop handling for WooCommerce
+ * Description: Comply with the One Stop Shop procedure while using WooCommerce.
  * Author: vendidero
  * Author URI: https://vendidero.de
  * Version: 1.0.0
@@ -40,7 +40,7 @@ if ( is_readable( $autoloader ) ) {
 		error_log(  // phpcs:ignore
 			sprintf(
 			/* translators: 1: composer command. 2: plugin directory */
-				esc_html_x(  'Your installation of the One Stop Shop feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'one-stop-shop', 'one-stop-shop-woocommerce' ),
+				esc_html_x(  'Your installation of the One Stop Shop feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'oss', 'oss-woocommerce' ),
 				'`composer install`',
 				'`' . esc_html( str_replace( ABSPATH, '', __DIR__ ) ) . '`'
 			)
@@ -58,7 +58,7 @@ if ( is_readable( $autoloader ) ) {
 					<?php
 					printf(
 					/* translators: 1: composer command. 2: plugin directory */
-						esc_html_x(  'Your installation of the One Stop Shop feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'one-stop-shop', 'one-stop-shop-woocommerce' ),
+						esc_html_x(  'Your installation of the One Stop Shop feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'oss', 'oss-woocommerce' ),
 						'<code>composer install</code>',
 						'<code>' . esc_html( str_replace( ABSPATH, '', __DIR__ ) ) . '</code>'
 					);

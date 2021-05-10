@@ -177,12 +177,17 @@ class Admin {
 
 		if ( Package::oss_procedure_is_enabled() ) {
 			update_option( 'oss_use_oss_procedure', 'no' );
+
+			Tax::import_default_tax_rates();
 		} else {
 		    update_option( 'woocommerce_tax_based_on', 'shipping' );
             update_option( 'oss_use_oss_procedure', 'yes' );
 
             Tax::import_oss_tax_rates();
 		}
+
+		wp_safe_redirect( wp_get_referer() );
+		exit();
 	}
 
 	public static function hide_notice() {

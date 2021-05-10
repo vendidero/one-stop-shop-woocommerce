@@ -23,6 +23,10 @@ class Package {
 	 */
 	public static function init() {
 		if ( ! self::has_dependencies() ) {
+			if ( ! self::is_integration() ) {
+				add_action( 'admin_notices', array( __CLASS__, 'dependency_notice' ) );
+			}
+
 			return;
 		}
 
@@ -33,8 +37,6 @@ class Package {
 		}
 
 		Tax::init();
-
-		// add_action( 'admin_init', array( __CLASS__, 'test' ) );
 	}
 
 	protected static function init_hooks() {
@@ -76,57 +78,10 @@ class Package {
 		}
 	}
 
-	public static function test() {
-		var_dump( self::observer_report_is_outdated() );
-		exit();
-
-		Tax::import_oss_tax_rates();
-		exit();
-
-		$yesterday = new \WC_DateTime();
-		$yesterday->modify( '-2 day' );
-
-		$time_frame = Queue::get_timeframe( 'observer', $yesterday );
-
-		$date_key = 'date_paid';
-		$args = array(
-			'start' => $time_frame['start']->format( 'Y-m-d' ),
-			'end' => $time_frame['end']->format( 'Y-m-d' ),
-			'offset' => 0,
-			'limit' => 50,
-			'status' => Queue::get_order_statuses()
-		);
-
-		$query_args = Queue::get_order_query_args( $args, $date_key );
-
-		var_dump($query_args);
-
-		$orders = wc_get_orders( $query_args );
-
-		var_dump($orders);
-		exit();
-
-		// Queue::start( 'quarterly' );
-
-		/*
-		$generator = new AsyncReportGenerator();
-		$generator->next();
-		$generator->complete();
-		*/
-
-		// $csv = new CSVExporter( 'oss_quarterly_report_2021-04-01_2021-06-30' );
-		// $csv->export();
-
-		// $report = new Report( 'oss_quarterly_report_2021-04-01_2021-06-30' );
-
-		$date_start = new \WC_DateTime( "now" );
-		$date_start->modify( '-1 day' );
-
-		Queue::start( 'observer', $date_start );
-
-		// Refund test
-		// $order = wc_get_order( 100 );
-		exit();
+	public static function dependency_notice() {
+		?>
+		<div class="error notice notice-error"><p><?php _ex( 'To use the OSS for WooCommerce plugin please make sure that WooCommerce is installed and activated.', 'oss', 'oss-woocommerce' ); ?></p></div>
+		<?php
 	}
 
 	public static function oss_procedure_is_enabled() {
@@ -586,12 +541,12 @@ class Package {
 	}
 
 	public static function install() {
-		self::init();
-		Install::install();
+        self::init();
+        Install::install();
 	}
 
 	public static function deactivate() {
-		if ( Admin::supports_wc_admin() ) {
+		if ( self::has_dependencies() && Admin::supports_wc_admin() ) {
 			foreach( Admin::get_notes() as $oss_note ) {
 				$note_name  = 'oss_' . $oss_note::get_id();
 				$data_store = \WC_Data_Store::load( 'admin-note' );

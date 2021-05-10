@@ -77,8 +77,8 @@ class Settings {
 		ob_start();
 		?>
 		<p>
-			<a class="button button-secondary" href="<?php echo self::get_oss_switch_link(); ?>"><?php echo ( Package::oss_procedure_is_enabled() ? _x( 'End OSS participation', 'oss', 'oss-woocommerce' ) : _x( 'Start OSS participation', 'oss', 'oss-woocommerce' ) ); ?></a>
-			<a class="oss-settings-learn-more" href="#"><?php _ex( 'learn more', 'oss', 'oss-woocommerce' ); ?></a>
+			<a class="button button-secondary" onclick="return confirm('<?php echo esc_html( _x( 'Are you sure? Please backup your tax rates before proceeding.', 'oss', 'oss-woocommerce' ) ); ?>');" href="<?php echo self::get_oss_switch_link(); ?>"><?php echo ( Package::oss_procedure_is_enabled() ? _x( 'End OSS participation', 'oss', 'oss-woocommerce' ) : _x( 'Start OSS participation', 'oss', 'oss-woocommerce' ) ); ?></a>
+			<a class="oss-settings-learn-more" href="https://github.com/vendidero/one-stop-shop-woocommerce"><?php _ex( 'learn more', 'oss', 'oss-woocommerce' ); ?></a>
 		</p>
 			<p class="oss-woocommerce-additional-desc wc-gzd-additional-desc"><?php _ex( 'Use this option to automatically adjust tax-related options in WooCommerce. Warning: This option will delete your current tax rates and add new tax rates based on your OSS participation status.', 'oss', 'oss-woocommerce' ); ?></p>
 		<?php
@@ -122,7 +122,7 @@ class Settings {
 		ob_start();
 		?>
 			<p class="oss-observer-details"><span class="oss-observer-total <?php echo esc_attr( $total_class ); ?>"><?php echo wc_price( $observer_report->get_net_total() ); ?></span> <?php _ex( 'of', 'oss-amounts', 'oss-woocommerce' ); ?> <span class="oss-observer-delivery-threshold"><?php echo wc_price( Package::get_delivery_threshold() ); ?></span> <a class="oss-settings-learn-more" href="<?php echo esc_url( $observer_report->get_url() ); ?>"><?php _ex( 'see details', 'oss', 'oss-woocommerce' ); ?></a></p>
-            <p class="oss-woocommerce-additional-desc wc-gzd-additional-desc"><?php printf( _x( 'This value indicates your current net total amount applicable for the One Stop Shop procedure delivery threshold of the current year. You should take action in case the delivery threshold is or is close to being exceeded. <a href="%s">Find out more</a> about the calculation.', 'oss', 'oss-woocommerce' ), '' ); ?></p>
+            <p class="oss-woocommerce-additional-desc wc-gzd-additional-desc"><?php printf( _x( 'This value indicates your current net total amount applicable for the One Stop Shop procedure delivery threshold of the current year. You should take action in case the delivery threshold is or is close to being exceeded. <a href="%s">Find out more</a> about the calculation.', 'oss', 'oss-woocommerce' ), 'https://github.com/vendidero/one-stop-shop-woocommerce' ); ?></p>
 		<?php
 
 		return ob_get_clean();

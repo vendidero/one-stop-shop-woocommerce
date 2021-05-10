@@ -165,7 +165,7 @@ class Tax {
 					    'name'          => "variable_tax_class_by_countries[{$loop}][{$country}]",
 					    'value'         => $tax_class,
 					    'label'         => sprintf( _x( 'Tax class (%s)', 'oss', 'oss-woocommerce' ), $country ),
-					    'options'       => array( 'parent' => __( 'Same as parent', 'woocommerce' ) ) + wc_get_product_tax_class_options(),
+					    'options'       => array( 'parent' => _x( 'Same as parent', 'oss', 'oss-woocommerce' ) ) + wc_get_product_tax_class_options(),
                         'wrapper_class' => 'oss-tax-class-by-country-field form-row form-row-full',
 					    'description'   => '<a href="#" class="dashicons dashicons-no-alt oss-remove-tax-class-by-country" data-country="' . esc_attr( $country ) . '">' . _x( 'remove', 'oss', 'oss-woocommerce' ) . '</a>',
 				    )
@@ -329,6 +329,7 @@ class Tax {
 			if ( false === $class ) {
 				switch( $tax_class_type ) {
 					case "reduced":
+						/* translators: Do not translate */
 						\WC_Tax::create_tax_class( __( 'Reduced rate', 'woocommerce' ) );
 						break;
 					case "greater-reduced":
