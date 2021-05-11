@@ -5,7 +5,7 @@ nav_order: 1
 
 # One Stop Shop for WooCommerce
 
-The One Stop Shop for WooCommerce plugin helps EU shop owners to comply with the new regulations of the [One Stop Shop procedure](https://ec.europa.eu/taxation_customs/business/vat/modernising-vat-cross-border-ecommerce_en).
+<p class="fs-6 fw-300">The One Stop Shop for WooCommerce plugin helps EU shop owners to comply with the new regulations of the [One Stop Shop procedure](https://ec.europa.eu/taxation_customs/business/vat/modernising-vat-cross-border-ecommerce_en).</p>
 
 ### Install
 
