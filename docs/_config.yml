@@ -1,7 +1,6 @@
 title: One Stop Shop
 description: A helper plugin to improve your WooCommerce shops compliance with the EU One Stop Shop procedure
 remote_theme: pmarsceill/just-the-docs
-search_enabled: false
 permalink: /:slug
 plugins:
   - jekyll-seo-tag
