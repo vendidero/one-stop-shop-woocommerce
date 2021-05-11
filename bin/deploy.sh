@@ -61,6 +61,7 @@ copy_dest_files() {
     --exclude=apigen.neon \
     --exclude=apigen/ \
     --exclude=bin/ \
+    --exclude=docs/ \
     --exclude=CHANGELOG.txt \
     --exclude=Gruntfile.js \
     --exclude=node_modules/ \
