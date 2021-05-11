@@ -399,13 +399,19 @@ class Tax {
 				continue;
 			}
 
-			if ( strstr( $slug, sanitize_title( _x( 'Greater reduced rate', 'oss', 'oss-woocommerce' ) ) ) ) {
+			if ( ! $greater_reduced_tax_class && strstr( $slug, sanitize_title( 'Greater reduced rate' ) ) ) {
 				$greater_reduced_tax_class = $slug;
-			} elseif ( strstr( $slug, sanitize_title( _x( 'Super reduced rate', 'oss', 'oss-woocommerce' ) ) ) ) {
+			} elseif ( ! $greater_reduced_tax_class && strstr( $slug, sanitize_title( _x( 'Greater reduced rate', 'oss', 'oss-woocommerce' ) ) ) ) {
+				$greater_reduced_tax_class = $slug;
+			} elseif ( ! $super_reduced_tax_class && strstr( $slug, sanitize_title( 'Super reduced rate' ) ) ) {
 				$super_reduced_tax_class = $slug;
-			} elseif ( strstr( $slug, sanitize_title( __( 'Reduced rate', 'woocommerce' ) ) ) ) {
+			} elseif ( ! $super_reduced_tax_class && strstr( $slug, sanitize_title( _x( 'Super reduced rate', 'oss', 'oss-woocommerce' ) ) ) ) {
+				$super_reduced_tax_class = $slug;
+			} elseif ( ! $reduced_tax_class && strstr( $slug, sanitize_title( 'Reduced rate' ) ) ) {
 				$reduced_tax_class = $slug;
-			} elseif ( strstr( $slug, 'reduced' ) && ! $reduced_tax_class ) {
+			} elseif ( ! $reduced_tax_class && strstr( $slug, sanitize_title( __( 'Reduced rate', 'woocommerce' ) ) ) ) {
+				$reduced_tax_class = $slug;
+			} elseif ( ! $reduced_tax_class && strstr( $slug, 'reduced' ) && ! $reduced_tax_class ) {
 				$reduced_tax_class = $slug;
 			}
 		}

@@ -15,3 +15,10 @@ nav_order: 1
 ### Install
 
 To install the plugin either download the ZIP file from the [plugin repository](https://wordpress.org/plugins/one-stop-shop-woocommerce) or install the plugin directly from your WordPress administration panel.
+
+### Settings
+
+Depending on whether you are using [Germanized](https://vendidero.de/woocommerce-germanized) or not you may find the OSS specific settings either under WooCommerce > Settings > OSS or under WooCommerce > Settings > Germanized > OSS.
+
+Within the settings you may configure your default OSS status (e.g. whether you are already participating in the OSS procedure or not) and
+choose whether to automatically observe the delivery threshold or not. Furthermore you might [automatically adjust your OSS status](/tax-adjustments).
