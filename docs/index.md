@@ -1,6 +1,8 @@
 ---
-title: One Stop Shop for WooCommerce - EU OSS compliance helper for WooCommerce
+title: Overview
 ---
+
+# One Stop Shop for WooCommerce
 
 The One Stop Shop for WooCommerce plugin helps EU shop owners to comply with the new regulations of the [One Stop Shop procedure](https://ec.europa.eu/taxation_customs/business/vat/modernising-vat-cross-border-ecommerce_en).
 
