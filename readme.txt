@@ -63,3 +63,8 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 == Changelog ==
 = 1.0.0 =
 * Initial commit
+
+== Upgrade Notice ==
+
+= 1.0.0 =
+no upgrade - just install :)
