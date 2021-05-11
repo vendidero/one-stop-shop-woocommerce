@@ -1,1 +1,7 @@
+title: One Stop Shop for WooCommerce
+description: A helper plugin to improve your WooCommerce shops compliance with the EU One Stop Shop procedure
 theme: jekyll-theme-cayman
+permalink: /:slug/
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
