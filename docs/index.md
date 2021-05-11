@@ -21,4 +21,4 @@ To install the plugin either download the ZIP file from the [plugin repository](
 Depending on whether you are using [Germanized](https://vendidero.de/woocommerce-germanized) or not you may find the OSS specific settings either under WooCommerce > Settings > OSS or under WooCommerce > Settings > Germanized > OSS.
 
 Within the settings you may configure your default OSS status (e.g. whether you are already participating in the OSS procedure or not) and
-choose whether to automatically observe the delivery threshold or not. Furthermore you might [automatically adjust your OSS status](/tax-adjustments).
+choose whether to automatically observe the delivery threshold or not. Furthermore you might [automatically adjust your OSS status](tax-adjustments.md).

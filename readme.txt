@@ -38,7 +38,7 @@ After the installation you may easily adapt the settings to your own needs.
 == Frequently Asked Questions ==
 
 = Where can I find the documentation? =
-[One Stop Shop Documentation](https://github.com/vendidero/one-stop-shop-woocommerce)
+[One Stop Shop Documentation](https://vendidero.github.io/one-stop-shop-woocommerce/)
 
 = Need help? =
 
