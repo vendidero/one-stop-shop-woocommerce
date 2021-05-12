@@ -3,9 +3,11 @@ title: Overview
 nav_order: 1
 ---
 
-# One Stop Shop for WooCommerce{: .fs-9 }
+# One Stop Shop for WooCommerce
+{: .fs-9 }
 
-The One Stop Shop for WooCommerce plugin helps EU shop owners to comply with the new regulations of the [One Stop Shop procedure](https://ec.europa.eu/taxation_customs/business/vat/oss_en).{: .fs-6 .fw-300 }
+The One Stop Shop for WooCommerce plugin helps EU shop owners to comply with the new regulations of the [One Stop Shop procedure](https://ec.europa.eu/taxation_customs/business/vat/oss_en).
+{: .fs-6 .fw-300 }
 
 [Plugin Repository](https://wordpress.org/plugins/one-stop-shop-woocommerce){: .btn .btn-purple }
 [View it on GitHub](https://github.com/vendidero/one-stop-shop-woocommerce){: .btn }
