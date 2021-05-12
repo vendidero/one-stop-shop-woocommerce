@@ -14,7 +14,7 @@ The One Stop Shop compliance helper allows you to easily monitor your One Stop S
 
 == Description ==
 
-One Stop Shop for WooCommerce adds compliance with the new [One Stop Shop procedure](https://ec.europa.eu/taxation_customs/business/vat/modernising-vat-cross-border-ecommerce_en) of the european union to WooCommerce.
+One Stop Shop for WooCommerce adds compliance with the new [One Stop Shop procedure](https://ec.europa.eu/taxation_customs/business/vat/oss_en) of the european union to WooCommerce.
 With the help of this little plugin you may easily monitor the delivery threshold (10.000 €) for B2C exports to other EU countries. Furthermore you may generate tax reports (e.g. quarterly, monthly, yearly) applicable to the OSS procedure and export them as CSV to easily notify your local tax authorities about your sales.
 
 * *Delivery Threshold observation* - The plugin may automatically observe the yearly delivery threshold and send notices by email and via the admin panel in case the threshold is close to being reached.
