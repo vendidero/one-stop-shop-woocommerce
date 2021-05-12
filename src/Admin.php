@@ -186,6 +186,8 @@ class Admin {
             Tax::import_oss_tax_rates();
 		}
 
+		do_action( 'woocommerce_oss_switched_oss_procedure_status' );
+
 		wp_safe_redirect( wp_get_referer() );
 		exit();
 	}
