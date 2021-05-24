@@ -60,6 +60,11 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 3. Create a new report
 
 == Changelog ==
+= 1.0.1 =
+* Improvement: Setting URL
+* Improvement: Tax class name detection
+* Fix: Germanized integration detection
+
 = 1.0.0 =
 * Initial commit
 

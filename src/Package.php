@@ -16,7 +16,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0.0';
+	const VERSION = '1.0.1';
 
 	/**
 	 * Init the package
@@ -566,7 +566,10 @@ class Package {
 	}
 
 	public static function is_integration() {
-		return class_exists( 'WooCommerce_Germanized' ) ? true : false;
+	    $gzd_installed = class_exists( 'WooCommerce_Germanized' );
+	    $gzd_version   = get_option( 'woocommerce_gzd_version', '1.0' );
+
+		return $gzd_installed && version_compare( $gzd_version, '3.5.0', '>=' ) ? true : false;
 	}
 
 	/**
