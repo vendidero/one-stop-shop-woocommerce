@@ -16,7 +16,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.0.1';
+	const VERSION = '1.0.2';
 
 	/**
 	 * Init the package
@@ -501,10 +501,9 @@ class Package {
 			$query['meta_query'][] = array(
 				'relation' => 'OR',
 				array(
-					'relation' => 'AND',
 					array(
 						'key'     => '_shipping_country',
-						'compare' => 'NOT_EXISTS',
+						'compare' => 'NOT EXISTS',
 					),
 					array(
 						'key'     => '_billing_country',
@@ -516,7 +515,7 @@ class Package {
 					'key'     => '_shipping_country',
 					'value'   => $taxable_country,
 					'compare' => 'IN',
-				),
+				)
 			);
 		}
 

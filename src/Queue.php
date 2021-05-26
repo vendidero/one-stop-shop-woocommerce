@@ -80,7 +80,7 @@ class Queue {
 	}
 
 	public static function get_batch_size() {
-		return apply_filters( 'oss_woocommerce_report_batch_size', 50 );
+		return apply_filters( 'oss_woocommerce_report_batch_size', 25 );
 	}
 
 	public static function use_date_paid() {
