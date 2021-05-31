@@ -153,7 +153,7 @@ class Tax {
         }
 
 	    $tax_classes    = self::get_product_tax_classes( $variation, $product_object, 'edit' );
-	    $countries_left = Package::get_non_base_eu_countries();
+	    $countries_left = Package::get_non_base_eu_countries( true );
 
 	    if ( ! empty( $tax_classes ) ) {
 		    foreach( $tax_classes as $country => $tax_class ) {
@@ -211,7 +211,7 @@ class Tax {
 		global $product_object;
 
 		$tax_classes    = self::get_product_tax_classes( $product_object );
-		$countries_left = Package::get_non_base_eu_countries();
+		$countries_left = Package::get_non_base_eu_countries( true );
 
 		if ( ! empty( $tax_classes ) ) {
 			foreach( $tax_classes as $country => $tax_class ) {
@@ -427,6 +427,8 @@ class Tax {
 	public static function get_eu_tax_rates() {
 		/**
 		 * @see https://europa.eu/youreurope/business/taxation/vat/vat-rules-rates/index_en.htm
+         *
+         * Include Great Britain to allow including Norther Ireland
 		 */
 		$rates = array(
 			'AT' => array(
@@ -547,6 +549,10 @@ class Tax {
 				'standard' => 20,
 				'reduced'  => array( 10 )
 			),
+			'GB' => array(
+				'standard' => 20,
+				'reduced'  => array( 5 ),
+			),
 		);
 
 		return $rates;
@@ -555,8 +561,13 @@ class Tax {
 	public static function import_rates( $rates, $tax_class = '' ) {
 		global $wpdb;
 
-		// Delete rates
-		$wpdb->delete( $wpdb->prefix . 'woocommerce_tax_rates', array( 'tax_rate_class' => $tax_class ), array( '%s' ) );
+		/**
+		 * Delete tax rates and make sure tax rate locations are deleted too
+		 */
+		foreach( \WC_Tax::get_rates_for_tax_class( $tax_class ) as $rate_id => $rate ) {
+		    \WC_Tax::_delete_tax_rate( $rate_id );
+		}
+
 		$count = 0;
 
 		foreach ( $rates as $iso => $rate ) {
@@ -572,7 +583,14 @@ class Tax {
 				'tax_rate_class'    => $tax_class
 			);
 
-			\WC_Tax::_insert_tax_rate( $_tax_rate );
+			$new_tax_rate_id = \WC_Tax::_insert_tax_rate( $_tax_rate );
+
+			/**
+			 * Import Norther Ireland postcodes for GB which start with BT
+			 */
+			if ( $new_tax_rate_id && 'GB' === $iso ) {
+			    \WC_Tax::_update_tax_rate_postcodes( $new_tax_rate_id, 'BT*' );
+			}
 		}
 	}
 

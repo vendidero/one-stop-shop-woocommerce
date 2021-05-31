@@ -531,12 +531,32 @@ class Package {
 	 *
 	 * @return string[]
 	 */
-	public static function get_non_base_eu_countries() {
-		$countries    = WC()->countries->get_european_union_countries( 'eu_vat' );
+	public static function get_non_base_eu_countries( $include_gb = false ) {
+		$countries = WC()->countries->get_european_union_countries( 'eu_vat' );
+
+		/**
+		 * Include GB to allow Northern Ireland
+		 */
+		if ( $include_gb && ! in_array( 'GB', $countries ) ) {
+			$countries = array_merge( $countries, array( 'GB' ) );
+		}
+
 		$base_country = wc_get_base_location()['country'];
 		$countries    = array_diff( $countries, array( $base_country ) );
 
 		return $countries;
+	}
+
+	public static function country_supports_eu_vat( $country, $postcode = '' ) {
+	    $supports_vat = in_array( $country, self::get_non_base_eu_countries() );
+
+		if ( 'GB' === $country && 'BT' === strtoupper( substr( $postcode, 0, 2 ) ) ) {
+			$supports_vat = true;
+		} elseif( 'IX' === $country ) {
+		    $supports_vat = true;
+		}
+
+		return $supports_vat;
 	}
 
 	public static function install() {

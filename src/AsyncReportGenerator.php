@@ -80,13 +80,26 @@ class AsyncReportGenerator {
 	/**
 	 * @param \WC_Order $order
 	 *
+	 * @return mixed
+	 */
+	protected function get_order_taxable_postcode( $order ) {
+		$taxable_type     = ! empty( $order->get_shipping_postcode() ) ? 'shipping' : 'billing';
+		$taxable_postcode = 'shipping' === $taxable_type ? $order->get_shipping_postcode() : $order->get_billing_postcode();
+
+		return $taxable_postcode;
+	}
+
+	/**
+	 * @param \WC_Order $order
+	 *
 	 * @return bool
 	 */
 	protected function include_order( $order ) {
-		$taxable_country = $this->get_order_taxable_country( $order );
-		$included        = true;
+		$taxable_country  = $this->get_order_taxable_country( $order );
+		$taxable_postcode = $this->get_order_taxable_postcode( $order );
+		$included         = true;
 
-		if ( ! in_array( $taxable_country, Package::get_non_base_eu_countries() ) ) {
+		if ( ! Package::country_supports_eu_vat( $taxable_country, $taxable_postcode ) ) {
 			$included = false;
 		}
 
@@ -95,6 +108,14 @@ class AsyncReportGenerator {
 		}
 
 		return apply_filters( "oss_woocommerce_report_include_order", $included, $order );
+	}
+
+	protected function get_taxable_country_iso( $country ) {
+		if ( 'GB' === $country ) {
+			$country = 'XI';
+		}
+
+		return $country;
 	}
 
 	/**
@@ -122,10 +143,12 @@ class AsyncReportGenerator {
 					continue;
 				}
 
-				Package::extended_log( sprintf( 'Processing order #%1$s based on taxable country %2$s', $order->get_order_number(), $taxable_country ) );
+				$country_iso = $this->get_taxable_country_iso( $taxable_country );
 
-				if ( ! isset( $tax_data[ $taxable_country ] ) ) {
-					$tax_data[ $taxable_country ] = array();
+				Package::extended_log( sprintf( 'Processing order #%1$s based on taxable country %2$s', $order->get_order_number(), $country_iso ) );
+
+				if ( ! isset( $tax_data[ $country_iso ] ) ) {
+					$tax_data[ $country_iso ] = array();
 				}
 
 				foreach ( $order->get_taxes() as $key => $tax ) {
@@ -137,8 +160,8 @@ class AsyncReportGenerator {
 						continue;
 					}
 
-					if ( ! isset( $tax_data[ $taxable_country ][ $tax_percent ] ) ) {
-						$tax_data[ $taxable_country ][ $tax_percent ] = array(
+					if ( ! isset( $tax_data[ $country_iso ][ $tax_percent ] ) ) {
+						$tax_data[ $country_iso ][ $tax_percent ] = array(
 							'tax_total' => 0,
 							'net_total' => 0,
 						);
@@ -153,11 +176,11 @@ class AsyncReportGenerator {
 					$net_total = wc_add_number_precision( $net_total, false );
 					$tax_total = wc_add_number_precision( $tax_total, false );
 
-					$tax_data[ $taxable_country ][ $tax_percent ]['tax_total'] = (float) $tax_data[ $taxable_country ][ $tax_percent ]['tax_total'];
-					$tax_data[ $taxable_country ][ $tax_percent ]['tax_total'] += $tax_total;
+					$tax_data[ $country_iso ][ $tax_percent ]['tax_total'] = (float) $tax_data[ $country_iso ][ $tax_percent ]['tax_total'];
+					$tax_data[ $country_iso ][ $tax_percent ]['tax_total'] += $tax_total;
 
-					$tax_data[ $taxable_country ][ $tax_percent ]['net_total'] = (float) $tax_data[ $taxable_country ][ $tax_percent ]['net_total'];
-					$tax_data[ $taxable_country ][ $tax_percent ]['net_total'] += $net_total;
+					$tax_data[ $country_iso ][ $tax_percent ]['net_total'] = (float) $tax_data[ $country_iso ][ $tax_percent ]['net_total'];
+					$tax_data[ $country_iso ][ $tax_percent ]['net_total'] += $net_total;
 
 					$orders_processed++;
 				}

@@ -109,7 +109,7 @@ class Queue {
 			'order'           => 'ASC',
 			$date_field       => $args['start'] . '...' . $args['end'],
 			'offset'          => $args['offset'],
-			'taxable_country' => Package::get_non_base_eu_countries(),
+			'taxable_country' => Package::get_non_base_eu_countries( true ),
 			'type'            => array( 'shop_order' ),
 			'status'          => $args['status']
 		);
