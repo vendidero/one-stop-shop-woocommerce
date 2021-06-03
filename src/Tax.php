@@ -34,7 +34,8 @@ class Tax {
 
 		    if ( isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) && $taxable_address[0] != wc_get_base_location()['country'] ) {
 		        $county    = $taxable_address[0];
-		        $tax_class = self::get_product_tax_class_by_country( $product, $county, $tax_class );
+			    $postcode  = isset( $taxable_address[2] ) ? $taxable_address[2] : '';
+		        $tax_class = self::get_product_tax_class_by_country( $product, $county, $postcode, $tax_class );
             }
         }
 
@@ -268,9 +269,16 @@ class Tax {
 	/**
 	 * @param \WC_Product $product
 	 */
-	public static function get_product_tax_class_by_country( $product, $country, $default = false ) {
+	public static function get_product_tax_class_by_country( $product, $country, $postcode = '', $default = false ) {
 		$tax_classes = self::get_product_tax_classes( $product );
 		$tax_class   = false !== $default ? $default : $product->get_tax_class();
+
+		/**
+		 * Prevent tax class adjustment for GB (except Norther Ireland via postcode detection)
+		 */
+		if ( 'GB' === $country && ( empty( $postcode ) || 'BT' !== strtoupper( substr( $postcode, 0, 2 ) ) ) ) {
+            return $tax_class;
+		}
 
 		if ( array_key_exists( $country, $tax_classes ) ) {
 			$tax_class = $tax_classes[ $country ];
