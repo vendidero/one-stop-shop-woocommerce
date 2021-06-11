@@ -62,10 +62,30 @@ class Queue {
 				$details['next_date'] = $next_date;
 			}
 
-			$results = $queue->search( array(
-				'hook'   => 'oss_woocommerce_' . $report_id,
-				'status' => \ActionScheduler_Store::STATUS_PENDING
-			) );
+			$search_args = array(
+				'hook'     => 'oss_woocommerce_' . $report_id,
+				'status'   => \ActionScheduler_Store::STATUS_RUNNING,
+				'order'    => 'DESC',
+				'per_page' => 1,
+			);
+
+			$results = $queue->search( $search_args );
+
+			/**
+			 * Search for pending as fallback
+			 */
+			if ( empty( $results ) ) {
+				$search_args['status'] = \ActionScheduler_Store::STATUS_PENDING;
+				$results = $queue->search( $search_args );
+			}
+
+			/**
+			 *  Last resort: Search for completed (e.g. if no pending and no running are found - must have been completed)
+			 */
+			if ( empty( $results ) ) {
+				$search_args['status'] = \ActionScheduler_Store::STATUS_COMPLETE;
+				$results = $queue->search( $search_args );
+			}
 
 			if ( ! empty( $results ) ) {
 				$action    = array_values( $results )[0];
