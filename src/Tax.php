@@ -566,14 +566,35 @@ class Tax {
 		return $rates;
 	}
 
+	/**
+	 * @param \stdClass $rate
+	 *
+	 * @return bool
+	 */
+	public static function tax_rate_is_northern_ireland( $rate ) {
+	    if ( 'GB' === $rate->tax_rate_country && isset( $rate->postcode ) && ! empty( $rate->postcode ) ) {
+	        foreach( $rate->postcode as $postcode ) {
+	            if ( 'BT' === substr( $postcode, 0, 2 ) ) {
+	                return true;
+	            }
+	        }
+	    }
+
+	    return false;
+	}
+
 	public static function import_rates( $rates, $tax_class = '' ) {
 		global $wpdb;
 
+		$eu_countries = Package::get_non_base_eu_countries( false );
+
 		/**
-		 * Delete tax rates and make sure tax rate locations are deleted too
+		 * Delete EU tax rates and make sure tax rate locations are deleted too
 		 */
 		foreach( \WC_Tax::get_rates_for_tax_class( $tax_class ) as $rate_id => $rate ) {
-		    \WC_Tax::_delete_tax_rate( $rate_id );
+		    if ( in_array( $rate->tax_rate_country, $eu_countries ) || self::tax_rate_is_northern_ireland( $rate ) ) {
+			    \WC_Tax::_delete_tax_rate( $rate_id );
+		    }
 		}
 
 		$count = 0;

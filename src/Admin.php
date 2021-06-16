@@ -45,7 +45,32 @@ class Admin {
 		if ( ! has_action( 'woocommerce_admin_field_html' ) ) {
 			add_action( 'woocommerce_admin_field_html', array( __CLASS__, 'html_field' ), 10, 1 );
         }
+
+		add_filter( 'woocommerce_debug_tools', array( __CLASS__, 'register_tax_rate_refresh_tool' ), 10, 1 );
 	}
+
+	public static function register_tax_rate_refresh_tool( $tools ) {
+	    $tools['refresh_oss_tax_rates'] = array(
+			'name'   => _x( 'Refresh VAT rates (OSS)', 'oss', 'oss-woocommerce' ),
+			'button' => _x( 'Refresh VAT rates (OSS)', 'oss', 'oss-woocommerce' ),
+			'callback' => array( __CLASS__, 'refresh_vat_rates' ),
+			'desc'   => sprintf(
+				'<strong class="red">%1$s</strong> %2$s',
+				_x( 'Note:', 'oss', 'oss-woocommerce' ),
+				sprintf( _x( 'This option will delete all of your current EU VAT rates and re-import them based on your current <a href="%s">OSS status</a>.', 'oss', 'oss-woocommerce' ), Settings::get_settings_url() )
+			),
+		);
+
+	    return $tools;
+    }
+
+    public static function refresh_vat_rates() {
+	    if ( Package::oss_procedure_is_enabled() ) {
+		    Tax::import_oss_tax_rates();
+	    } else {
+		    Tax::import_default_tax_rates();
+	    }
+    }
 
 	public static function html_field( $value ) {
 		?>
