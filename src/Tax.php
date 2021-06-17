@@ -586,7 +586,7 @@ class Tax {
 	public static function import_rates( $rates, $tax_class = '' ) {
 		global $wpdb;
 
-		$eu_countries = Package::get_non_base_eu_countries( false );
+		$eu_countries = WC()->countries->get_european_union_countries( 'eu_vat' );
 
 		/**
 		 * Delete EU tax rates and make sure tax rate locations are deleted too
