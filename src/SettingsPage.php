@@ -51,4 +51,8 @@ class SettingsPage extends \WC_Settings_Page {
 
 		return apply_filters( 'woocommerce_get_settings_' . $this->id, $settings );
 	}
+
+	public function get_settings_for_section_core( $section_id ) {
+		return Settings::get_settings( $section_id );
+	}
 }

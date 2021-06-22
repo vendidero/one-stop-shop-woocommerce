@@ -22,7 +22,7 @@ class Admin {
 		add_filter( 'woocommerce_get_settings_pages', array( __CLASS__, 'register_settings' ) );
 
 		add_action( 'load-woocommerce_page_oss-reports', array( __CLASS__, 'setup_table' ) );
-		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ), 15 );
+		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ), 25 );
 
 		add_action( 'admin_post_oss_create_report', array( __CLASS__, 'create_report' ) );
 

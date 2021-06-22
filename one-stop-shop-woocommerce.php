@@ -8,6 +8,7 @@
  * Version: 1.0.3
  * Requires PHP: 5.6
  * License: GPLv3
+ * Tested up to: 5.7
  *
  * Text Domain: oss-woocommerce
  * Domain Path: /i18n/languages/
