@@ -29,8 +29,38 @@ class Tax {
 	 * @param \WC_Product $product
 	 */
 	public static function filter_tax_class( $tax_class, $product ) {
-	    if ( WC()->customer ) {
-		    $taxable_address = WC()->customer->get_taxable_address();
+	    $is_admin_order_request = self::is_admin_order_request();
+
+	    if ( WC()->customer || $is_admin_order_request ) {
+	        if ( $is_admin_order_request ) {
+	            $taxable_address = array(
+		            WC()->countries->get_base_country(),
+		            WC()->countries->get_base_state(),
+		            WC()->countries->get_base_postcode(),
+		            WC()->countries->get_base_city()
+                );
+
+	            if ( $order = wc_get_order( absint( $_POST['order_id'] ) ) ) {
+		            $tax_based_on = get_option( 'woocommerce_tax_based_on' );
+
+		            if ( 'shipping' === $tax_based_on && ! $order->get_shipping_country() ) {
+			            $tax_based_on = 'billing';
+		            }
+
+		            $country = $tax_based_on ? $order->get_billing_country() : $order->get_shipping_country();
+
+		            if ( 'base' !== $tax_based_on && ! empty( $country ) ) {
+			            $taxable_address = array(
+				            $country,
+				            'billing' === $tax_based_on ? $order->get_billing_state() : $order->get_shipping_state(),
+				            'billing' === $tax_based_on ? $order->get_billing_postcode() : $order->get_shipping_postcode(),
+				            'billing' === $tax_based_on ? $order->get_billing_city() : $order->get_shipping_city(),
+			            );
+		            }
+                }
+            } else {
+		        $taxable_address = WC()->customer->get_taxable_address();
+            }
 
 		    if ( isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) && $taxable_address[0] != wc_get_base_location()['country'] ) {
 		        $county    = $taxable_address[0];
@@ -40,6 +70,16 @@ class Tax {
         }
 
 	    return $tax_class;
+    }
+
+    protected static function is_admin_order_ajax_request() {
+	    $order_actions = array( 'woocommerce_calc_line_taxes', 'add_coupon_discount', 'refund_line_items', 'delete_refund' );
+
+	    return isset( $_POST['action'], $_POST['order_id'] ) && ( strstr( $_POST['action'], '_order_' ) || in_array( $_POST['action'], $order_actions ) );
+    }
+
+    protected static function is_admin_order_request() {
+	    return is_admin() && current_user_can( 'edit_shop_orders' ) && self::is_admin_order_ajax_request();
     }
 
 	/**
