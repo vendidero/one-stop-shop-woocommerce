@@ -28,7 +28,7 @@ class DeliveryThresholdWarning extends AdminNote {
 	public static function is_enabled() {
 		$is_enabled = parent::is_enabled();
 
-		return $is_enabled && Package::observer_report_needs_notification();
+		return $is_enabled && Package::enable_auto_observer() && Package::observer_report_needs_notification();
 	}
 
 	public static function get_id() {

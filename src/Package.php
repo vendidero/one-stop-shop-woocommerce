@@ -73,9 +73,11 @@ class Package {
 			add_action( 'oss_woocommerce_daily_observer', array( __CLASS__, 'update_observer_report' ), 10 );
 			add_action( 'oss_woocommerce_updated_observer', array( __CLASS__, 'maybe_send_notification' ), 10 );
 
-			add_action( 'wc_admin_daily', array( '\Vendidero\OneStopShop\Admin', 'queue_wc_admin_notes' ) );
 			add_action( 'woocommerce_email_classes', array( __CLASS__, 'register_emails' ), 10 );
 		}
+
+		add_action( 'wc_admin_daily', array( '\Vendidero\OneStopShop\Admin', 'queue_wc_admin_notes' ) );
+		add_action( 'woocommerce_note_updated', array( '\Vendidero\OneStopShop\Admin', 'on_wc_admin_note_update' ) );
 	}
 
 	public static function dependency_notice() {
@@ -567,15 +569,7 @@ class Package {
 	public static function deactivate() {
 		if ( self::has_dependencies() && Admin::supports_wc_admin() ) {
 			foreach( Admin::get_notes() as $oss_note ) {
-				$note_name  = 'oss_' . $oss_note::get_id();
-				$data_store = \WC_Data_Store::load( 'admin-note' );
-				$note_ids   = $data_store->get_notes_with_name( $note_name );
-
-				if ( ! empty( $note_ids ) ) {
-					if ( $note = Notes::get_note( $note_ids[0] ) ) {
-						$note->delete( true );
-					}
-				}
+			    Admin::delete_wc_admin_note( $oss_note );
 			}
 		}
 	}
