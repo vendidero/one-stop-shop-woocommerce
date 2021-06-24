@@ -238,11 +238,15 @@ class Admin {
 			update_option( 'oss_use_oss_procedure', 'no' );
 
 			Tax::import_default_tax_rates();
+
+			do_action( 'woocommerce_oss_disabled_oss_procedure' );
 		} else {
 		    update_option( 'woocommerce_tax_based_on', 'shipping' );
             update_option( 'oss_use_oss_procedure', 'yes' );
 
             Tax::import_oss_tax_rates();
+
+            do_action( 'woocommerce_oss_enabled_oss_procedure' );
 		}
 
 		do_action( 'woocommerce_oss_switched_oss_procedure_status' );

@@ -94,6 +94,16 @@ class Settings {
             update_option( 'oss_enable_auto_observation', 'yes' );
             Package::update_observer_report();
         }
+
+        if ( Package::oss_procedure_is_enabled() && ( ! isset( $_POST['oss_use_oss_procedure'] ) || 'no' === wc_bool_to_string( $_POST['oss_use_oss_procedure'] ) ) ) {
+            do_action( 'woocommerce_oss_disabled_oss_procedure' );
+        } elseif ( ! Package::oss_procedure_is_enabled() && isset( $_POST['oss_use_oss_procedure'] ) && 'yes' === wc_bool_to_string( $_POST['oss_use_oss_procedure'] ) ) {
+	        do_action( 'woocommerce_oss_enabled_oss_procedure' );
+        }
+	}
+
+	public static function after_save() {
+
 	}
 
 	protected static function get_observer_report_html() {

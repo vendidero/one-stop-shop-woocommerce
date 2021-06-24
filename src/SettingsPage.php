@@ -39,6 +39,7 @@ class SettingsPage extends \WC_Settings_Page {
 	public function save() {
 		Settings::before_save();
 		parent::save();
+		Settings::after_save();
 	}
 
 	/**
