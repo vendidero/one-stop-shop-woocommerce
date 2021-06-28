@@ -14,4 +14,4 @@
 /Gruntfile.js export-ignore
 /webpack.config.js export-ignore
 /postcss.config.js export-ignore
-/docs export-ignore
+/docs* export-ignore
