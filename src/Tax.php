@@ -20,8 +20,12 @@ class Tax {
         }
 	}
 
-	public static function disable_location_price() {
-	    return false;
+	public static function disable_location_price( $adjust ) {
+	    if ( apply_filters( 'oss_force_static_gross_prices', true ) ) {
+		    return false;
+        }
+
+	    return $adjust;
     }
 
 	/**
@@ -644,7 +648,7 @@ class Tax {
 				'tax_rate_country'  => $iso,
 				'tax_rate_state'    => '',
 				'tax_rate'          => (string) number_format( (double) wc_clean( $rate ), 4, '.', '' ),
-				'tax_rate_name'     => sprintf( _x( 'VAT %s', 'oss-tax-rate-import', 'oss-woocommerce' ), ( $iso . ( ! empty( $tax_class ) ? ' ' . $tax_class : '' ) ) ),
+				'tax_rate_name'     => apply_filters( 'oss_import_tax_rate_name', sprintf( _x( 'VAT %s', 'oss-tax-rate-import', 'oss-woocommerce' ), ( $iso . ( ! empty( $tax_class ) ? ' ' . $tax_class : '' ) ) ), $rate, $iso, $tax_class ),
 				'tax_rate_priority' => 1,
 				'tax_rate_compound' => 0,
 				'tax_rate_shipping' => ( strstr( $tax_class, 'virtual' ) ? 0 : 1 ),
