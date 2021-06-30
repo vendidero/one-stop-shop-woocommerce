@@ -20,6 +20,48 @@ class Tax {
         }
 	}
 
+	/**
+     * Get VAT exemptions (of EU countries) for certain postcodes (e.g. canary islands)
+     *
+	 * @see https://www.hk24.de/produktmarken/beratung-service/recht-und-steuern/steuerrecht/umsatzsteuer-mehrwertsteuer/umsatzsteuer-mehrwertsteuer-international/verfahrensrecht/territoriale-besonderheiten-umsatzsteuer-zollrecht-1167674
+	 * @see https://github.com/woocommerce/woocommerce/issues/5143
+	 * @see https://ec.europa.eu/taxation_customs/business/vat/eu-vat-rules-topic/territorial-status-eu-countries-certain-territories_en
+	 *
+	 * @return \string[][]
+	 */
+	public static function get_vat_postcode_exemptions_by_country( $country = '' ) {
+	    $country = wc_strtoupper( $country );
+
+	    $exemptions = array(
+            'DE' => array(
+                '27498', // Helgoland
+                '78266' // Büsingen am Hochrhein
+            ),
+            'ES' => array(
+                '35*', // Canary Islands
+                '38*', // Canary Islands
+                '51*', // Ceuta
+                '52*' // Melilla
+            ),
+            'GR' => array(
+                '63086', // Mount Athos
+                '63087' // Mount Athos
+            ),
+            'IT' => array(
+                '22060', // Livigno, Campione d’Italia
+                '23030', // Lake Lugano
+            ),
+        );
+
+	    if ( empty( $country ) ) {
+	        return $exemptions;
+        } elseif( array_key_exists( $country, $exemptions ) ) {
+	        return $exemptions[ $country ];
+        } else {
+	        return array();
+        }
+    }
+
 	public static function disable_location_price( $adjust ) {
 	    if ( apply_filters( 'oss_force_static_gross_prices', true ) ) {
 		    return false;
@@ -631,6 +673,7 @@ class Tax {
 		global $wpdb;
 
 		$eu_countries = WC()->countries->get_european_union_countries( 'eu_vat' );
+		$exemptions   = self::get_vat_postcode_exemptions_by_country();
 
 		/**
 		 * Delete EU tax rates and make sure tax rate locations are deleted too
@@ -644,17 +687,46 @@ class Tax {
 		$count = 0;
 
 		foreach ( $rates as $iso => $rate ) {
+		    $iso      = wc_strtoupper( $iso );
+		    $priority = 1;
+
 			$_tax_rate = array(
 				'tax_rate_country'  => $iso,
 				'tax_rate_state'    => '',
 				'tax_rate'          => (string) number_format( (double) wc_clean( $rate ), 4, '.', '' ),
 				'tax_rate_name'     => apply_filters( 'oss_import_tax_rate_name', sprintf( _x( 'VAT %s', 'oss-tax-rate-import', 'oss-woocommerce' ), ( $iso . ( ! empty( $tax_class ) ? ' ' . $tax_class : '' ) ) ), $rate, $iso, $tax_class ),
-				'tax_rate_priority' => 1,
 				'tax_rate_compound' => 0,
+				'tax_rate_priority' => 1,
+				'tax_rate_order'    => $count,
 				'tax_rate_shipping' => ( strstr( $tax_class, 'virtual' ) ? 0 : 1 ),
-				'tax_rate_order'    => $count++,
 				'tax_rate_class'    => $tax_class
 			);
+
+			/**
+			 * Insert tax rates for postcode exemptions
+			 */
+			if ( array_key_exists( $iso, $exemptions ) ) {
+				foreach( $exemptions[ $iso ] as $postcode ) {
+				    $_exempt_tax_rate = $_tax_rate;
+
+					$_exempt_tax_rate['tax_rate_name']     = apply_filters( 'oss_import_tax_rate_exempt_name', sprintf( _x( 'VAT exempt %s', 'oss-tax-rate-import', 'oss-woocommerce' ), ( $iso . ( ! empty( $tax_class ) ? ' ' . $tax_class : '' ) ) ), $rate, $iso, $tax_class );
+					$_exempt_tax_rate['tax_rate']          = (string) number_format( (double) 0, 4, '.', '' );
+					$_exempt_tax_rate['tax_rate_order']    = $count++;
+					$_exempt_tax_rate['tax_rate_priority'] = $priority;
+
+					$new_tax_rate_id = \WC_Tax::_insert_tax_rate( $_exempt_tax_rate );
+
+					if ( $new_tax_rate_id ) {
+						\WC_Tax::_update_tax_rate_postcodes( $new_tax_rate_id, $postcode );
+					}
+				}
+			}
+
+			/**
+			 * Update count
+			 */
+			$_tax_rate['tax_rate_priority'] = $priority;
+			$_tax_rate['tax_rate_order']    = $count++;
 
 			$new_tax_rate_id = \WC_Tax::_insert_tax_rate( $_tax_rate );
 

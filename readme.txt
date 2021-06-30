@@ -62,6 +62,7 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 == Changelog ==
 = 1.0.6 =
 * Improvement: Feature plugin load management
+* Improvement: Added postcode VAT exemptions as tax rates (e.g. canary islands)
 
 = 1.0.5 =
 * Improvement: Remove docs from release

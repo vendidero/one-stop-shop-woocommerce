@@ -551,11 +551,26 @@ class Package {
 
 	public static function country_supports_eu_vat( $country, $postcode = '' ) {
 	    $supports_vat = in_array( $country, self::get_non_base_eu_countries() );
+	    $exemptions   = Tax::get_vat_postcode_exemptions_by_country( $country );
+		$postcode     = wc_normalize_postcode( $postcode );
+		$wildcards    = wc_get_wildcard_postcodes( $postcode, $country );
 
-		if ( 'GB' === $country && 'BT' === strtoupper( substr( $postcode, 0, 2 ) ) ) {
+		if ( 'GB' === $country && in_array( 'BT*', $wildcards ) ) {
 			$supports_vat = true;
 		} elseif( 'IX' === $country ) {
 		    $supports_vat = true;
+		}
+
+		/**
+		 * Check whether the country + postcode is a VAT exemption.
+		 */
+		if ( ! empty( $exemptions ) ) {
+			foreach( $exemptions as $exempt_postcode ) {
+				if ( in_array( $exempt_postcode, $wildcards, true ) ) {
+					$supports_vat = false;
+					break;
+				}
+			}
 		}
 
 		return $supports_vat;
