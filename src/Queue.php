@@ -186,7 +186,11 @@ class Queue {
 			$new_args = $generator->get_args();
 
 			// Increase offset
-			$new_args['offset'] = $new_args['offset'] + $new_args['limit'];
+			$new_args['offset'] = (int) $new_args['offset'] + (int) $new_args['limit'];
+
+			$queue->cancel_all( 'oss_woocommerce_' . $generator->get_id() );
+
+			Package::extended_log( sprintf( 'Starting new queue: %s', wc_print_r( $new_args, true ) ) );
 
 			$queue->schedule_single(
 				time() + 10,

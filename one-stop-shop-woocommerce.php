@@ -5,7 +5,7 @@
  * Description: Comply with the One Stop Shop procedure while using WooCommerce.
  * Author: vendidero
  * Author URI: https://vendidero.de
- * Version: 1.0.5
+ * Version: 1.0.6
  * Requires PHP: 5.6
  * License: GPLv3
  * Tested up to: 5.8
@@ -72,7 +72,6 @@ if ( is_readable( $autoloader ) ) {
 	return;
 }
 
-register_activation_hook( __FILE__, array( 'Vendidero\OneStopShop\Package', 'install' ) );
-register_deactivation_hook( __FILE__, array( 'Vendidero\OneStopShop\Package', 'deactivate' ) );
-
-add_action( 'plugins_loaded', array( 'Vendidero\OneStopShop\Package', 'init' ) );
+register_activation_hook( __FILE__, array( '\Vendidero\OneStopShop\Package', 'install' ) );
+register_deactivation_hook( __FILE__, array( '\Vendidero\OneStopShop\Package', 'deactivate' ) );
+add_action( 'plugins_loaded', array( '\Vendidero\OneStopShop\Package', 'init' ) );

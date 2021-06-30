@@ -217,8 +217,14 @@ class AsyncReportGenerator {
 			}
 		}
 
-		$report->set_net_total( wc_remove_number_precision( $net_total ) );
-		$report->set_tax_total( wc_remove_number_precision( $tax_total ) );
+		$net_total = (float) wc_remove_number_precision( $net_total );
+		$tax_total = (float) wc_remove_number_precision( $tax_total );
+
+		Package::extended_log( sprintf( 'Completed net total: %s', $net_total ) );
+		Package::extended_log( sprintf( 'Completed tax total: %s', $tax_total ) );
+
+		$report->set_net_total( $net_total );
+		$report->set_tax_total( $tax_total );
 		$report->set_status( 'completed' );
 		$report->save();
 
