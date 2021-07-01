@@ -730,7 +730,7 @@ class Tax {
 					// Acores
 					'postcode' => array( '95*', '96*', '97*', '98*' ),
 					'standard' => 18,
-					'reduced'  => array( 5, 10 ),
+					'reduced'  => array( 4, 9 ),
 					'name'     => _x( 'Acores', 'oss', 'oss-woocommerce' )
 				),
 				array(
