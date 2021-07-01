@@ -415,6 +415,7 @@ class Tax {
 
 	public static function import_tax_rates( $is_oss = true ) {
 		$tax_class_slugs = self::get_tax_class_slugs();
+		$eu_rates        = self::get_eu_tax_rates();
 
 		foreach( $tax_class_slugs as $tax_class_type => $class ) {
 			/**
@@ -436,43 +437,91 @@ class Tax {
 			}
 
 			$new_rates = array();
-			$eu_rates  = self::get_eu_tax_rates();
 
-			foreach( $eu_rates as $country => $rates ) {
+			foreach( $eu_rates as $country => $rates_data ) {
+
 				/**
 				 * Use base country rates in case OSS is disabled
 				 */
-			    if ( ! $is_oss ) {
-			        $base_country = wc_get_base_location()['country'];
+				if ( ! $is_oss ) {
+					$base_country = wc_get_base_location()['country'];
 
-			        if ( isset( $eu_rates[ $base_country ] ) ) {
-			            $rates = $eu_rates[ $base_country ];
-			        } else {
-				        continue;
-			        }
-			    }
-
-				switch( $tax_class_type ) {
-					case "greater-reduced":
-						if ( sizeof( $rates['reduced'] ) > 1 ) {
-							$new_rates[ $country ] = $rates['reduced'][1];
-						}
-						break;
-					case "reduced":
-						if ( ! empty( $rates['reduced'] ) ) {
-							$new_rates[ $country ] = $rates['reduced'][0];
-						}
-						break;
-					default:
-						if ( isset( $rates[ $tax_class_type ] ) ) {
-							$new_rates[ $country ] = $rates[ $tax_class_type ];
-						}
-						break;
+					if ( isset( $eu_rates[ $base_country ] ) ) {
+						$rates_data = $eu_rates[ $base_country ];
+					} else {
+						continue;
+					}
 				}
+
+				/**
+				 * Each country may contain multiple tax rates
+				 */
+			    foreach( $rates_data as $rates ) {
+
+			        $rates = wp_parse_args( $rates, array(
+                        'name'      => '',
+                        'postcodes' => array(),
+                        'reduced'   => array(),
+                    ) );
+
+				    if ( ! empty( $rates['postcode'] ) ) {
+					    foreach( $rates['postcode'] as $postcode ) {
+						    $tax_rate = self::get_single_tax_rate_data( $tax_class_type, $rates, $country, $postcode );
+
+                            if ( false !== $tax_rate ) {
+	                            $new_rates[] = $tax_rate;
+                            }
+					    }
+				    } else {
+					    $tax_rate = self::get_single_tax_rate_data( $tax_class_type, $rates, $country );
+
+					    if ( false !== $tax_rate ) {
+					        $new_rates[] = $tax_rate;
+					    }
+				    }
+			    }
 			}
 
 			self::import_rates( $new_rates, $class );
 		}
+	}
+
+	private static function get_single_tax_rate_data( $tax_class_type, $rates, $country, $postcode = '' ) {
+		$rates = wp_parse_args( $rates, array(
+			'name'    => '',
+			'reduced' => array(),
+		) );
+
+	    $single_rate = array(
+            'name'     => $rates['name'],
+            'rate'     => false,
+            'country'  => $country,
+            'postcode' => $postcode,
+        );
+
+		switch( $tax_class_type ) {
+			case "greater-reduced":
+				if ( sizeof( $rates['reduced'] ) > 1 ) {
+					$single_rate['rate'] = $rates['reduced'][1];
+				}
+				break;
+			case "reduced":
+				if ( ! empty( $rates['reduced'] ) ) {
+					$single_rate['rate'] = $rates['reduced'][0];
+				}
+				break;
+			default:
+				if ( isset( $rates[ $tax_class_type ] ) ) {
+					$single_rate['rate'] = $rates[ $tax_class_type ];
+				}
+				break;
+		}
+
+		if ( false === $single_rate['rate'] ) {
+		    return false;
+		}
+
+		return $single_rate;
 	}
 
 	public static function import_oss_tax_rates() {
@@ -526,128 +575,222 @@ class Tax {
 		 */
 		$rates = array(
 			'AT' => array(
-				'standard' => 20,
-				'reduced'  => array( 10, 13 )
+                array(
+                    'standard' => 20,
+                    'reduced'  => array( 10, 13 )
+                ),
 			),
 			'BE' => array(
-				'standard' => 21,
-				'reduced'  => array( 6, 12 )
+				array(
+                    'standard' => 21,
+                    'reduced'  => array( 6, 12 )
+                ),
 			),
 			'BG' => array(
-				'standard' => 20,
-				'reduced'  => array( 9 )
+				array(
+                    'standard' => 20,
+                    'reduced'  => array( 9 )
+                ),
 			),
 			'CY' => array(
-				'standard' => 19,
-				'reduced'  => array( 5, 9 )
+				array(
+                    'standard' => 19,
+                    'reduced'  => array( 5, 9 )
+                ),
 			),
 			'CZ' => array(
-				'standard' => 21,
-				'reduced'  => array( 10, 15 )
+				array(
+                    'standard' => 21,
+                    'reduced'  => array( 10, 15 )
+                ),
 			),
 			'DE' => array(
-				'standard' => 19,
-				'reduced'  => array( 7 )
+				array(
+                    'standard' => 19,
+                    'reduced'  => array( 7 )
+                ),
 			),
 			'DK' => array(
-				'standard' => 25,
-				'reduced'  => array()
+				array(
+                    'standard' => 25,
+                    'reduced'  => array()
+                ),
 			),
 			'EE' => array(
-				'standard' => 20,
-				'reduced'  => array( 9 )
+				array(
+                    'standard' => 20,
+                    'reduced'  => array( 9 )
+                ),
 			),
 			'GR' => array(
-				'standard' => 24,
-				'reduced'  => array( 6, 13 )
+				array(
+				    'standard' => 24,
+				    'reduced'  => array( 6, 13 )
+                ),
 			),
 			'ES' => array(
-				'standard'      => 21,
-				'reduced'       => array( 10 ),
-				'super-reduced' => 4
+				array(
+                    'standard'      => 21,
+                    'reduced'       => array( 10 ),
+                    'super-reduced' => 4
+                ),
 			),
 			'FI' => array(
-				'standard' => 24,
-				'reduced'  => array( 10, 14 )
+				array(
+                    'standard' => 24,
+                    'reduced'  => array( 10, 14 )
+                ),
 			),
 			'FR' => array(
-				'standard'      => 20,
-				'reduced'       => array( 5.5, 10 ),
-				'super-reduced' => 2.1
+				array(
+                    'standard'      => 20,
+                    'reduced'       => array( 5.5, 10 ),
+                    'super-reduced' => 2.1
+                ),
 			),
 			'HR' => array(
-				'standard' => 25,
-				'reduced'  => array( 5, 13 )
+				array(
+                    'standard' => 25,
+                    'reduced'  => array( 5, 13 )
+                ),
 			),
 			'HU' => array(
-				'standard' => 27,
-				'reduced'  => array( 5, 18 )
+				array(
+                    'standard' => 27,
+                    'reduced'  => array( 5, 18 )
+                ),
 			),
 			'IE' => array(
-				'standard'      => 23,
-				'reduced'       => array( 9, 13.5 ),
-				'super-reduced' => 4.8
+				array(
+                    'standard'      => 23,
+                    'reduced'       => array( 9, 13.5 ),
+                    'super-reduced' => 4.8
+                ),
 			),
 			'IT' => array(
-				'standard'      => 22,
-				'reduced'       => array( 5, 10 ),
-				'super-reduced' => 4
+				array(
+                    'standard'      => 22,
+                    'reduced'       => array( 5, 10 ),
+                    'super-reduced' => 4
+                ),
 			),
 			'LT' => array(
-				'standard' => 21,
-				'reduced'  => array( 5, 9 )
+				array(
+				    'standard' => 21,
+				    'reduced'  => array( 5, 9 )
+                ),
 			),
 			'LU' => array(
-				'standard'      => 17,
-				'reduced'       => array( 8 ),
-				'super-reduced' => 3
+				array(
+                    'standard'      => 17,
+                    'reduced'       => array( 8 ),
+                    'super-reduced' => 3
+                ),
 			),
 			'LV' => array(
-				'standard' => 21,
-				'reduced'  => array( 12, 5 )
+				array(
+                    'standard' => 21,
+                    'reduced'  => array( 12, 5 )
+                ),
 			),
 			'MC' => array(
-				'standard'      => 20,
-				'reduced'       => array( 5.5, 10 ),
-				'super-reduced' => 2.1
+				array(
+                    'standard'      => 20,
+                    'reduced'       => array( 5.5, 10 ),
+                    'super-reduced' => 2.1
+                ),
 			),
 			'MT' => array(
-				'standard' => 18,
-				'reduced'  => array( 5, 7 )
+				array(
+                    'standard' => 18,
+                    'reduced'  => array( 5, 7 )
+                ),
 			),
 			'NL' => array(
-				'standard' => 21,
-				'reduced'  => array( 9 )
+				array(
+                    'standard' => 21,
+                    'reduced'  => array( 9 )
+                ),
 			),
 			'PL' => array(
-				'standard' => 23,
-				'reduced'  => array( 5, 8 )
+				array(
+                    'standard' => 23,
+                    'reduced'  => array( 5, 8 )
+                ),
 			),
 			'PT' => array(
-				'standard' => 23,
-				'reduced'  => array( 6, 13 )
+				array(
+					// Madeira
+					'postcode' => array( '90*', '91*', '92*', '93*', '94*' ),
+					'standard' => 22,
+					'reduced'  => array( 5, 12 ),
+					'name'     => _x( 'Madeira', 'oss', 'oss-woocommerce' )
+				),
+				array(
+					// Acores
+					'postcode' => array( '95*', '96*', '97*', '98*' ),
+					'standard' => 18,
+					'reduced'  => array( 5, 10 ),
+					'name'     => _x( 'Acores', 'oss', 'oss-woocommerce' )
+				),
+				array(
+                    'standard' => 23,
+                    'reduced'  => array( 6, 13 )
+                ),
 			),
 			'RO' => array(
-				'standard' => 19,
-				'reduced'  => array( 5, 9 )
+				array(
+                    'standard' => 19,
+                    'reduced'  => array( 5, 9 )
+                ),
 			),
 			'SE' => array(
-				'standard' => 25,
-				'reduced'  => array( 6, 12 )
+				array(
+                    'standard' => 25,
+                    'reduced'  => array( 6, 12 )
+                ),
 			),
 			'SI' => array(
-				'standard' => 22,
-				'reduced'  => array( 9.5 )
+				array(
+                    'standard' => 22,
+                    'reduced'  => array( 9.5 )
+                ),
 			),
 			'SK' => array(
-				'standard' => 20,
-				'reduced'  => array( 10 )
+				array(
+                    'standard' => 20,
+                    'reduced'  => array( 10 )
+                ),
 			),
 			'GB' => array(
-				'standard' => 20,
-				'reduced'  => array( 5 ),
+				array(
+                    'standard' => 20,
+                    'reduced'  => array( 5 ),
+                    'postcode' => array( 'BT*' ),
+                    'name'     => _x( 'Northern Ireland', 'oss', 'oss-woocommerce' )
+                ),
 			),
 		);
+
+		foreach( self::get_vat_postcode_exemptions_by_country() as $country => $exempt_postcodes ) {
+		    if ( array_key_exists( $country, $rates ) ) {
+			    $default_rate = array_values( $rates[ $country ] )[0];
+
+			    $postcode_exempt = array(
+				    'postcode' => $exempt_postcodes,
+				    'standard' => 0,
+				    'reduced'  => sizeof( $default_rate['reduced'] ) > 1 ? array( 0, 0 ) : array( 0 ),
+				    'name'     => _x( 'Exempt', 'oss-tax-rate-import', 'oss-woocommerce' )
+			    );
+
+			    if ( array_key_exists( 'super-reduced', $default_rate ) ) {
+				    $postcode_exempt['super-reduced'] = 0;
+			    }
+
+			    // Prepend before other tax rates
+			    $rates[ $country ] = array_merge( array( $postcode_exempt ), $rates[ $country ] );
+		    }
+		}
 
 		return $rates;
 	}
@@ -686,55 +829,41 @@ class Tax {
 
 		$count = 0;
 
-		foreach ( $rates as $iso => $rate ) {
-		    $iso      = wc_strtoupper( $iso );
-		    $priority = 1;
+		foreach ( $rates as $rate ) {
+		    $rate = wp_parse_args( $rate, array(
+                'rate'     => 0,
+                'country'  => '',
+                'postcode' => '',
+                'name'     => '',
+            ) );
+
+		    $iso      = wc_strtoupper( $rate['country'] );
+		    $vat_desc = $iso;
+
+		    if ( ! empty( $rate['name'] ) ) {
+			    $vat_desc = $vat_desc . ' ' . $rate['name'];
+		    }
+
+		    $vat_rate = wc_format_decimal( $rate['rate'], false, true );
+
+		    $tax_rate_name = apply_filters( 'oss_import_tax_rate_name', sprintf( _x( 'VAT %1$s %% %2$s', 'oss-tax-rate-import', 'oss-woocommerce' ), $vat_rate, $vat_desc ), $rate['rate'], $iso, $tax_class, $rate );
 
 			$_tax_rate = array(
 				'tax_rate_country'  => $iso,
 				'tax_rate_state'    => '',
-				'tax_rate'          => (string) number_format( (double) wc_clean( $rate ), 4, '.', '' ),
-				'tax_rate_name'     => apply_filters( 'oss_import_tax_rate_name', sprintf( _x( 'VAT %s', 'oss-tax-rate-import', 'oss-woocommerce' ), ( $iso . ( ! empty( $tax_class ) ? ' ' . $tax_class : '' ) ) ), $rate, $iso, $tax_class ),
+				'tax_rate'          => (string) number_format( (double) wc_clean( $rate['rate'] ), 4, '.', '' ),
+				'tax_rate_name'     => $tax_rate_name,
 				'tax_rate_compound' => 0,
 				'tax_rate_priority' => 1,
-				'tax_rate_order'    => $count,
+				'tax_rate_order'    => $count++,
 				'tax_rate_shipping' => ( strstr( $tax_class, 'virtual' ) ? 0 : 1 ),
 				'tax_rate_class'    => $tax_class
 			);
 
-			/**
-			 * Insert tax rates for postcode exemptions
-			 */
-			if ( array_key_exists( $iso, $exemptions ) ) {
-				foreach( $exemptions[ $iso ] as $postcode ) {
-				    $_exempt_tax_rate = $_tax_rate;
-
-					$_exempt_tax_rate['tax_rate_name']     = apply_filters( 'oss_import_tax_rate_exempt_name', sprintf( _x( 'VAT exempt %s', 'oss-tax-rate-import', 'oss-woocommerce' ), ( $iso . ( ! empty( $tax_class ) ? ' ' . $tax_class : '' ) ) ), $rate, $iso, $tax_class );
-					$_exempt_tax_rate['tax_rate']          = (string) number_format( (double) 0, 4, '.', '' );
-					$_exempt_tax_rate['tax_rate_order']    = $count++;
-					$_exempt_tax_rate['tax_rate_priority'] = $priority;
-
-					$new_tax_rate_id = \WC_Tax::_insert_tax_rate( $_exempt_tax_rate );
-
-					if ( $new_tax_rate_id ) {
-						\WC_Tax::_update_tax_rate_postcodes( $new_tax_rate_id, $postcode );
-					}
-				}
-			}
-
-			/**
-			 * Update count
-			 */
-			$_tax_rate['tax_rate_priority'] = $priority;
-			$_tax_rate['tax_rate_order']    = $count++;
-
 			$new_tax_rate_id = \WC_Tax::_insert_tax_rate( $_tax_rate );
 
-			/**
-			 * Import Norther Ireland postcodes for GB which start with BT
-			 */
-			if ( $new_tax_rate_id && 'GB' === $iso ) {
-			    \WC_Tax::_update_tax_rate_postcodes( $new_tax_rate_id, 'BT*' );
+			if ( ! empty( $rate['postcode'] ) ) {
+				\WC_Tax::_update_tax_rate_postcodes( $new_tax_rate_id, $rate['postcode'] );
 			}
 		}
 	}
