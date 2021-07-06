@@ -62,9 +62,21 @@ class Settings {
 				'type'     => 'html',
 				'html'     => self::get_oss_switch_html(),
 			),
-
-			array( 'type' => 'sectionend', 'id' => 'oss_options' ),
         ) );
+
+		if ( Package::oss_procedure_is_enabled() && wc_prices_include_tax() ) {
+			$settings = array_merge( $settings, array(
+				array(
+					'title'    => _x( 'Fixed gross prices', 'oss', 'oss-woocommerce' ),
+					'desc'     => _x( 'Apply the same gross price regardless of the tax rate.', 'oss', 'oss-woocommerce' ) . '<p class="oss-woocommerce-additional-desc wc-gzd-additional-desc">' . _x( 'This option will make sure that your customers pay the same price no matter the tax rate (based on the country chosen) to be applied.', 'oss', 'oss-woocommerce' ) . '</p>',
+					'id'       => 'oss_fixed_gross_prices',
+					'type'     => Package::is_integration() ? 'gzd_toggle' : 'checkbox',
+					'default'  => 'yes',
+				),
+			) );
+        }
+
+		$settings = array_merge( $settings, array( array( 'type' => 'sectionend', 'id' => 'oss_options' ) ) );
 
 		return $settings;
 	}
@@ -131,7 +143,7 @@ class Settings {
 
 		ob_start();
 		?>
-			<p class="oss-observer-details"><span class="oss-observer-total <?php echo esc_attr( $total_class ); ?>"><?php echo wc_price( $observer_report->get_net_total() ); ?></span> <?php _ex( 'of', 'oss-amounts', 'oss-woocommerce' ); ?> <span class="oss-observer-delivery-threshold"><?php echo wc_price( Package::get_delivery_threshold() ); ?></span> <a class="oss-settings-learn-more" href="<?php echo esc_url( $observer_report->get_url() ); ?>"><?php _ex( 'see details', 'oss', 'oss-woocommerce' ); ?></a></p>
+			<p class="oss-observer-details"><span class="oss-observer-total <?php echo esc_attr( $total_class ); ?>"><?php echo wc_price( $observer_report->get_net_total() ); ?></span> <?php _ex( 'of', 'oss-amounts', 'oss-woocommerce' ); ?> <span class="oss-observer-delivery-threshold"><?php echo wc_price( Package::get_delivery_threshold() ); ?></span> <span class="oss-observer-date-end"><?php printf( _x( 'As of: %s', 'oss', 'oss-woocommerce' ), wc_format_datetime( $observer_report->get_date_end() ) ); ?></span> <a class="oss-settings-learn-more" href="<?php echo esc_url( $observer_report->get_url() ); ?>"><?php _ex( 'see details', 'oss', 'oss-woocommerce' ); ?></a></p>
             <p class="oss-woocommerce-additional-desc wc-gzd-additional-desc"><?php printf( _x( 'This value indicates your current net total amount applicable for the One Stop Shop procedure delivery threshold of the current year. You should take action in case the delivery threshold is or is close to being exceeded. <a href="%s">Find out more</a> about the calculation.', 'oss', 'oss-woocommerce' ), 'https://vendidero.github.io/one-stop-shop-woocommerce/report-calculation' ); ?></p>
 		<?php
 

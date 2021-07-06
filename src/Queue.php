@@ -16,6 +16,19 @@ class Queue {
 		$args     = self::get_timeframe( $type, $date, $end_date );
 		$interval = $args['start']->diff( $args['end'] );
 
+		/**
+		 * Except observers, all new queries treat refunds separately
+		 */
+		if ( 'observer' !== $type ) {
+			$args['order_types'] = array(
+				'shop_order',
+				'shop_order_refund'
+			);
+		}
+
+		// Add version
+		$args['version'] = Package::get_version();
+
 		$generator  = new AsyncReportGenerator( $type, $args );
 		$queue_args = $generator->get_args();
 		$queue      = self::get_queue();
@@ -114,27 +127,81 @@ class Queue {
 		return apply_filters( 'oss_woocommerce_valid_order_statuses', $statuses );
 	}
 
-	public static function get_order_query_args( $args, $date_field = 'date_created' ) {
-		/**
-		 * Add one day to the end date to capture timestamps (including time data) in between
-		 */
-		if ( 'date_paid' === $date_field ) {
-			$args['start'] = strtotime( $args['start'] );
-			$args['end']   = strtotime( $args['end'] ) + DAY_IN_SECONDS;
-		}
+	public static function build_query( $args ) {
+		global $wpdb;
 
-		$query_args = array(
-			'limit'           => $args['limit'],
-			'orderby'         => 'date',
-			'order'           => 'ASC',
-			$date_field       => $args['start'] . '...' . $args['end'],
-			'offset'          => $args['offset'],
-			'taxable_country' => Package::get_non_base_eu_countries( true ),
-			'type'            => array( 'shop_order' ),
-			'status'          => $args['status']
+		$joins = array(
+			"LEFT JOIN {$wpdb->postmeta} AS mt1 ON ( {$wpdb->posts}.post_parent = mt1.post_id AND mt1.meta_key = '_shipping_country' ) OR ( {$wpdb->posts}.ID = mt1.post_id AND mt1.meta_key = '_shipping_country' )",
+			"LEFT JOIN {$wpdb->postmeta} AS mt2 ON ( {$wpdb->posts}.post_parent = mt2.post_id AND mt2.meta_key = '_billing_country' ) OR ( {$wpdb->posts}.ID = mt2.post_id AND mt2.meta_key = '_billing_country' )"
 		);
 
-		return $query_args;
+		$where_date_sql = $wpdb->prepare( "{$wpdb->posts}.post_date >= '%s' AND {$wpdb->posts}.post_date <= '%s'", $args['start'], $args['end'] );
+
+		if ( 'date_paid' === $args['date_field'] ) {
+			$joins[] = "LEFT JOIN {$wpdb->postmeta} AS mt3 ON ( {$wpdb->posts}.ID = mt3.post_id AND mt3.meta_key = '_date_paid' )";
+
+			$where_date_sql = $wpdb->prepare(
+				"NOT mt3.post_id IS NULL AND (
+			  		mt3.meta_key = '_date_paid' AND mt3.meta_value >= '%d' AND mt3.meta_value <= '%d'
+			  	) OR {$wpdb->posts}.post_parent > 0 AND (
+			  	    {$wpdb->posts}.post_date >= '%s' AND {$wpdb->posts}.post_date <= '%s'
+			  	)",
+				strtotime( $args['start'] ),
+				strtotime( $args['end'] ),
+				$args['start'],
+				$args['end']
+			);
+		}
+
+		$join_sql             = implode( " ", $joins );
+		$taxable_countries_in = self::generate_in_query_sql( Package::get_non_base_eu_countries( true ) );
+		$post_status_in       = self::generate_in_query_sql( $args['status'] );
+		$post_type_in         = self::generate_in_query_sql( isset( $args['order_types'] ) ? (array) $args['order_types'] : array( 'shop_order' ) );
+
+		$sql = $wpdb->prepare( "
+			SELECT {$wpdb->posts}.* FROM {$wpdb->posts}  
+			$join_sql
+			WHERE 1=1 
+				AND ( $where_date_sql )
+				AND ( 
+					( mt1.post_id IS NULL AND ( 
+						mt2.meta_key = '_billing_country' AND mt2.meta_value IN {$taxable_countries_in}
+					) ) OR (
+						mt1.meta_key = '_shipping_country' AND mt1.meta_value IN {$taxable_countries_in}
+					)
+				)
+				AND ({$wpdb->posts}.post_type IN {$post_type_in}) AND ({$wpdb->posts}.post_status IN {$post_status_in}) 
+			GROUP BY {$wpdb->posts}.ID 
+			ORDER BY {$wpdb->posts}.post_date ASC 
+			LIMIT %d, %d",
+			$args['offset'],
+			$args['limit']
+		);
+
+		return $sql;
+	}
+
+	private static function generate_in_query_sql( $values ) {
+		global $wpdb;
+
+		$in_query = array();
+
+		foreach( $values as $value ) {
+			$in_query[] = $wpdb->prepare( "'%s'", $value );
+		}
+
+		return "(" . implode( ',', $in_query ) . ")";
+	}
+
+	public static function query( $args ) {
+		global $wpdb;
+
+		$query = self::build_query( $args );
+
+		Package::extended_log( sprintf( 'Building new query: %s', wc_print_r( $args, true ) ) );
+		Package::extended_log( $query );
+
+		return $wpdb->get_results( $query );
 	}
 
 	public static function cancel( $id ) {
@@ -173,6 +240,13 @@ class Queue {
 	}
 
 	public static function next( $type, $args ) {
+		/**
+		 * Older versions didn't include refunds as separate orders
+		 */
+		if ( ! isset( $args['order_types'] ) ) {
+			$args['order_types'] = array( 'shop_order' );
+		}
+
 		$generator = new AsyncReportGenerator( $type, $args );
 		$result    = $generator->next();
 		$is_empty  = false;

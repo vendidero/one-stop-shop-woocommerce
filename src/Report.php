@@ -42,11 +42,13 @@ class Report {
 
 		$args['meta'] = wp_parse_args( $args['meta'], array(
 			'date_requested' => null,
-			'status'         => 'pending'
+			'status'         => 'pending',
+			'version'        => '',
 		) );
 
 		$this->set_date_requested( $args['meta']['date_requested'] );
 		$this->set_status( $args['meta']['status'] );
+		$this->set_version( $args['meta']['version'] );
 
 		$this->args = $args;
 	}
@@ -120,8 +122,16 @@ class Report {
 		return $this->args['meta']['status'];
 	}
 
+	public function get_version() {
+		return $this->args['meta']['version'];
+	}
+
 	public function set_status( $status ) {
 		$this->args['meta']['status'] = $status;
+	}
+
+	public function set_version( $version ) {
+		$this->args['meta']['version'] = $version;
 	}
 
 	public function get_date_requested() {
@@ -163,6 +173,7 @@ class Report {
 		$this->set_tax_total( 0 );
 		$this->set_date_requested( new \WC_DateTime() );
 		$this->set_status( 'pending' );
+		$this->set_version( Package::get_version() );
 
 		delete_option( $this->id . '_tmp_result' );
 	}

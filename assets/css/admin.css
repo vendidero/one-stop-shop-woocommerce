@@ -67,6 +67,11 @@ p.oss-add-tax-class-by-country-field {
 .oss-settings-learn-more {
   margin-left: .5em; }
 
+.oss-observer-date-end {
+  color: #646970;
+  font-size: 12px;
+  margin-left: .5em; }
+
 .oss-woo-status {
   background: #eee;
   padding: .2em .5em;

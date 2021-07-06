@@ -11,20 +11,28 @@ class AsyncReportGenerator {
 	protected $type = '';
 
 	public function __construct( $type = 'quarterly', $args = array() ) {
-		$this->type = $type;
-
+		$this->type    = $type;
 		$default_end   = new \WC_DateTime();
 		$default_start = new \WC_DateTime( 'now' );
 		$default_start->modify( '-1 year' );
 
 		$args = wp_parse_args( $args, array(
-			'start'  => $default_start->format( 'Y-m-d' ),
-			'end'    => $default_end->format( 'Y-m-d' ),
-			'limit'  => Queue::get_batch_size(),
-			'status' => Queue::get_order_statuses(),
-			'offset' => 0,
+			'start'            => $default_start->format( 'Y-m-d' ),
+			'end'              => $default_end->format( 'Y-m-d' ),
+			'limit'            => Queue::get_batch_size(),
+			'status'           => Queue::get_order_statuses(),
+			'offset'           => 0,
+			'order_types'      => array( 'shop_order' ),
 			'orders_processed' => 0,
+			'date_field'       => Queue::use_date_paid() ? 'date_paid' : 'date_created',
 		) );
+
+		/**
+		 * Observers do not treat refunds separately
+		 */
+		if ( 'observer' === $type ) {
+			$args['order_types'] = array( 'shop_order' );
+		}
 
 		foreach( array( 'start', 'end' ) as $date_field ) {
 			if ( is_a( $args[ $date_field ], 'WC_DateTime' ) ) {
@@ -119,70 +127,111 @@ class AsyncReportGenerator {
 	}
 
 	/**
+	 * @param \WC_Order|\WC_Order_Refund $order
+	 */
+	protected function get_order_number( $order ) {
+		if ( is_callable( $order, 'get_order_number' ) ) {
+			return $order->get_order_number();
+		} else {
+			return $order->get_id();
+		}
+	}
+
+	/**
 	 * @return true|\WP_Error
 	 */
 	public function next() {
-		$date_key         = Queue::use_date_paid() ? 'date_paid' : 'date_created';
 		$args             = $this->args;
-		$query_args       = Queue::get_order_query_args( $args, $date_key );
+		$results          = Queue::query( $args );
 		$orders_processed = 0;
+		$tax_data         = $this->get_temporary_result();
+		$supports_refunds = in_array( 'shop_order_refund', $args['order_types'] );
 
-		Package::extended_log( sprintf( 'Building next order query: %s', wc_print_r( $query_args, true ) ) );
+		Package::extended_log( sprintf( '%d applicable orders found', sizeof( $results ) ) );
 
-		$orders   = wc_get_orders( $query_args );
-		$tax_data = $this->get_temporary_result();
+		if ( ! empty( $results ) ) {
+			foreach( $results as $result ) {
+				if ( $order = wc_get_order( $result->ID ) ) {
 
-		Package::extended_log( sprintf( '%d applicable orders found', sizeof( $orders ) ) );
+					/**
+					 * Query refund's parent order as the refund does not contain enough data (e.g. billing_country)
+					 */
+					if ( $order->get_parent_id() > 0 ) {
+						$forced_parent_order = wc_get_order( $order->get_parent_id() );
 
-		if ( ! empty( $orders ) ) {
-			foreach( $orders as $order ) {
-				$taxable_country = $this->get_order_taxable_country( $order );
+						if ( ! $forced_parent_order ) {
+							continue;
+						}
 
-				if ( ! $this->include_order( $order ) ) {
-					Package::extended_log( sprintf( 'Skipping order #%1$s based on taxable country %2$s, tax total: %3$s', $order->get_order_number(), $taxable_country, $order->get_total_tax() ) );
-					continue;
-				}
+						Package::extended_log( sprintf( 'Parent order: %s', $this->get_order_number( $forced_parent_order ) ) );
+					} else {
+						$forced_parent_order = $order;
+					}
 
-				$country_iso = $this->get_taxable_country_iso( $taxable_country );
+					$taxable_country = $this->get_order_taxable_country( $forced_parent_order );
 
-				Package::extended_log( sprintf( 'Processing order #%1$s based on taxable country %2$s', $order->get_order_number(), $country_iso ) );
-
-				if ( ! isset( $tax_data[ $country_iso ] ) ) {
-					$tax_data[ $country_iso ] = array();
-				}
-
-				foreach ( $order->get_taxes() as $key => $tax ) {
-					$refunded    = (float) $order->get_total_tax_refunded_by_rate_id( $tax->get_rate_id() );
-					$tax_percent = (float) Tax::get_tax_rate_percent( $tax->get_rate_id(), $order );
-					$tax_total   = (float) $tax->get_tax_total() + (float) $tax->get_shipping_tax_total() - $refunded;
-
-					if ( $tax_percent <= 0 || $tax_total == 0 ) {
+					if ( ! $this->include_order( $forced_parent_order ) ) {
+						Package::extended_log( sprintf( 'Skipping order #%1$s based on taxable country %2$s, tax total: %3$s', $this->get_order_number( $order ), $taxable_country, $order->get_total_tax() ) );
 						continue;
 					}
 
-					if ( ! isset( $tax_data[ $country_iso ][ $tax_percent ] ) ) {
-						$tax_data[ $country_iso ][ $tax_percent ] = array(
-							'tax_total' => 0,
-							'net_total' => 0,
-						);
+					$country_iso = $this->get_taxable_country_iso( $taxable_country );
+
+					Package::extended_log( sprintf( 'Processing order #%1$s (%2$s) based on taxable country %3$s', $this->get_order_number( $order ), $order->get_type(), $country_iso ) );
+
+					if ( ! isset( $tax_data[ $country_iso ] ) ) {
+						$tax_data[ $country_iso ] = array();
 					}
 
-					$net_total = ( $tax_total / ( (float) $tax_percent / 100 ) );
+					foreach ( $order->get_taxes() as $key => $tax ) {
+						$tax_percent = (float) Tax::get_tax_rate_percent( $tax->get_rate_id(), $forced_parent_order );
+						$tax_total   = (float) $tax->get_tax_total() + (float) $tax->get_shipping_tax_total();
 
-					Package::extended_log( sprintf( 'Refunded tax %1$s = %2$s', $tax_percent, $refunded ) );
-					Package::extended_log( sprintf( 'Tax total %1$s = %2$s', $tax_percent, $tax_total ) );
-					Package::extended_log( sprintf( 'Net total %1$s = %2$s', $tax_percent, $net_total ) );
+						/**
+						 * Do only remove refunded tax total in case this query does not explicitly support refunds (e.g. observers)
+						 */
+						if ( ! $supports_refunds ) {
+							$refunded  = (float) $forced_parent_order->get_total_tax_refunded_by_rate_id( $tax->get_rate_id() );
+							$tax_total = $tax_total - $refunded;
 
-					$net_total = wc_add_number_precision( $net_total, false );
-					$tax_total = wc_add_number_precision( $tax_total, false );
+							Package::extended_log( sprintf( 'Refunded tax %1$s = %2$s', $tax_percent, $refunded ) );
+						}
 
-					$tax_data[ $country_iso ][ $tax_percent ]['tax_total'] = (float) $tax_data[ $country_iso ][ $tax_percent ]['tax_total'];
-					$tax_data[ $country_iso ][ $tax_percent ]['tax_total'] += $tax_total;
+						if ( $tax_percent <= 0 || $tax_total == 0 ) {
+							if ( $tax_percent <= 0 ) {
+								Package::extended_log( sprintf( 'Skipping order due to missing tax percentage' ) );
+							}
 
-					$tax_data[ $country_iso ][ $tax_percent ]['net_total'] = (float) $tax_data[ $country_iso ][ $tax_percent ]['net_total'];
-					$tax_data[ $country_iso ][ $tax_percent ]['net_total'] += $net_total;
+							if ( $tax_total == 0 ) {
+								Package::extended_log( sprintf( 'Skipping order due to tax total = 0' ) );
+							}
 
-					$orders_processed++;
+							continue;
+						}
+
+						if ( ! isset( $tax_data[ $country_iso ][ $tax_percent ] ) ) {
+							$tax_data[ $country_iso ][ $tax_percent ] = array(
+								'tax_total' => 0,
+								'net_total' => 0,
+							);
+						}
+
+						$net_total = ( $tax_total / ( (float) $tax_percent / 100 ) );
+
+						Package::extended_log( sprintf( 'Tax total %1$s = %2$s', $tax_percent, $tax_total ) );
+						Package::extended_log( sprintf( 'Net total %1$s = %2$s', $tax_percent, $net_total ) );
+
+						$net_total = wc_add_number_precision( $net_total, false );
+						$tax_total = wc_add_number_precision( $tax_total, false );
+
+						$tax_data[ $country_iso ][ $tax_percent ]['tax_total'] = (float) $tax_data[ $country_iso ][ $tax_percent ]['tax_total'];
+						$tax_data[ $country_iso ][ $tax_percent ]['tax_total'] += $tax_total;
+
+						$tax_data[ $country_iso ][ $tax_percent ]['net_total'] = (float) $tax_data[ $country_iso ][ $tax_percent ]['net_total'];
+						$tax_data[ $country_iso ][ $tax_percent ]['net_total'] += $net_total;
+
+						$orders_processed++;
+					}
 				}
 			}
 
@@ -226,6 +275,7 @@ class AsyncReportGenerator {
 		$report->set_net_total( $net_total );
 		$report->set_tax_total( $tax_total );
 		$report->set_status( 'completed' );
+		$report->set_version( Package::get_version() );
 		$report->save();
 
 		return $report;

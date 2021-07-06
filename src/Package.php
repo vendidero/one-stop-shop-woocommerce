@@ -45,11 +45,6 @@ class Package {
 		}
 
 		/**
-		 * Support a taxable country field within Woo order queries
-		 */
-		add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', array( __CLASS__, 'query_taxable_country' ), 10, 2 );
-
-		/**
 		 * Listen to action scheduler hooks for report generation
 		 */
 		foreach( Queue::get_reports_running() as $id ) {
@@ -431,10 +426,32 @@ class Package {
 		}
 	}
 
+	/**
+     * Let the observer date back 7 days to make sure most of the orders
+     * have already been processed (e.g. received payment etc) to reduce the chance of missing out on orders.
+     *
+	 * @return int
+	 */
+	public static function get_observer_backdating_days() {
+	    return 7;
+	}
+
 	public static function update_observer_report() {
 		if ( Package::enable_auto_observer() ) {
+			/**
+			 * Delete observer reports with missing versions to make sure the report
+             * is re-created with the new backdating functionality.
+			 */
+		    if ( $report = self::get_observer_report() ) {
+		        if ( '' === $report->get_version() ) {
+		            $report->delete();
+		        }
+ 		    }
+
+		    $days = (int) self::get_observer_backdating_days();
+
 			$date_start = new \WC_DateTime();
-			$date_start->modify( '-1 day' );
+			$date_start->modify( "-{$days} day" . ( $days > 1 ? 's' : '' ) );
 
 			Queue::start( 'observer', $date_start );
 		}
@@ -493,35 +510,6 @@ class Package {
 		$statuses = Package::get_report_statuses();
 
 		return array_key_exists( $status, $statuses ) ? $statuses[ $status ] : '';
-	}
-
-	public static function query_taxable_country( $query, $query_vars ) {
-		if ( ! empty( $query_vars['taxable_country'] ) ) {
-			$taxable_country = is_array( $query_vars['taxable_country'] ) ? $query_vars['taxable_country'] : array( $query_vars['taxable_country'] );
-			$taxable_country = wc_clean( $taxable_country );
-
-			$query['meta_query'][] = array(
-				'relation' => 'OR',
-				array(
-					array(
-						'key'     => '_shipping_country',
-						'compare' => 'NOT EXISTS',
-					),
-					array(
-						'key'     => '_billing_country',
-						'value'   => $taxable_country,
-						'compare' => 'IN',
-					),
-				),
-				array(
-					'key'     => '_shipping_country',
-					'value'   => $taxable_country,
-					'compare' => 'IN',
-				)
-			);
-		}
-
-		return $query;
 	}
 
 	public static function has_dependencies() {
@@ -652,7 +640,7 @@ class Package {
 	}
 
 	public static function extended_log( $message, $type = 'info' ) {
-		if ( apply_filters( 'oss_woocommerce_enable_extended_logging', false ) ) {
+		if ( apply_filters( 'oss_woocommerce_enable_extended_logging', true ) ) {
 			self::log( $message, $type );
 		}
 	}

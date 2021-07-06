@@ -20,6 +20,12 @@ Depending on your order count the report is quite processing-heavy - that's why 
 Filters exist to adjust certain report-specific details, e.g. whether the order paid date should be used to query the orders.
 Please be aware that adjusting these filters will only lead to adjustments for future reports.
 
+### Observer report
+
+The observer report is a special report type which constantly observes whether you are approaching the delivery threshold for the current year.
+The observer lags 7 days behind to make sure that your customers had enough time to pay for open orders as by default only paid 
+orders are part of a report.
+
 ### Filters
 
 - `oss_woocommerce_report_batch_size` - The maximum amount of orders processed per iteration. Default: `50`

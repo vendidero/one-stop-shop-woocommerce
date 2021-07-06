@@ -16,6 +16,7 @@ class Tax {
 
 		    add_filter( 'woocommerce_product_get_tax_class', array( __CLASS__, 'filter_tax_class' ), 250, 2 );
 		    add_filter( 'woocommerce_product_variation_get_tax_class', array( __CLASS__, 'filter_tax_class' ), 250, 2 );
+
 		    add_filter( 'woocommerce_adjust_non_base_location_prices', array( __CLASS__, 'disable_location_price' ), 250 );
         }
 	}
@@ -62,12 +63,67 @@ class Tax {
         }
     }
 
-	public static function disable_location_price( $adjust ) {
-	    if ( apply_filters( 'oss_force_static_gross_prices', true ) ) {
+	public static function disable_location_price() {
+	    $fixed_gross_prices = 'yes' === get_option( 'oss_fixed_gross_prices' );
+
+	    if ( $fixed_gross_prices ) {
+		    $tax_location = self::get_taxable_location();
+
+		    if ( ! empty( $tax_location[0] ) ) {
+			    $country  = $tax_location[0];
+			    $postcode = isset( $tax_location[2] ) ? $tax_location[2] : '';
+
+			    /**
+			     * By default do not force gross prices for third countries to make sure
+                 * net prices are used within cart/checkout.
+			     */
+			    if ( ! Package::country_supports_eu_vat( $country, $postcode ) && apply_filters( 'oss_disable_static_gross_prices_third_countries', true, $tax_location ) ) {
+				    $fixed_gross_prices = false;
+			    }
+		    }
+        }
+
+	    if ( apply_filters( 'oss_force_static_gross_prices', $fixed_gross_prices ) ) {
 		    return false;
         }
 
-	    return $adjust;
+	    return true;
+    }
+
+    protected static function get_taxable_location() {
+	    $is_admin_order_request = self::is_admin_order_request();
+
+	    if ( $is_admin_order_request ) {
+            $taxable_address = array(
+                WC()->countries->get_base_country(),
+                WC()->countries->get_base_state(),
+                WC()->countries->get_base_postcode(),
+                WC()->countries->get_base_city()
+            );
+
+            if ( $order = wc_get_order( absint( $_POST['order_id'] ) ) ) {
+                $tax_based_on = get_option( 'woocommerce_tax_based_on' );
+
+                if ( 'shipping' === $tax_based_on && ! $order->get_shipping_country() ) {
+                    $tax_based_on = 'billing';
+                }
+
+                $country = $tax_based_on ? $order->get_billing_country() : $order->get_shipping_country();
+
+                if ( 'base' !== $tax_based_on && ! empty( $country ) ) {
+                    $taxable_address = array(
+                        $country,
+                        'billing' === $tax_based_on ? $order->get_billing_state() : $order->get_shipping_state(),
+                        'billing' === $tax_based_on ? $order->get_billing_postcode() : $order->get_shipping_postcode(),
+                        'billing' === $tax_based_on ? $order->get_billing_city() : $order->get_shipping_city(),
+                    );
+                }
+            }
+
+		    return $taxable_address;
+	    } else {
+		    return \WC_Tax::get_tax_location();
+        }
     }
 
 	/**
@@ -75,44 +131,12 @@ class Tax {
 	 * @param \WC_Product $product
 	 */
 	public static function filter_tax_class( $tax_class, $product ) {
-	    $is_admin_order_request = self::is_admin_order_request();
+	    $taxable_address = self::get_taxable_location();
 
-	    if ( WC()->customer || $is_admin_order_request ) {
-	        if ( $is_admin_order_request ) {
-	            $taxable_address = array(
-		            WC()->countries->get_base_country(),
-		            WC()->countries->get_base_state(),
-		            WC()->countries->get_base_postcode(),
-		            WC()->countries->get_base_city()
-                );
-
-	            if ( $order = wc_get_order( absint( $_POST['order_id'] ) ) ) {
-		            $tax_based_on = get_option( 'woocommerce_tax_based_on' );
-
-		            if ( 'shipping' === $tax_based_on && ! $order->get_shipping_country() ) {
-			            $tax_based_on = 'billing';
-		            }
-
-		            $country = $tax_based_on ? $order->get_billing_country() : $order->get_shipping_country();
-
-		            if ( 'base' !== $tax_based_on && ! empty( $country ) ) {
-			            $taxable_address = array(
-				            $country,
-				            'billing' === $tax_based_on ? $order->get_billing_state() : $order->get_shipping_state(),
-				            'billing' === $tax_based_on ? $order->get_billing_postcode() : $order->get_shipping_postcode(),
-				            'billing' === $tax_based_on ? $order->get_billing_city() : $order->get_shipping_city(),
-			            );
-		            }
-                }
-            } else {
-		        $taxable_address = WC()->customer->get_taxable_address();
-            }
-
-		    if ( isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) && $taxable_address[0] != wc_get_base_location()['country'] ) {
-		        $county    = $taxable_address[0];
-			    $postcode  = isset( $taxable_address[2] ) ? $taxable_address[2] : '';
-		        $tax_class = self::get_product_tax_class_by_country( $product, $county, $postcode, $tax_class );
-            }
+        if ( isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) && $taxable_address[0] != wc_get_base_location()['country'] ) {
+            $county    = $taxable_address[0];
+            $postcode  = isset( $taxable_address[2] ) ? $taxable_address[2] : '';
+            $tax_class = self::get_product_tax_class_by_country( $product, $county, $postcode, $tax_class );
         }
 
 	    return $tax_class;
