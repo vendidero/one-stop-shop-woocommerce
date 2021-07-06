@@ -640,7 +640,7 @@ class Package {
 	}
 
 	public static function extended_log( $message, $type = 'info' ) {
-		if ( apply_filters( 'oss_woocommerce_enable_extended_logging', true ) ) {
+		if ( apply_filters( 'oss_woocommerce_enable_extended_logging', ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) ) {
 			self::log( $message, $type );
 		}
 	}
