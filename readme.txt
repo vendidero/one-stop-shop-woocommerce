@@ -5,7 +5,7 @@ Requires at least: 5.4
 Tested up to: 5.8
 WC requires at least: 3.9
 WC tested up to: 5.5
-Stable tag: 1.0.6
+Stable tag: 1.1.0
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -60,9 +60,15 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 3. Create a new report
 
 == Changelog ==
-= 1.0.6 =
+= 1.1.0 =
+* Feature: Allow disabling fixed gross prices
+* Improvement: Use custom SQL query instead of wc_get_orders
+* Improvement: Treat refunds as separated orders and respect their dates
 * Improvement: Feature plugin load management
 * Improvement: Added postcode VAT exemptions as tax rates (e.g. canary islands)
+* Improvement: Added conditional rates for Portugal (e.g. Madeira)
+* Improvement: By default do not force gross prices for third countries
+* Improvement: Backdate the observer to 7 days in the past to allow orders to complete in between
 
 = 1.0.5 =
 * Improvement: Remove docs from release
