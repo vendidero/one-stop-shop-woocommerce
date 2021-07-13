@@ -267,10 +267,23 @@ class Report {
 		delete_option( $this->id . '_tmp_result' );
 
 		$reports_available = Package::get_report_ids();
+		$reports_running   = Queue::get_reports_running();
 
 		if ( in_array( $this->get_id(), $reports_available[ $this->get_type() ] ) ) {
 			$reports_available[ $this->get_type() ] = array_diff( $reports_available[ $this->get_type() ], array( $this->get_id() ) );
 			update_option( 'oss_woocommerce_reports', $reports_available );
+		}
+
+		/**
+		 * Maybe remove from queue and running
+		 */
+		if ( in_array( $this->get_id(), $reports_running ) ) {
+			$reports_running = array_diff( $reports_running, array( $this->get_id() ) );
+			update_option( 'oss_woocommerce_reports_running', $reports_running );
+
+			if ( $queue = Queue::get_queue() ) {
+				$queue->cancel_all( 'oss_woocommerce_' . $this->get_id() );
+			}
 		}
 
 		if ( 'observer' === $this->get_type() ) {

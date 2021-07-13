@@ -382,11 +382,12 @@ class Tax {
 	public static function get_product_tax_class_by_country( $product, $country, $postcode = '', $default = false ) {
 		$tax_classes = self::get_product_tax_classes( $product );
 		$tax_class   = false !== $default ? $default : $product->get_tax_class();
+		$postcode    = wc_normalize_postcode( $postcode );
 
 		/**
 		 * Prevent tax class adjustment for GB (except Norther Ireland via postcode detection)
 		 */
-		if ( 'GB' === $country && ( empty( $postcode ) || 'BT' !== strtoupper( substr( $postcode, 0, 2 ) ) ) ) {
+		if ( 'GB' === $country && ( empty( $postcode ) || 'BT' !== substr( $postcode, 0, 2 ) ) ) {
             return $tax_class;
 		}
 
