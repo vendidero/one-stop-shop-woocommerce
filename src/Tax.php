@@ -380,18 +380,19 @@ class Tax {
 	 * @param \WC_Product $product
 	 */
 	public static function get_product_tax_class_by_country( $product, $country, $postcode = '', $default = false ) {
-		$tax_classes = self::get_product_tax_classes( $product );
-		$tax_class   = false !== $default ? $default : $product->get_tax_class();
-		$postcode    = wc_normalize_postcode( $postcode );
+		$tax_classes      = self::get_product_tax_classes( $product );
+		$tax_class        = false !== $default ? $default : $product->get_tax_class();
+		$postcode         = wc_normalize_postcode( $postcode );
+		$filter_tax_class = true;
 
 		/**
 		 * Prevent tax class adjustment for GB (except Norther Ireland via postcode detection)
 		 */
 		if ( 'GB' === $country && ( empty( $postcode ) || 'BT' !== substr( $postcode, 0, 2 ) ) ) {
-            return $tax_class;
+			$filter_tax_class = false;
 		}
 
-		if ( array_key_exists( $country, $tax_classes ) ) {
+		if ( apply_filters( "oss_woocommerce_switch_product_tax_class", $filter_tax_class, $product, $country, $postcode, $default ) && array_key_exists( $country, $tax_classes ) ) {
 			$tax_class = $tax_classes[ $country ];
 		}
 
