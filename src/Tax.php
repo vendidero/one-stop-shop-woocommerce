@@ -18,8 +18,47 @@ class Tax {
 		    add_filter( 'woocommerce_product_variation_get_tax_class', array( __CLASS__, 'filter_tax_class' ), 250, 2 );
 
 		    add_filter( 'woocommerce_adjust_non_base_location_prices', array( __CLASS__, 'disable_location_price' ), 250 );
+		    add_filter( 'woocommerce_customer_taxable_address', array( __CLASS__, 'vat_exempt_taxable_address' ), 10 );
+
+		    add_action( 'woocommerce_before_calculate_totals', array( __CLASS__, 'invalidate_shipping_session' ) );
         }
 	}
+
+	/**
+	 * As prices may change based on the customers address and VAT status (e.g. exempt)
+     * it is necessary to make sure that shipping tax is recalculated too in case shipping costs include taxes.
+	 */
+	public static function invalidate_shipping_session() {
+	    if ( apply_filters( 'oss_shipping_costs_include_taxes', false ) ) {
+	        if ( WC()->cart ) {
+		        foreach( WC()->cart->get_shipping_packages() as $package_key => $package ) {
+			        $session_key = "shipping_for_package_{$package_key}";
+
+			        unset( WC()->session->$session_key );
+		        }
+            }
+        }
+	}
+
+	/**
+     * In case the order/customer is a VAT exempt, use the base address as tax location.
+     *
+	 * @param $location
+	 *
+	 * @return array|mixed
+	 */
+	public static function vat_exempt_taxable_address( $location ) {
+	    if ( self::is_vat_exempt() ) {
+		    $location = array(
+			    WC()->countries->get_base_country(),
+			    WC()->countries->get_base_state(),
+			    WC()->countries->get_base_postcode(),
+			    WC()->countries->get_base_city(),
+		    );
+        }
+
+	    return $location;
+    }
 
 	/**
      * Get VAT exemptions (of EU countries) for certain postcodes (e.g. canary islands)
@@ -108,7 +147,17 @@ class Tax {
                     $tax_based_on = 'billing';
                 }
 
-                $country = $tax_based_on ? $order->get_billing_country() : $order->get_shipping_country();
+	            $is_vat_exempt = apply_filters( 'woocommerce_order_is_vat_exempt', 'yes' === $order->get_meta( 'is_vat_exempt' ), $order );
+
+	            /**
+	             * In case the order is a VAT exempt, calculate net prices
+                 * based on taxes from base country.
+	             */
+                if ( $is_vat_exempt ) {
+                    $tax_based_on = 'base';
+                }
+
+	            $country = 'billing' === $tax_based_on ? $order->get_billing_country() : $order->get_shipping_country();
 
                 if ( 'base' !== $tax_based_on && ! empty( $country ) ) {
                     $taxable_address = array(
@@ -140,6 +189,23 @@ class Tax {
         }
 
 	    return $tax_class;
+    }
+
+    protected static function is_vat_exempt() {
+	    $is_admin_order_request = self::is_admin_order_request();
+	    $is_vat_exempt          = false;
+
+	    if ( $is_admin_order_request ) {
+		    if ( $order = wc_get_order( absint( $_POST['order_id'] ) ) ) {
+			    $is_vat_exempt = apply_filters( 'woocommerce_order_is_vat_exempt', 'yes' === $order->get_meta( 'is_vat_exempt' ), $order );
+		    }
+	    } else {
+		    if ( WC()->customer && WC()->customer->is_vat_exempt() ) {
+			    $is_vat_exempt = true;
+		    }
+        }
+
+	    return $is_vat_exempt;
     }
 
     protected static function is_admin_order_ajax_request() {
