@@ -62,7 +62,8 @@ class Package {
 		}
 
 		// Setup or cancel recurring observer task
-		add_action( 'init', array( __CLASS__, 'setup_recurring_observer' ), 10 );
+		add_action( 'init', array( __CLASS__, 'setup_recurring_actions' ), 10 );
+		add_action( 'oss_woocommerce_daily_cleanup', array( __CLASS__, 'cleanup' ), 10 );
 
 		if ( Package::enable_auto_observer() ) {
 			add_action( 'oss_woocommerce_daily_observer', array( __CLASS__, 'update_observer_report' ), 10 );
@@ -74,6 +75,96 @@ class Package {
 		add_action( 'wc_admin_daily', array( '\Vendidero\OneStopShop\Admin', 'queue_wc_admin_notes' ) );
 		add_action( 'woocommerce_note_updated', array( '\Vendidero\OneStopShop\Admin', 'on_wc_admin_note_update' ) );
 	}
+
+	public static function cleanup() {
+	    $running              = array();
+		$has_running_observer = false;
+		$running_observers    = array();
+
+		/**
+		 * Remove reports from running Queue in case they are not queued any longer.
+		 */
+	    foreach( Queue::get_reports_running() as $report_id ) {
+	        $details = Queue::get_queue_details( $report_id );
+
+	        if ( $details['has_action'] && ! $details['is_finished'] ) {
+		        if ( strstr( $report_id, 'observer_' ) ) {
+		            $running_observers[]  = $report_id;
+                    $has_running_observer = $report_id;
+		        }
+
+		        $running[] = $report_id;
+            } else {
+	            if ( $report = self::get_report( $report_id ) ) {
+	                if ( 'completed' !== $report->get_status() ) {
+		                $report->delete();
+                    }
+                }
+            }
+        }
+
+		/**
+		 * Make sure there is only one observer running at a time.
+		 */
+	    foreach( $running as $k => $report_id ) {
+	        if ( in_array( $report_id, $running_observers ) && $report_id !== $has_running_observer ) {
+	            if ( $report = self::get_report( $report_id ) ) {
+	                $report->delete();
+                }
+
+	            unset( $running[ $k ] );
+            }
+        }
+
+	    $running = array_values( $running );
+
+		update_option( 'oss_woocommerce_reports_running', $running, false );
+		Queue::clear_cache();
+
+	    $observer_reports = self::get_reports( array(
+            'type'             => 'observer',
+            'include_observer' => true
+        ) );
+
+		foreach( $observer_reports as $observer ) {
+		    if ( ! self::enable_auto_observer() ) {
+			    /**
+			     * Delete observers in case observing was disabled.
+			     */
+			    $observer->delete();
+            } else {
+			    /*
+			     * Do not delete running observers (which are orphans by design)
+			     */
+			    if ( $observer->get_id() === $has_running_observer ) {
+				    continue;
+			    }
+
+			    $year = $observer->get_date_start()->format( 'Y' );
+
+			    /**
+			     * Delete orphan observer reports (reports not linked as a main observer for a certain year).
+			     */
+			    if ( get_option( 'oss_woocommerce_observer_report_' . $year ) !== $observer->get_id() ) {
+				    $observer->delete();
+			    }
+            }
+		}
+
+		/**
+		 * In case the current observer report does not exist - delete the option
+		 */
+		if ( self::enable_auto_observer() ) {
+		    $year      = date( 'Y' );
+			$report_id = get_option( 'oss_woocommerce_observer_report_' . $year );
+
+			if ( ! empty( $report_id ) ) {
+				if ( ! Package::get_report( $report_id ) ) {
+				    delete_option( 'oss_woocommerce_observer_report_' . $year );
+                }
+			}
+        }
+    }
 
 	public static function dependency_notice() {
 		?>
@@ -286,6 +377,29 @@ class Package {
 		return $title;
 	}
 
+	/**
+	 * @param Report $report
+	 */
+	public static function remove_report( $report ) {
+		$reports_available = self::get_report_ids();
+
+		if ( in_array( $report->get_id(), $reports_available[ $report->get_type() ] ) ) {
+			$reports_available[ $report->get_type() ] = array_diff( $reports_available[  $report->get_type() ], array( $report->get_id() ) );
+
+			update_option( 'oss_woocommerce_reports', $reports_available, false );
+
+			/**
+			 * Force non-cached option
+			 */
+			wp_cache_delete( 'oss_woocommerce_reports', 'options' );
+		}
+	}
+
+	/**
+	 * @param array $args
+	 *
+	 * @return Report[]
+	 */
 	public static function get_reports( $args = array() ) {
 		$args = wp_parse_args( $args, array(
 			'type'             => '',
@@ -336,6 +450,7 @@ class Package {
 
  	public static function clear_caches() {
 		delete_transient( 'oss_reports_counts' );
+		wp_cache_delete( 'oss_woocommerce_reports', 'options' );
     }
 
  	public static function get_report_counts() {
@@ -457,10 +572,23 @@ class Package {
 		}
 	}
 
-	public static function setup_recurring_observer() {
+	public static function setup_recurring_actions() {
 		if ( $queue = Queue::get_queue() ) {
+
+		    // Schedule once per day at 2:00
+			if ( null === $queue->get_next( 'oss_woocommerce_daily_cleanup', array(), 'oss_woocommerce' ) ) {
+				$timestamp = strtotime('tomorrow midnight' );
+				$date      = new \WC_DateTime();
+
+				$date->setTimestamp( $timestamp );
+				$date->modify( '+2 hours' );
+
+				$queue->cancel_all( 'oss_woocommerce_daily_cleanup', array(), 'oss_woocommerce' );
+				$queue->schedule_recurring( $date->getTimestamp(), DAY_IN_SECONDS, 'oss_woocommerce_daily_cleanup', array(), 'oss_woocommerce' );
+			}
+
 			if ( Package::enable_auto_observer() ) {
-				// Schedule once per day at 3:00
+			    // Schedule once per day at 3:00
 				if ( null === $queue->get_next( 'oss_woocommerce_daily_observer', array(), 'oss_woocommerce' ) ) {
 					$timestamp = strtotime('tomorrow midnight' );
 					$date      = new \WC_DateTime();

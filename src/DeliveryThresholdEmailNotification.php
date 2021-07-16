@@ -107,7 +107,7 @@ class DeliveryThresholdEmailNotification extends \WC_Email {
 		);
 
 		if ( $success ) {
-			update_option( 'oss_woocommerce_notification_sent_' . $report->get_date_start()->format( 'Y' ), 'yes' );
+			update_option( 'oss_woocommerce_notification_sent_' . $report->get_date_start()->format( 'Y' ), 'yes', false );
 		}
 	}
 }

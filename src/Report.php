@@ -245,14 +245,14 @@ class Report {
 	}
 
 	public function save() {
-		update_option( $this->id . '_result', $this->args );
+		update_option( $this->id . '_result', $this->args, false );
 
 		$reports_available = Package::get_report_ids();
 
 		if ( ! in_array( $this->get_id(), $reports_available[ $this->get_type() ] ) ) {
 			// Add new report to start of the list
 			array_unshift( $reports_available[ $this->get_type() ], $this->get_id() );
-			update_option( 'oss_woocommerce_reports', $reports_available );
+			update_option( 'oss_woocommerce_reports', $reports_available, false );
 		}
 
 		delete_option( $this->id . '_tmp_result' );
@@ -266,25 +266,8 @@ class Report {
 		delete_option( $this->id . '_result' );
 		delete_option( $this->id . '_tmp_result' );
 
-		$reports_available = Package::get_report_ids();
-		$reports_running   = Queue::get_reports_running();
-
-		if ( in_array( $this->get_id(), $reports_available[ $this->get_type() ] ) ) {
-			$reports_available[ $this->get_type() ] = array_diff( $reports_available[ $this->get_type() ], array( $this->get_id() ) );
-			update_option( 'oss_woocommerce_reports', $reports_available );
-		}
-
-		/**
-		 * Maybe remove from queue and running
-		 */
-		if ( in_array( $this->get_id(), $reports_running ) ) {
-			$reports_running = array_diff( $reports_running, array( $this->get_id() ) );
-			update_option( 'oss_woocommerce_reports_running', $reports_running );
-
-			if ( $queue = Queue::get_queue() ) {
-				$queue->cancel_all( 'oss_woocommerce_' . $this->get_id() );
-			}
-		}
+		Queue::maybe_stop_report( $this->get_id() );
+		Package::remove_report( $this );
 
 		if ( 'observer' === $this->get_type() ) {
 			delete_option( 'oss_woocommerce_observer_report_' . $this->get_date_start()->format( 'Y' ) );

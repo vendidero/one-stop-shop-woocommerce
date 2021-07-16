@@ -237,7 +237,7 @@ class AsyncReportGenerator {
 
 			$this->args['orders_processed'] = absint( $this->args['orders_processed'] ) + $orders_processed;
 
-			update_option( $this->get_id() . '_tmp_result', $tax_data );
+			update_option( $this->get_id() . '_tmp_result', $tax_data, false );
 
 			return true;
 		} else {
