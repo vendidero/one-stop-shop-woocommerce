@@ -2,8 +2,6 @@
 
 namespace Vendidero\OneStopShop;
 
-use Automattic\WooCommerce\Admin\Notes\Notes;
-
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -16,7 +14,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.1.1';
+	const VERSION = '1.1.2';
 
 	/**
 	 * Init the package
