@@ -981,11 +981,27 @@ class Tax {
 		 * Fallback to global tax rates (DB) in case the percentage is not available within order data.
 		 */
 		if ( is_null( $percentage ) || '' === $percentage ) {
-			$percentage = \WC_Tax::get_rate_percent_value( $rate_id );
+			$rate_percentage = self::get_tax_rate_percentage( $rate_id );
+
+			if ( false !== $rate_percentage ) {
+			    $percentage = $rate_percentage;
+			}
 		}
 
 		if ( ! is_numeric( $percentage ) ) {
 			$percentage = 0;
+		}
+
+		return $percentage;
+	}
+
+	protected static function get_tax_rate_percentage( $rate_id ) {
+	    $percentage = false;
+
+		if ( is_callable( array( 'WC_Tax', 'get_rate_percent_value' ) ) ) {
+			$percentage = \WC_Tax::get_rate_percent_value( $rate_id );
+		} elseif ( is_callable( array( 'WC_Tax', 'get_rate_percent' ) ) ) {
+			$percentage = filter_var( \WC_Tax::get_rate_percent( $rate_id ), FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION );
 		}
 
 		return $percentage;

@@ -284,35 +284,4 @@ class AsyncReportGenerator {
 	protected function get_temporary_result() {
 		return (array) get_option( $this->get_id() . '_tmp_result', array() );
 	}
-
-	/**
-	 * @param $rate_id
-	 * @param \WC_Order $order
-	 */
-	protected function get_rate_percent( $rate_id, $order ) {
-		$taxes      = $order->get_taxes();
-		$percentage = null;
-
-		foreach( $taxes as $tax ) {
-			if ( $tax->get_rate_id() == $rate_id ) {
-				if ( is_callable( array( $tax, 'get_rate_percent' ) ) ) {
-					$percentage = $tax->get_rate_percent();
-				}
-			}
-		}
-
-		/**
-		 * WC_Order_Item_Tax::get_rate_percent returns null by default.
-		 * Fallback to global tax rates (DB) in case the percentage is not available within order data.
-		 */
-		if ( is_null( $percentage ) || '' === $percentage ) {
-			$percentage = \WC_Tax::get_rate_percent_value( $rate_id );
-		}
-
-		if ( ! is_numeric( $percentage ) ) {
-			$percentage = 0;
-		}
-
-		return $percentage;
-	}
 }
