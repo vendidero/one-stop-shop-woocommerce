@@ -142,21 +142,33 @@ class Queue {
 		global $wpdb;
 
 		$joins = array(
-			"LEFT JOIN {$wpdb->postmeta} AS mt1 ON ( {$wpdb->posts}.post_parent = mt1.post_id AND mt1.meta_key = '_shipping_country' ) OR ( {$wpdb->posts}.ID = mt1.post_id AND mt1.meta_key = '_shipping_country' )",
-			"LEFT JOIN {$wpdb->postmeta} AS mt2 ON ( {$wpdb->posts}.post_parent = mt2.post_id AND mt2.meta_key = '_billing_country' ) OR ( {$wpdb->posts}.ID = mt2.post_id AND mt2.meta_key = '_billing_country' )"
+			"LEFT JOIN {$wpdb->postmeta} AS mt1 ON {$wpdb->posts}.ID = mt1.post_id AND (mt1.meta_key = '_shipping_country' OR mt1.meta_key = '_billing_country')",
 		);
+
+		if ( in_array( 'shop_order_refund', $args['order_types'] ) ) {
+			$joins[] = "LEFT JOIN {$wpdb->postmeta} AS mt1_parent ON {$wpdb->posts}.post_parent = mt1_parent.post_id AND (mt1_parent.meta_key = '_shipping_country' OR mt1_parent.meta_key = '_billing_country')";
+		}
 
 		$where_date_sql = $wpdb->prepare( "{$wpdb->posts}.post_date >= '%s' AND {$wpdb->posts}.post_date <= '%s'", $args['start'], $args['end'] );
 
 		if ( 'date_paid' === $args['date_field'] ) {
+			/**
+			 * Use a max end date to limit potential query results in case date_paid meta field is used.
+			 * This way we will only register payments made max 2 month after the order created date.
+			 */
+			$max_end = new \WC_DateTime( $args['end'] );
+			$max_end->modify( '+2 months' );
+
 			$joins[] = "LEFT JOIN {$wpdb->postmeta} AS mt3 ON ( {$wpdb->posts}.ID = mt3.post_id AND mt3.meta_key = '_date_paid' )";
 
 			$where_date_sql = $wpdb->prepare(
-				"NOT mt3.post_id IS NULL AND (
+				"( {$wpdb->posts}.post_date >= '%s' AND {$wpdb->posts}.post_date <= '%s' ) AND NOT mt3.post_id IS NULL AND (
 			  		mt3.meta_key = '_date_paid' AND mt3.meta_value >= '%d' AND mt3.meta_value <= '%d'
 			  	) OR {$wpdb->posts}.post_parent > 0 AND (
 			  	    {$wpdb->posts}.post_date >= '%s' AND {$wpdb->posts}.post_date <= '%s'
 			  	)",
+				$args['start'],
+				$max_end->format( 'Y-m-d' ),
 				strtotime( $args['start'] ),
 				strtotime( $args['end'] ),
 				$args['start'],
@@ -173,15 +185,12 @@ class Queue {
 			SELECT {$wpdb->posts}.* FROM {$wpdb->posts}  
 			$join_sql
 			WHERE 1=1 
-				AND ( $where_date_sql )
-				AND ( 
-					( mt1.post_id IS NULL AND ( 
-						mt2.meta_key = '_billing_country' AND mt2.meta_value IN {$taxable_countries_in}
-					) ) OR (
-						mt1.meta_key = '_shipping_country' AND mt1.meta_value IN {$taxable_countries_in}
-					)
+				AND ( {$wpdb->posts}.post_type IN {$post_type_in} ) AND ( {$wpdb->posts}.post_status IN {$post_status_in} ) AND ( {$where_date_sql} )
+				AND (
+					( {$wpdb->posts}.post_parent > 0 AND (
+						mt1_parent.meta_value IN {$taxable_countries_in}
+					) ) OR ( mt1.meta_value IN {$taxable_countries_in} )
 				)
-				AND ({$wpdb->posts}.post_type IN {$post_type_in}) AND ({$wpdb->posts}.post_status IN {$post_status_in}) 
 			GROUP BY {$wpdb->posts}.ID 
 			ORDER BY {$wpdb->posts}.post_date ASC 
 			LIMIT %d, %d",

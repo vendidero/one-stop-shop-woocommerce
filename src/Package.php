@@ -14,7 +14,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.1.3';
+	const VERSION = '1.1.4';
 
 	/**
 	 * Init the package
@@ -38,6 +38,7 @@ class Package {
 	}
 
 	protected static function init_hooks() {
+
 		if ( ! self::is_integration() ) {
 			add_action( 'init', array( __CLASS__, 'load_plugin_textdomain' ) );
 		}
