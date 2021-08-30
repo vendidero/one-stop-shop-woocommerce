@@ -38,7 +38,6 @@ class Package {
 	}
 
 	protected static function init_hooks() {
-
 		if ( ! self::is_integration() ) {
 			add_action( 'init', array( __CLASS__, 'load_plugin_textdomain' ) );
 		}

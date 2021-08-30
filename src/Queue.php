@@ -145,8 +145,14 @@ class Queue {
 			"LEFT JOIN {$wpdb->postmeta} AS mt1 ON {$wpdb->posts}.ID = mt1.post_id AND (mt1.meta_key = '_shipping_country' OR mt1.meta_key = '_billing_country')",
 		);
 
+		$taxable_countries_in = self::generate_in_query_sql( Package::get_non_base_eu_countries( true ) );
+		$post_status_in       = self::generate_in_query_sql( $args['status'] );
+		$post_type_in         = self::generate_in_query_sql( isset( $args['order_types'] ) ? (array) $args['order_types'] : array( 'shop_order' ) );
+		$where_country_sql    = "mt1.meta_value IN {$taxable_countries_in}";
+
 		if ( in_array( 'shop_order_refund', $args['order_types'] ) ) {
 			$joins[] = "LEFT JOIN {$wpdb->postmeta} AS mt1_parent ON {$wpdb->posts}.post_parent = mt1_parent.post_id AND (mt1_parent.meta_key = '_shipping_country' OR mt1_parent.meta_key = '_billing_country')";
+			$where_country_sql = "( {$wpdb->posts}.post_parent > 0 AND (mt1_parent.meta_value IN {$taxable_countries_in}) ) OR ( mt1.meta_value IN {$taxable_countries_in} )";
 		}
 
 		$where_date_sql = $wpdb->prepare( "{$wpdb->posts}.post_date >= '%s' AND {$wpdb->posts}.post_date <= '%s'", $args['start'], $args['end'] );
@@ -176,21 +182,14 @@ class Queue {
 			);
 		}
 
-		$join_sql             = implode( " ", $joins );
-		$taxable_countries_in = self::generate_in_query_sql( Package::get_non_base_eu_countries( true ) );
-		$post_status_in       = self::generate_in_query_sql( $args['status'] );
-		$post_type_in         = self::generate_in_query_sql( isset( $args['order_types'] ) ? (array) $args['order_types'] : array( 'shop_order' ) );
+		$join_sql = implode( " ", $joins );
 
 		$sql = $wpdb->prepare( "
 			SELECT {$wpdb->posts}.* FROM {$wpdb->posts}  
 			$join_sql
 			WHERE 1=1 
 				AND ( {$wpdb->posts}.post_type IN {$post_type_in} ) AND ( {$wpdb->posts}.post_status IN {$post_status_in} ) AND ( {$where_date_sql} )
-				AND (
-					( {$wpdb->posts}.post_parent > 0 AND (
-						mt1_parent.meta_value IN {$taxable_countries_in}
-					) ) OR ( mt1.meta_value IN {$taxable_countries_in} )
-				)
+				AND ( {$where_country_sql} )
 			GROUP BY {$wpdb->posts}.ID 
 			ORDER BY {$wpdb->posts}.post_date ASC 
 			LIMIT %d, %d",
