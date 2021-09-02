@@ -31,11 +31,19 @@ class Tax {
 	public static function invalidate_shipping_session() {
 	    if ( apply_filters( 'oss_shipping_costs_include_taxes', false ) ) {
 	        if ( WC()->cart ) {
-		        foreach( WC()->cart->get_shipping_packages() as $package_key => $package ) {
-			        $session_key = "shipping_for_package_{$package_key}";
+	            $items = array_values( WC()->cart->get_cart() );
 
-			        unset( WC()->session->$session_key );
-		        }
+		        /**
+		         * Make sure totals have already been calculated to prevent missing array key warnings
+                 * while calling WC_Cart::get_shipping_packages()
+		         */
+	            if ( sizeof( $items ) > 0 && isset( $items[0]['line_total'] ) ) {
+		            foreach( WC()->cart->get_shipping_packages() as $package_key => $package ) {
+			            $session_key = "shipping_for_package_{$package_key}";
+
+			            unset( WC()->session->$session_key );
+		            }
+                }
             }
         }
 	}

@@ -4,7 +4,7 @@ Tags: one stop shop, woocommerce, OSS, EU, compliance
 Requires at least: 5.4
 Tested up to: 5.8
 WC requires at least: 3.9
-WC tested up to: 5.5
+WC tested up to: 5.7
 Stable tag: 1.1.4
 Requires PHP: 5.6
 License: GPLv3
