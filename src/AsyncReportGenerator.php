@@ -79,6 +79,10 @@ class AsyncReportGenerator {
 	 * @return mixed
 	 */
 	protected function get_order_taxable_country( $order ) {
+		if ( ! is_callable( array( $order, 'get_shipping_country' ) ) ) {
+			return wc_get_base_location()['country'];
+		}
+
 		$taxable_country_type = ! empty( $order->get_shipping_country() ) ? 'shipping' : 'billing';
 		$taxable_country      = 'shipping' === $taxable_country_type ? $order->get_shipping_country() : $order->get_billing_country();
 
@@ -152,6 +156,7 @@ class AsyncReportGenerator {
 		if ( ! empty( $results ) ) {
 			foreach( $results as $result ) {
 				if ( $order = wc_get_order( $result->ID ) ) {
+					$forced_parent_order = false;
 
 					/**
 					 * Query refund's parent order as the refund does not contain enough data (e.g. billing_country)
@@ -164,8 +169,12 @@ class AsyncReportGenerator {
 						}
 
 						Package::extended_log( sprintf( 'Parent order: %s', $this->get_order_number( $forced_parent_order ) ) );
-					} else {
+					} elseif ( is_callable( array( $order, 'get_shipping_country' ) ) ) {
 						$forced_parent_order = $order;
+					}
+
+					if ( ! $forced_parent_order ) {
+						continue;
 					}
 
 					$taxable_country = $this->get_order_taxable_country( $forced_parent_order );
