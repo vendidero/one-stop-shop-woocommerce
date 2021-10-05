@@ -159,6 +159,11 @@ class Queue {
 
 		if ( 'date_paid' === $args['date_field'] ) {
 			/**
+			 * Add one day to the end date to capture timestamps (including time data) in between
+			 */
+			$end_adjusted = strtotime( $args['end'] ) + DAY_IN_SECONDS;
+
+			/**
 			 * Use a max end date to limit potential query results in case date_paid meta field is used.
 			 * This way we will only register payments made max 2 month after the order created date.
 			 */
@@ -176,7 +181,7 @@ class Queue {
 				$args['start'],
 				$max_end->format( 'Y-m-d' ),
 				strtotime( $args['start'] ),
-				strtotime( $args['end'] ),
+				$end_adjusted,
 				$args['start'],
 				$args['end']
 			);
