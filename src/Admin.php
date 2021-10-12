@@ -340,7 +340,21 @@ class Admin {
         $decimals  = isset( $_GET['decimals'] ) ? absint( $_GET['decimals'] ) : wc_get_price_decimals();
 
 		if ( ! empty( $report_id ) && ( $report = Package::get_report( $report_id ) ) ) {
-			$csv = new CSVExporter( $report_id, $decimals );
+		    $exporter_class = '\Vendidero\OneStopShop\CSVExporter';
+			$base_country   = wc_get_base_location()['country'];
+
+			/**
+			if ( 'DE' === $base_country ) {
+				$exporter_class = '\Vendidero\OneStopShop\CSVExporterBOP';
+			}*/
+
+		    $exporter_class = apply_filters( 'oss_csv_exporter_classname', $exporter_class, $base_country );
+
+		    if ( ! class_exists( $exporter_class ) ) {
+			    $exporter_class = '\Vendidero\OneStopShop\CSVExporter';
+		    }
+
+			$csv = new $exporter_class( $report_id, $decimals );
 			$csv->export();
 		} else {
 			wp_safe_redirect( wp_get_referer() );
