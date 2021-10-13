@@ -23,7 +23,21 @@ class CSVExporterBOP extends CSVExporter {
 	}
 
 	protected function get_column_value_tax_type( $country, $tax_rate ) {
-		return 'STANDARD';
+		$tax_type        = Tax::get_tax_type_by_country_rate( $tax_rate, $country );
+		$tax_return_type = 'STANDARD';
+
+		switch( $tax_type ) {
+			case "reduced":
+			case "greater-reduced":
+			case "super-reduced":
+				$tax_return_type = 'REDUZIERT';
+				break;
+			default:
+				$tax_return_type = strtoupper( $tax_type );
+				break;
+		}
+
+		return $tax_return_type;
 	}
 
 	protected function export_column_headers() {

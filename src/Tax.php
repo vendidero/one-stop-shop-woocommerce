@@ -667,6 +667,35 @@ class Tax {
 		) );
 	}
 
+	public static function get_tax_type_by_country_rate( $rate_percentage, $country ) {
+	    $country = strtoupper( $country );
+
+		/**
+		 * Map northern ireland to GB
+		 */
+	    if ( 'XI' === $country ) {
+	        $country = 'GB';
+	    }
+
+	    $eu_rates = self::get_eu_tax_rates();
+	    $tax_type = 'standard';
+
+	    if ( array_key_exists( $country, $eu_rates ) ) {
+	        $rates = $eu_rates[ $country ];
+
+	        foreach( $rates as $rate ) {
+	            foreach( $rate as $tax_rate_type => $tax_rate_percent ) {
+	                if ( ( is_array( $tax_rate_percent ) && in_array( $rate_percentage, $tax_rate_percent ) ) || $tax_rate_percent == $rate_percentage ) {
+	                    $tax_type = $tax_rate_type;
+	                    break;
+	                }
+	            }
+	        }
+	    }
+
+	    return apply_filters( 'oss_country_rate_tax_type', $tax_type, $country, $rate_percentage );
+	}
+
 	public static function get_eu_tax_rates() {
 		/**
 		 * @see https://europa.eu/youreurope/business/taxation/vat/vat-rules-rates/index_en.htm
