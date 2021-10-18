@@ -20,25 +20,40 @@ class Tax {
 		    add_filter( 'woocommerce_adjust_non_base_location_prices', array( __CLASS__, 'disable_location_price' ), 250 );
 		    add_filter( 'woocommerce_customer_taxable_address', array( __CLASS__, 'vat_exempt_taxable_address' ), 10 );
 
-		    add_action( 'woocommerce_before_calculate_totals', array( __CLASS__, 'invalidate_shipping_session' ) );
+		    add_action( 'woocommerce_before_calculate_totals', array( __CLASS__, 'invalidate_shipping_session' ), 100 );
         }
 	}
+
+	protected static function filter_cart_items_available_for_shipping( $item ) {
+		$product = $item['data'];
+
+		if ( $product && $product->needs_shipping() ) {
+		    return true;
+        }
+
+		return false;
+	}
+
+	protected static function filter_cart_items_calculated_totals( $item ) {
+	    return isset( $item['line_total'] );
+    }
 
 	/**
 	 * As prices may change based on the customers address and VAT status (e.g. exempt)
      * it is necessary to make sure that shipping tax is recalculated too in case shipping costs include taxes.
 	 */
-	public static function invalidate_shipping_session() {
+	public static function invalidate_shipping_session( $cart ) {
 	    if ( apply_filters( 'oss_shipping_costs_include_taxes', false ) ) {
-	        if ( WC()->cart ) {
-	            $items = array_values( WC()->cart->get_cart() );
+	        if ( $cart ) {
+	            $items            = array_values( array_filter( $cart->get_cart(), array( __CLASS__, 'filter_cart_items_available_for_shipping' ) ) );
+		        $items_calculated = array_values( array_filter( $items, array( __CLASS__, 'filter_cart_items_calculated_totals' ) ) );
 
 		        /**
-		         * Make sure totals have already been calculated to prevent missing array key warnings
+		         * Make sure totals have already been calculated (for all items) to prevent missing array key warnings
                  * while calling WC_Cart::get_shipping_packages()
 		         */
-	            if ( sizeof( $items ) > 0 && isset( $items[0]['line_total'] ) ) {
-		            foreach( WC()->cart->get_shipping_packages() as $package_key => $package ) {
+	            if ( sizeof( $items ) > 0 && $items == $items_calculated ) {
+		            foreach( $cart->get_shipping_packages() as $package_key => $package ) {
 			            $session_key = "shipping_for_package_{$package_key}";
 
 			            unset( WC()->session->$session_key );

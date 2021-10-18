@@ -343,10 +343,9 @@ class Admin {
 		    $exporter_class = '\Vendidero\OneStopShop\CSVExporter';
 			$base_country   = wc_get_base_location()['country'];
 
-			/**
 			if ( 'DE' === $base_country ) {
 				$exporter_class = '\Vendidero\OneStopShop\CSVExporterBOP';
-			}*/
+			}
 
 		    $exporter_class = apply_filters( 'oss_csv_exporter_classname', $exporter_class, $base_country );
 
