@@ -62,6 +62,18 @@ class Settings {
 				'type'     => 'html',
 				'html'     => self::get_oss_switch_html(),
 			),
+
+			array(
+				'title'    => _x( 'Report Order Date', 'oss', 'oss-woocommerce' ),
+				'desc'     => '<p class="oss-woocommerce-additional-desc wc-gzd-additional-desc">' . _x( 'Select the relevant order date to be used to determine whether to include an order in a report.', 'oss', 'oss-woocommerce' ) . '</p>',
+				'id'       => 'oss_report_date_type',
+				'type'     => 'select',
+				'default'  => 'date_paid',
+                'options'  => array(
+                    'date_paid'    => _x( 'Date paid', 'oss', 'oss-woocommerce' ),
+                    'date_created' => _x( 'Date created', 'oss', 'oss-woocommerce' )
+                ),
+			),
         ) );
 
 		if ( Package::oss_procedure_is_enabled() && wc_prices_include_tax() ) {

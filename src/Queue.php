@@ -128,7 +128,9 @@ class Queue {
 	}
 
 	public static function use_date_paid() {
-		return apply_filters( 'oss_woocommerce_report_use_date_paid', true );
+		$use_date_paid = 'date_paid' === get_option( 'oss_report_date_type', 'date_paid' );
+
+		return apply_filters( 'oss_woocommerce_report_use_date_paid', $use_date_paid );
 	}
 
 	public static function get_order_statuses() {
