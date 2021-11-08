@@ -357,7 +357,7 @@ class Tax {
 
 	    if ( ! empty( $tax_classes ) ) {
 		    foreach( $tax_classes as $country => $tax_class ) {
-			    $countries_left = array_diff( $countries_left, array( $country ) );
+			    $countries_left = array_diff_key( $countries_left, array( $country => '' ) );
 
 			    woocommerce_wp_select(
 				    array(
@@ -415,7 +415,7 @@ class Tax {
 
 		if ( ! empty( $tax_classes ) ) {
 			foreach( $tax_classes as $country => $tax_class ) {
-				$countries_left = array_diff( $countries_left, array( $country ) );
+				$countries_left = array_diff_key( $countries_left, array( $country => '' ) );
 
 				woocommerce_wp_select(
 					array(
