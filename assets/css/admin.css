@@ -64,7 +64,7 @@ p.oss-add-tax-class-by-country-field {
     background: #dab1b4;
     color: #401d1d; }
 
-.oss-settings-learn-more {
+.oss-settings-learn-more, .oss-settings-refresh-tax-rates {
   margin-left: .5em; }
 
 .oss-observer-date-end {

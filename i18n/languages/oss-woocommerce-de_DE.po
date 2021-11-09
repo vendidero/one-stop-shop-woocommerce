@@ -1,15 +1,15 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: One Stop Shop for WooCommerce\n"
-"POT-Creation-Date: 2021-10-19 12:21+0200\n"
-"PO-Revision-Date: 2021-10-19 12:23+0200\n"
-"Last-Translator: \n"
+"POT-Creation-Date: 2021-11-09 14:00+0100\n"
+"PO-Revision-Date: 2021-11-09 14:02+0100\n"
+"Last-Translator: Dennis Nissle <info@vendidero.de>\n"
 "Language-Team: \n"
 "Language: de_DE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.4.3\n"
+"X-Generator: Poedit 3.0\n"
 "X-Poedit-Basepath: ../..\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Poedit-Flags-xgettext: --add-comments=translators:\n"
@@ -506,8 +506,8 @@ msgstr "Feste Bruttopreise"
 
 #: src/Settings.php:83
 msgctxt "oss"
-msgid "Apply the same gross price regardless of the tax rate."
-msgstr "Verwende den Bruttopreis unabhängig vom Steuersatz."
+msgid "Apply the same gross price regardless of the tax rate for EU countries."
+msgstr "Verwende den Bruttopreis für EU-Länder unabhängig vom Steuersatz."
 
 #: src/Settings.php:83
 msgctxt "oss"
@@ -518,27 +518,42 @@ msgstr ""
 "Diese Option bewirkt, dass Kunden, unabhängig vom Land und damit vom "
 "Steuersatz den selben Bruttopreis bezahlen."
 
-#: src/Settings.php:104
+#: src/Settings.php:89
+msgctxt "oss"
+msgid "Third countries"
+msgstr "Drittländer"
+
+#: src/Settings.php:90
+msgctxt "oss"
+msgid "Apply the same gross price for third countries too."
+msgstr "Verwende den Bruttopreis auch für Drittländer."
+
+#: src/Settings.php:114 src/Settings.php:115
 msgctxt "oss"
 msgid "Are you sure? Please backup your tax rates before proceeding."
 msgstr "Bist du sicher? Bitte erstelle vorab ein Backup deiner Steuersätze."
 
-#: src/Settings.php:104
+#: src/Settings.php:114
 msgctxt "oss"
 msgid "End OSS participation"
 msgstr "OSS Teilnahme beenden"
 
-#: src/Settings.php:104
+#: src/Settings.php:114
 msgctxt "oss"
 msgid "Start OSS participation"
 msgstr "OSS Teilnahme starten"
 
-#: src/Settings.php:105
+#: src/Settings.php:115
+msgctxt "oss"
+msgid "refresh VAT rates"
+msgstr "Steuersätze erneuern"
+
+#: src/Settings.php:116
 msgctxt "oss"
 msgid "learn more"
 msgstr "Mehr erfahren"
 
-#: src/Settings.php:107
+#: src/Settings.php:118
 msgctxt "oss"
 msgid ""
 "Use this option to automatically adjust tax-related options in WooCommerce. "
@@ -549,45 +564,45 @@ msgstr ""
 "anpassen zu lassen. Achtung: Diese Option löscht deine aktuellen Steuersätze "
 "und fügt neue Steuersätze basierend auf deinem OSS Status hinzu."
 
-#: src/Settings.php:139
+#: src/Settings.php:150
 msgctxt "oss"
 msgid "See status"
 msgstr "Status ansehen"
 
-#: src/Settings.php:139
+#: src/Settings.php:150
 msgctxt "oss"
 msgid "Start initial report"
 msgstr "Initialen Bericht erstellen"
 
-#: src/Settings.php:140
+#: src/Settings.php:151
 #, php-format
 msgctxt "oss"
 msgid "Report not yet completed. %s"
 msgstr "Bericht noch nicht abgeschlossen. %s"
 
-#: src/Settings.php:140
+#: src/Settings.php:151
 #, php-format
 msgctxt "oss"
 msgid "Report not yet started. %s"
 msgstr "Bericht noch nicht gestartet. %s"
 
-#: src/Settings.php:158
+#: src/Settings.php:169
 msgctxt "oss-amounts"
 msgid "of"
 msgstr "von"
 
-#: src/Settings.php:158
+#: src/Settings.php:169
 #, php-format
 msgctxt "oss"
 msgid "As of: %s"
 msgstr "Stand: %s"
 
-#: src/Settings.php:158
+#: src/Settings.php:169
 msgctxt "oss"
 msgid "see details"
 msgstr "Details ansehen"
 
-#: src/Settings.php:159
+#: src/Settings.php:170
 #, php-format
 msgctxt "oss"
 msgid ""
@@ -634,41 +649,41 @@ msgid "Select country"
 msgstr "Land auswählen"
 
 #. translators: Do not translate
-#: src/Tax.php:543 src/Tax.php:670
+#: src/Tax.php:544 src/Tax.php:709
 msgid "Reduced rate"
 msgstr ""
 
-#: src/Tax.php:546 src/Tax.php:662
+#: src/Tax.php:547 src/Tax.php:701
 msgctxt "oss"
 msgid "Greater reduced rate"
 msgstr "Zusätzlicher reduzierter Preis"
 
-#: src/Tax.php:549 src/Tax.php:666
+#: src/Tax.php:550 src/Tax.php:705
 msgctxt "oss"
 msgid "Super reduced rate"
 msgstr "Stark reduzierter Preis"
 
-#: src/Tax.php:871
+#: src/Tax.php:910
 msgctxt "oss"
 msgid "Madeira"
 msgstr "Madeira"
 
-#: src/Tax.php:878
+#: src/Tax.php:917
 msgctxt "oss"
 msgid "Acores"
 msgstr "Azoren"
 
-#: src/Tax.php:914
+#: src/Tax.php:953
 msgctxt "oss"
 msgid "Northern Ireland"
 msgstr "Nordirland"
 
-#: src/Tax.php:927
+#: src/Tax.php:966
 msgctxt "oss-tax-rate-import"
 msgid "Exempt"
 msgstr "Ausnahme"
 
-#: src/Tax.php:993
+#: src/Tax.php:1032
 #, php-format
 msgctxt "oss-tax-rate-import"
 msgid "VAT %1$s %% %2$s"
