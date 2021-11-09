@@ -110,9 +110,19 @@ class Tax {
                 '63086', // Mount Athos
                 '63087' // Mount Athos
             ),
+            'FR' => array(
+                '971*', // Guadeloupe
+	            '972*', // Martinique
+	            '973*', // French Guiana
+	            '974*', // Réunion
+	            '976*', // Mayotte
+            ),
             'IT' => array(
                 '22060', // Livigno, Campione d’Italia
                 '23030', // Lake Lugano
+            ),
+            'FI' => array(
+	            '22*', // Aland islands
             ),
         );
 
@@ -911,7 +921,7 @@ class Tax {
 				),
 				array(
 					// Acores
-					'postcode' => array( '95*', '96*', '97*', '98*' ),
+					'postcode' => array( '95*', '96*', '97*', '98*', '99*' ),
 					'standard' => 18,
 					'reduced'  => array( 4, 9 ),
 					'name'     => _x( 'Acores', 'oss', 'oss-woocommerce' )
