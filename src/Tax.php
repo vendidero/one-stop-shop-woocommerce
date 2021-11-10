@@ -570,7 +570,7 @@ class Tax {
 				 * Use base country rates in case OSS is disabled
 				 */
 				if ( ! $is_oss ) {
-					$base_country = WC()->countries->get_base_country();
+					$base_country = Package::get_base_country();
 
 					if ( isset( $eu_rates[ $base_country ] ) ) {
 						/**
@@ -1015,7 +1015,7 @@ class Tax {
 		 * Delete EU tax rates and make sure tax rate locations are deleted too
 		 */
 		foreach( \WC_Tax::get_rates_for_tax_class( $tax_class ) as $rate_id => $rate ) {
-		    if ( in_array( $rate->tax_rate_country, $eu_countries ) || self::tax_rate_is_northern_ireland( $rate ) || ( 'GB' === $rate->tax_rate_country && 'GB' !== WC()->countries->get_base_country() ) ) {
+		    if ( in_array( $rate->tax_rate_country, $eu_countries ) || self::tax_rate_is_northern_ireland( $rate ) || ( 'GB' === $rate->tax_rate_country && 'GB' !== Package::get_base_country() ) ) {
 			    \WC_Tax::_delete_tax_rate( $rate_id );
 		    }
 		}

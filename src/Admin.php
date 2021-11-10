@@ -341,7 +341,7 @@ class Admin {
 
 		if ( ! empty( $report_id ) && ( $report = Package::get_report( $report_id ) ) ) {
 		    $exporter_class = '\Vendidero\OneStopShop\CSVExporter';
-			$base_country   = WC()->countries->get_base_country();
+			$base_country   = Package::get_base_country();
 
 			if ( 'DE' === $base_country && apply_filters( 'oss_experimental_use_de_bop_csv_exporter', false ) ) {
 				$exporter_class = '\Vendidero\OneStopShop\CSVExporterBOP';

@@ -80,7 +80,7 @@ class AsyncReportGenerator {
 	 */
 	protected function get_order_taxable_country( $order ) {
 		if ( ! is_callable( array( $order, 'get_shipping_country' ) ) ) {
-			return WC()->countries->get_base_country();
+			return Package::get_base_country();
 		}
 
 		$taxable_country_type = ! empty( $order->get_shipping_country() ) ? 'shipping' : 'billing';
