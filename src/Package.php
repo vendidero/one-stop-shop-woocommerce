@@ -657,7 +657,7 @@ class Package {
 			$countries = array_merge( $countries, array( 'GB' ) );
 		}
 
-		$base_country = wc_get_base_location()['country'];
+		$base_country = WC()->countries->get_base_country();
 		$countries    = array_diff( $countries, array( $base_country ) );
 
 		return $countries;
