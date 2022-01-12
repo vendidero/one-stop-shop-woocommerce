@@ -191,8 +191,8 @@ class Report {
 	public function get_country_tax_total( $country, $tax_rate, $round = true ) {
 		$tax_total = 0;
 
-		if ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ][ $tax_rate ] ) ) {
-			$tax_total = $this->args['countries'][ $country ][ $tax_rate ]['tax_total'];
+		if ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ][ "$tax_rate" ] ) ) {
+			$tax_total = $this->args['countries'][ $country ][ "$tax_rate" ]['tax_total'];
 		}
 
 		return $this->maybe_round( $tax_total, $round );
@@ -207,8 +207,8 @@ class Report {
 	public function get_country_net_total( $country, $tax_rate, $round = true ) {
 		$net_total = 0;
 
-		if ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ][ $tax_rate ] ) ) {
-			$net_total = $this->args['countries'][ $country ][ $tax_rate ]['net_total'];
+		if ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ][ "$tax_rate" ] ) ) {
+			$net_total = $this->args['countries'][ $country ][ "$tax_rate" ]['net_total'];
 		}
 
 		return $this->maybe_round( $net_total, $round );
@@ -219,14 +219,14 @@ class Report {
 			$this->args['countries'][ $country ] = array();
 		}
 
-		if ( ! isset( $this->args['countries'][ $country ][ $tax_rate ] ) ) {
-			$this->args['countries'][ $country ][ $tax_rate ] = array(
+		if ( ! isset( $this->args['countries'][ $country ][ "$tax_rate" ] ) ) {
+			$this->args['countries'][ $country ][ "$tax_rate" ] = array(
 				'net_total' => 0,
 				'tax_total' => 0,
 			);
 		}
 
-		$this->args['countries'][ $country ][ $tax_rate ]['tax_total'] = $tax_total;
+		$this->args['countries'][ $country ][ "$tax_rate" ]['tax_total'] = $tax_total;
 	}
 
 	public function set_country_net_total( $country, $tax_rate, $net_total = 0 ) {
@@ -234,14 +234,14 @@ class Report {
 			$this->args['countries'][ $country ] = array();
 		}
 
-		if ( ! isset( $this->args['countries'][ $country ][ $tax_rate ] ) ) {
-			$this->args['countries'][ $country ][ $tax_rate ] = array(
+		if ( ! isset( $this->args['countries'][ $country ][ "$tax_rate" ] ) ) {
+			$this->args['countries'][ $country ][ "$tax_rate" ] = array(
 				'net_total' => 0,
 				'tax_total' => 0,
 			);
 		}
 
-		$this->args['countries'][ $country ][ $tax_rate ]['net_total'] = $net_total;
+		$this->args['countries'][ $country ][ "$tax_rate" ]['net_total'] = $net_total;
 	}
 
 	public function save() {
