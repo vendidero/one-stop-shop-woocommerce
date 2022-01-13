@@ -64,6 +64,10 @@ class CSVExporter extends \WC_CSV_Exporter {
 		return $this->decimals;
 	}
 
+	protected function format_decimal( $value ) {
+		return wc_format_decimal( $value, $this->get_decimals() );
+	}
+
 	/**
 	 * Prepare data that will be exported.
 	 */
@@ -81,13 +85,13 @@ class CSVExporter extends \WC_CSV_Exporter {
 						$value     = '';
 
 						if ( 'country' === $column_id ) {
-							$value = $country;
+							$value = strtoupper( $country );
 						} elseif( 'tax_rate' === $column_id ) {
-							$value = wc_format_decimal( $tax_rate, '' );
+							$value = $this->format_decimal( $tax_rate );
 						} elseif( 'taxable_base' === $column_id ) {
-							$value = $this->report->get_country_net_total( $country, $tax_rate, $this->decimals );
+							$value = $this->format_decimal( $this->report->get_country_net_total( $country, $tax_rate, $this->get_decimals() ) );
 						} elseif( 'amount' === $column_id ) {
-							$value = $this->report->get_country_tax_total( $country, $tax_rate, $this->decimals );
+							$value = $this->format_decimal( $this->report->get_country_tax_total( $country, $tax_rate, $this->get_decimals() ) );
 						} elseif ( is_callable( array( $this, "get_column_value_{$column_id}" ) ) ) {
 							$value = $this->{"get_column_value_{$column_id}"}( $country, $tax_rate );
 						} else {

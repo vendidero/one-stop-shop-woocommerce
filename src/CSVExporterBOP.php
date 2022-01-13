@@ -14,12 +14,17 @@ class CSVExporterBOP extends CSVExporter {
 	 */
 	public function get_default_column_names() {
 		return apply_filters( "one_stop_shop_woocommerce_bop_export_default_columns", array(
+			'bop_type'     => 'Satzart',
 			'country'      => 'Land des Verbrauchs',
 			'tax_type'     => 'Umsatzsteuertyp',
 			'tax_rate'     => 'Umsatzsteuersatz',
 			'taxable_base' => 'Steuerbemessungsgrundlage, Nettobetrag',
 			'amount'       => 'Umsatzsteuerbetrag',
 		) );
+	}
+
+	protected function get_column_value_bop_type( $country, $tax_rate ) {
+		return apply_filters( "one_stop_shop_woocommerce_bop_export_type", 3 );
 	}
 
 	protected function get_column_value_tax_type( $country, $tax_rate ) {
@@ -44,7 +49,6 @@ class CSVExporterBOP extends CSVExporter {
 		$buffer = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen
 		ob_start();
 		fwrite( $buffer, "#v1.0" . PHP_EOL );
-		fwrite( $buffer, "#ve1.1.0" . PHP_EOL );
 		$content = ob_get_clean();
 
 		return $content . parent::export_column_headers();
