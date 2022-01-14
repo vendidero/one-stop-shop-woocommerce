@@ -4,6 +4,11 @@ namespace Vendidero\OneStopShop;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * BOP export
+ *
+ * @see https://www.elster.de/bportal/helpGlobal?themaGlobal=osseust%5Fimport#beispielCSV
+ */
 class CSVExporterBOP extends CSVExporter {
 
 	/**
