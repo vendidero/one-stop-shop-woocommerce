@@ -135,7 +135,11 @@ class Queue {
 
 	public static function get_order_statuses() {
 		$statuses = array_keys( wc_get_order_statuses() );
-		$statuses = array_diff( $statuses, array( 'wc-refunded', 'wc-pending', 'wc-cancelled', 'wc-failed' ) );
+		$statuses = array_diff( $statuses, array( 'wc-cancelled', 'wc-failed' ) );
+
+		if ( self::use_date_paid() ) {
+			$statuses = array_diff( $statuses, array( 'wc-pending' ) );
+		}
 
 		return apply_filters( 'oss_woocommerce_valid_order_statuses', $statuses );
 	}
