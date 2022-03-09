@@ -216,9 +216,15 @@ class Tax {
 	    $taxable_address = self::get_taxable_location();
 
         if ( isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) && $taxable_address[0] != WC()->countries->get_base_country() ) {
-            $county    = $taxable_address[0];
-            $postcode  = isset( $taxable_address[2] ) ? $taxable_address[2] : '';
-            $tax_class = self::get_product_tax_class_by_country( $product, $county, $postcode, $tax_class );
+
+            $address = array(
+                'country'  => $taxable_address[0],
+                'state'    => isset( $taxable_address[1] ) ? $taxable_address[1] : '',
+                'postcode' => isset( $taxable_address[2] ) ? $taxable_address[2] : '',
+                'city'     => isset( $taxable_address[3] ) ? $taxable_address[3] : ''
+            );
+
+            $tax_class = self::get_product_tax_class_by_country( $product, $address, $tax_class );
         }
 
 	    return $tax_class;
@@ -363,7 +369,7 @@ class Tax {
         }
 
 	    $tax_classes    = self::get_product_tax_classes( $variation, $product_object, 'edit' );
-	    $countries_left = Package::get_non_base_eu_countries( true );
+	    $countries_left = self::get_selectable_countries();
 
 	    if ( ! empty( $tax_classes ) ) {
 		    foreach( $tax_classes as $country => $tax_class ) {
@@ -397,7 +403,7 @@ class Tax {
                         <option value="" selected="selected"><?php _ex( 'Select country', 'oss', 'oss-woocommerce' ); ?></option>
 					    <?php
 					    foreach ( $countries_left as $country_code ) {
-						    echo '<option value="' . esc_attr( $country_code ) . '">' . esc_html( WC()->countries->get_countries()[ $country_code ] ) . '</option>';
+						    echo '<option value="' . esc_attr( $country_code ) . '">' . esc_html( self::get_country_name( $country_code ) ) . '</option>';
 					    }
 					    ?>
                     </select>
@@ -417,11 +423,22 @@ class Tax {
 	    <?php
     }
 
+    protected static function get_selectable_countries() {
+	    $countries = Package::get_non_base_eu_countries( true );
+        $eu        = array( 'EU-wide' => _x( 'EU-wide', 'oss', 'oss-woocommerce' ) );
+
+        return $eu + $countries;
+    }
+
+    protected static function get_country_name( $country_code ) {
+        return 'EU-wide' === $country_code ? _x( 'EU-wide', 'oss', 'oss-woocommerce' ) : WC()->countries->get_countries()[ $country_code ];
+    }
+
 	public static function tax_product_options() {
 		global $product_object;
 
 		$tax_classes    = self::get_product_tax_classes( $product_object );
-		$countries_left = Package::get_non_base_eu_countries( true );
+		$countries_left = self::get_selectable_countries();
 
 		if ( ! empty( $tax_classes ) ) {
 			foreach( $tax_classes as $country => $tax_class ) {
@@ -455,7 +472,7 @@ class Tax {
                         <option value="" selected="selected"><?php _ex( 'Select country', 'oss', 'oss-woocommerce' ); ?></option>
 		                <?php
 		                foreach ( $countries_left as $country_code ) {
-			                echo '<option value="' . esc_attr( $country_code ) . '">' . esc_html( WC()->countries->get_countries()[ $country_code ] ) . '</option>';
+			                echo '<option value="' . esc_attr( $country_code ) . '">' . esc_html( self::get_country_name( $country_code ) ) . '</option>';
 		                }
 		                ?>
                     </select>
@@ -478,21 +495,84 @@ class Tax {
 	/**
 	 * @param \WC_Product $product
 	 */
-	public static function get_product_tax_class_by_country( $product, $country, $postcode = '', $default = false ) {
-		$tax_classes      = self::get_product_tax_classes( $product );
+	public static function get_product_tax_class_by_country( $product, $address = array(), $default = false ) {
+        $address = wp_parse_args( $address, array(
+	        'country'  => '',
+	        'state'    => '',
+	        'postcode' => '',
+	        'city'     => ''
+        ) );
+
 		$tax_class        = false !== $default ? $default : $product->get_tax_class();
-		$postcode         = wc_normalize_postcode( $postcode );
+		$postcode         = wc_normalize_postcode( $address['postcode'] );
 		$filter_tax_class = true;
 
 		/**
 		 * Prevent tax class adjustment for GB (except Norther Ireland via postcode detection)
 		 */
-		if ( 'GB' === $country && ( empty( $postcode ) || 'BT' !== substr( $postcode, 0, 2 ) ) ) {
+		if ( 'GB' === $address['country'] && ( empty( $postcode ) || 'BT' !== substr( $postcode, 0, 2 ) ) ) {
 			$filter_tax_class = false;
 		}
 
-		if ( apply_filters( "oss_woocommerce_switch_product_tax_class", $filter_tax_class, $product, $country, $postcode, $default ) && array_key_exists( $country, $tax_classes ) ) {
-			$tax_class = $tax_classes[ $country ];
+		if ( apply_filters( "oss_woocommerce_switch_product_tax_class", $filter_tax_class, $product, $address['country'], $postcode, $default ) ) {
+            $cache_suffix      = '_oss_tax_class_' . md5( sprintf( '%s+%s+%s+%s+%s', $address['country'], $address['state'], $address['city'], $postcode, $product->get_id() ) );
+			$cache_key         = \WC_Cache_Helper::get_cache_prefix( 'product_' . $product->get_id() ) . $cache_suffix;
+            $cache_key_tax     = \WC_Cache_Helper::get_cache_prefix( 'taxes' ) . $cache_suffix;
+            $matched_tax_cache = wp_cache_get( $cache_key_tax, 'taxes' );
+			$matched_tax_class = false !== $matched_tax_cache ? wp_cache_get( $cache_key, 'products' ) : false;
+
+			if ( false === $matched_tax_class ) {
+				$tax_classes     = self::get_product_tax_classes( $product );
+				$tax_class_slugs = self::get_tax_class_slugs();
+
+				if ( array_key_exists( $address['country'], $tax_classes ) ) {
+					$tax_class = $tax_classes[ $address['country'] ];
+				} elseif ( isset( $tax_classes['EU-wide'] ) ) {
+					$tax_class = $tax_classes['EU-wide'];
+				}
+
+				if ( $tax_class_slugs['super-reduced'] === $tax_class ) {
+					$tax_rates = \WC_Tax::find_rates( array(
+						'country'   => $address['country'],
+						'state'     => $address['state'],
+						'city'      => $address['city'],
+						'postcode'  => $postcode,
+						'tax_class' => $tax_class,
+					) );
+
+					/**
+					 * Country does not seem to support this tax class - fallback to the reduced tax class
+					 */
+					if ( empty( $tax_rates ) ) {
+						$tax_class = $tax_class_slugs['reduced'];
+					}
+				}
+
+				if ( $tax_class_slugs['greater-reduced'] === $tax_class ) {
+					$tax_rates = \WC_Tax::find_rates( array(
+						'country'   => $address['country'],
+						'state'     => $address['state'],
+						'city'      => $address['city'],
+						'postcode'  => $postcode,
+						'tax_class' => $tax_class,
+					) );
+
+					/**
+					 * Country does not seem to support this tax class - fallback to the reduced tax class
+					 */
+					if ( empty( $tax_rates ) ) {
+						$tax_class = $tax_class_slugs['reduced'];
+					}
+				}
+
+				/**
+				 * This cache entry depends on both the tax and product data.
+				 */
+				wp_cache_set( $cache_key_tax, $cache_key, 'taxes' );
+                wp_cache_set( $cache_key, $tax_class, 'products' );
+			} else {
+                $tax_class = $matched_tax_class;
+			}
 		}
 
 		return $tax_class;
@@ -693,42 +773,51 @@ class Tax {
 	}
 
 	public static function get_tax_class_slugs() {
-		$tax_classes               = \WC_Tax::get_tax_class_slugs();
-		$reduced_tax_class         = false;
-		$greater_reduced_tax_class = false;
-		$super_reduced_tax_class   = false;
+		$cache_key = \WC_Cache_Helper::get_cache_prefix( 'taxes' ) . 'oss_tax_class_slugs';
+		$slugs     = wp_cache_get( $cache_key, 'taxes' );
 
-		/**
-		 * Try to determine the reduced tax rate class
-		 */
-		foreach( $tax_classes as $slug ) {
-			if ( strstr( $slug, 'virtual' ) ) {
-				continue;
-			}
+        if ( false === $slugs ) {
+	        $reduced_tax_class         = false;
+	        $greater_reduced_tax_class = false;
+	        $super_reduced_tax_class   = false;
+	        $tax_classes               = \WC_Tax::get_tax_class_slugs();
 
-			if ( ! $greater_reduced_tax_class && strstr( $slug, sanitize_title( 'Greater reduced rate' ) ) ) {
-				$greater_reduced_tax_class = $slug;
-			} elseif ( ! $greater_reduced_tax_class && strstr( $slug, sanitize_title( _x( 'Greater reduced rate', 'oss', 'oss-woocommerce' ) ) ) ) {
-				$greater_reduced_tax_class = $slug;
-			} elseif ( ! $super_reduced_tax_class && strstr( $slug, sanitize_title( 'Super reduced rate' ) ) ) {
-				$super_reduced_tax_class = $slug;
-			} elseif ( ! $super_reduced_tax_class && strstr( $slug, sanitize_title( _x( 'Super reduced rate', 'oss', 'oss-woocommerce' ) ) ) ) {
-				$super_reduced_tax_class = $slug;
-			} elseif ( ! $reduced_tax_class && strstr( $slug, sanitize_title( 'Reduced rate' ) ) ) {
-				$reduced_tax_class = $slug;
-			} elseif ( ! $reduced_tax_class && strstr( $slug, sanitize_title( __( 'Reduced rate', 'woocommerce' ) ) ) ) {
-				$reduced_tax_class = $slug;
-			} elseif ( ! $reduced_tax_class && strstr( $slug, 'reduced' ) && ! $reduced_tax_class ) {
-				$reduced_tax_class = $slug;
-			}
-		}
+	        /**
+	         * Try to determine the reduced tax rate class
+	         */
+	        foreach( $tax_classes as $slug ) {
+		        if ( strstr( $slug, 'virtual' ) ) {
+			        continue;
+		        }
 
-		return apply_filters( 'oss_woocommerce_tax_rate_class_slugs', array(
-			'reduced'         => $reduced_tax_class,
-			'greater-reduced' => $greater_reduced_tax_class,
-			'super-reduced'   => $super_reduced_tax_class,
-			'standard'        => '',
-		) );
+		        if ( ! $greater_reduced_tax_class && strstr( $slug, sanitize_title( 'Greater reduced rate' ) ) ) {
+			        $greater_reduced_tax_class = $slug;
+		        } elseif ( ! $greater_reduced_tax_class && strstr( $slug, sanitize_title( _x( 'Greater reduced rate', 'oss', 'oss-woocommerce' ) ) ) ) {
+			        $greater_reduced_tax_class = $slug;
+		        } elseif ( ! $super_reduced_tax_class && strstr( $slug, sanitize_title( 'Super reduced rate' ) ) ) {
+			        $super_reduced_tax_class = $slug;
+		        } elseif ( ! $super_reduced_tax_class && strstr( $slug, sanitize_title( _x( 'Super reduced rate', 'oss', 'oss-woocommerce' ) ) ) ) {
+			        $super_reduced_tax_class = $slug;
+		        } elseif ( ! $reduced_tax_class && strstr( $slug, sanitize_title( 'Reduced rate' ) ) ) {
+			        $reduced_tax_class = $slug;
+		        } elseif ( ! $reduced_tax_class && strstr( $slug, sanitize_title( __( 'Reduced rate', 'woocommerce' ) ) ) ) {
+			        $reduced_tax_class = $slug;
+		        } elseif ( ! $reduced_tax_class && strstr( $slug, 'reduced' ) && ! $reduced_tax_class ) {
+			        $reduced_tax_class = $slug;
+		        }
+	        }
+
+            $slugs = array(
+	            'reduced'         => $reduced_tax_class,
+	            'greater-reduced' => $greater_reduced_tax_class,
+	            'super-reduced'   => $super_reduced_tax_class,
+	            'standard'        => '',
+            );
+
+	        wp_cache_set( $cache_key, $slugs, 'taxes' );
+        }
+
+		return apply_filters( 'oss_woocommerce_tax_rate_class_slugs', $slugs );
 	}
 
 	public static function get_tax_type_by_country_rate( $rate_percentage, $country ) {
