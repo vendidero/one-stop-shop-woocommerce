@@ -53,7 +53,7 @@ class CSVExporterBOP extends CSVExporter {
 	protected function export_column_headers() {
 		$buffer = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen
 		ob_start();
-		fwrite( $buffer, "#v1.0" . PHP_EOL );
+		fwrite( $buffer, "#v1.1" . PHP_EOL );
 		$content = ob_get_clean();
 
 		return $content . parent::export_column_headers();
