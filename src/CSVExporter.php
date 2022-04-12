@@ -68,40 +68,43 @@ class CSVExporter extends \WC_CSV_Exporter {
 		return wc_format_decimal( $value, $this->get_decimals() );
 	}
 
+	protected function get_row_data( $country, $tax_rate ) {
+		$row = array();
+
+		foreach( array_keys( $this->get_column_names() ) as $column_id ) {
+			$column_id = strstr( $column_id, ':' ) ? current( explode( ':', $column_id ) ) : $column_id;
+			$value     = '';
+
+			if ( 'country' === $column_id ) {
+				$value = strtoupper( $country );
+			} elseif( 'tax_rate' === $column_id ) {
+				$value = $this->format_decimal( $tax_rate );
+			} elseif( 'taxable_base' === $column_id ) {
+				$value = $this->format_decimal( $this->report->get_country_net_total( $country, $tax_rate, $this->get_decimals() ) );
+			} elseif( 'amount' === $column_id ) {
+				$value = $this->format_decimal( $this->report->get_country_tax_total( $country, $tax_rate, $this->get_decimals() ) );
+			} elseif ( is_callable( array( $this, "get_column_value_{$column_id}" ) ) ) {
+				$value = $this->{"get_column_value_{$column_id}"}( $country, $tax_rate );
+			} else {
+				$value = apply_filters( "one_stop_shop_woocommerce_export_column_{$column_id}", $value, $country, $tax_rate, $this );
+			}
+
+			$row[ $column_id ] = $value;
+		}
+
+		return $row;
+	}
+
 	/**
 	 * Prepare data that will be exported.
 	 */
 	public function prepare_data_to_export() {
-		$columns   = $this->get_column_names();
 		$countries = $this->report->get_countries();
 
 		if ( ! empty( $countries ) ) {
 			foreach ( $countries as $country ) {
 				foreach( $this->report->get_tax_rates_by_country( $country ) as $tax_rate ) {
-					$row = array();
-
-					foreach( array_keys( $columns ) as $column_id ) {
-						$column_id = strstr( $column_id, ':' ) ? current( explode( ':', $column_id ) ) : $column_id;
-						$value     = '';
-
-						if ( 'country' === $column_id ) {
-							$value = strtoupper( $country );
-						} elseif( 'tax_rate' === $column_id ) {
-							$value = $this->format_decimal( $tax_rate );
-						} elseif( 'taxable_base' === $column_id ) {
-							$value = $this->format_decimal( $this->report->get_country_net_total( $country, $tax_rate, $this->get_decimals() ) );
-						} elseif( 'amount' === $column_id ) {
-							$value = $this->format_decimal( $this->report->get_country_tax_total( $country, $tax_rate, $this->get_decimals() ) );
-						} elseif ( is_callable( array( $this, "get_column_value_{$column_id}" ) ) ) {
-							$value = $this->{"get_column_value_{$column_id}"}( $country, $tax_rate );
-						} else {
-							$value = apply_filters( "one_stop_shop_woocommerce_export_column_{$column_id}", $value, $country, $tax_rate, $this );
-						}
-
-						$row[ $column_id ] = $value;
-					}
-
-					$this->row_data[] = apply_filters( 'one_stop_shop_woocommerce_export_row_data', $row, $country, $tax_rate, $this );
+					$this->row_data[] = apply_filters( 'one_stop_shop_woocommerce_export_row_data', $this->get_row_data( $country, $tax_rate ), $country, $tax_rate, $this );
 				}
 			}
 		}
