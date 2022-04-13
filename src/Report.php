@@ -278,8 +278,8 @@ class Report {
 		return true;
 	}
 
-	public function get_export_link() {
-		return add_query_arg( array( 'action' => 'oss_export_report', 'report_id' => $this->get_id() ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_export_report' ) );
+	public function get_export_link( $export_type = '' ) {
+		return add_query_arg( array( 'action' => 'oss_export_report', 'export_type' => $export_type, 'report_id' => $this->get_id() ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_export_report' ) );
 	}
 
 	public function get_delete_link() {

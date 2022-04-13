@@ -361,7 +361,7 @@ p.oss-add-tax-class-by-country-field {
           }
         }
 
-        &.export::after {
+        &.export::after, &.export_bop::after {
           content: "\f103";
         }
       }

@@ -336,14 +336,15 @@ class Admin {
 			wp_die();
 		}
 
-		$report_id = isset( $_GET['report_id'] ) ? wc_clean( $_GET['report_id'] ) : '';
-        $decimals  = isset( $_GET['decimals'] ) ? absint( $_GET['decimals'] ) : wc_get_price_decimals();
+		$report_id   = isset( $_GET['report_id'] ) ? wc_clean( $_GET['report_id'] ) : '';
+        $decimals    = isset( $_GET['decimals'] ) ? absint( $_GET['decimals'] ) : wc_get_price_decimals();
+		$export_type = isset( $_GET['export_type'] ) ? wc_clean( $_GET['export_type'] ) : '';
 
 		if ( ! empty( $report_id ) && ( $report = Package::get_report( $report_id ) ) ) {
 		    $exporter_class = '\Vendidero\OneStopShop\CSVExporter';
 			$base_country   = Package::get_base_country();
 
-			if ( 'DE' === $base_country && apply_filters( 'oss_experimental_use_de_bop_csv_exporter', false ) ) {
+			if ( 'bop' === $export_type ) {
 				$exporter_class = '\Vendidero\OneStopShop\CSVExporterBOP';
 			}
 
@@ -609,6 +610,10 @@ class Admin {
 				'url' => $report->get_export_link(),
 				'title' => _x( 'Export', 'oss', 'oss-woocommerce' )
 			),
+			'export_bop' => array(
+				'url' => $report->get_export_link( 'bop' ),
+				'title' => _x( 'Export BOP', 'oss', 'oss-woocommerce' )
+			),
 			'refresh' => array(
 				'url' => $report->get_refresh_link(),
 				'title' => _x( 'Refresh', 'oss', 'oss-woocommerce' )
@@ -627,6 +632,11 @@ class Admin {
 			unset( $actions['refresh'] );
 			unset( $actions['delete'] );
 			unset( $actions['export'] );
+			unset( $actions['export_bop'] );
+		}
+
+		if ( 'DE' !== Package::get_base_country() && isset( $actions['export_bop'] ) ) {
+			unset( $actions['export_bop'] );
 		}
 
 		if ( 'observer' === $report->get_type() ) {

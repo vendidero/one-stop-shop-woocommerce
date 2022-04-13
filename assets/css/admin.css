@@ -251,7 +251,7 @@ p.oss-add-tax-class-by-country-field {
         .woocommerce_page_oss-reports .wp-list-table .column-actions a.button.delete::after, .woocommerce_page_oss-reports .wp-list-table .column-actions a.button.cancel::after {
           font-family: Dashicons;
           content: "\f182"; }
-      .woocommerce_page_oss-reports .wp-list-table .column-actions a.button.export::after {
+      .woocommerce_page_oss-reports .wp-list-table .column-actions a.button.export::after, .woocommerce_page_oss-reports .wp-list-table .column-actions a.button.export_bop::after {
         content: "\f103"; }
   .woocommerce_page_oss-reports .wp-list-table .column-address, .woocommerce_page_oss-reports .wp-list-table .column-sender {
     width: 20ch; }
