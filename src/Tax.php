@@ -431,8 +431,17 @@ class Tax {
     }
 
     protected static function get_country_name( $country_code ) {
-        return 'EU-wide' === $country_code ? _x( 'EU-wide', 'oss', 'oss-woocommerce' ) : WC()->countries->get_countries()[ $country_code ];
-    }
+        $country_name = $country_code;
+	    $countries    = WC()->countries ? WC()->countries->get_countries() : array();
+
+        if ( 'EU-wide' === $country_code ) {
+            $country_name = _x( 'EU-wide', 'oss', 'oss-woocommerce' );
+        } elseif ( isset( $countries[ $country_code ] ) ) {
+            $country_name = $countries[ $country_code ];
+        }
+
+        return $country_name;
+     }
 
 	public static function tax_product_options() {
 		global $product_object;
