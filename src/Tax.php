@@ -574,6 +574,23 @@ class Tax {
 					}
 				}
 
+				if ( $tax_class_slugs['reduced'] === $tax_class ) {
+					$tax_rates = \WC_Tax::find_rates( array(
+						'country'   => $address['country'],
+						'state'     => $address['state'],
+						'city'      => $address['city'],
+						'postcode'  => $postcode,
+						'tax_class' => $tax_class,
+					) );
+
+					/**
+					 * Country does not seem to support this tax class - fallback to the standard tax class
+					 */
+					if ( empty( $tax_rates ) ) {
+						$tax_class = $tax_class_slugs['standard'];
+					}
+				}
+
 				/**
 				 * This cache entry depends on both the tax and product data.
 				 */
