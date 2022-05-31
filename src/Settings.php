@@ -111,8 +111,8 @@ class Settings {
 		ob_start();
 		?>
 		<p>
-			<a class="button button-secondary" onclick="return confirm('<?php echo esc_html( _x( 'Are you sure? Please backup your tax rates before proceeding.', 'oss', 'oss-woocommerce' ) ); ?>');" href="<?php echo self::get_oss_switch_link(); ?>"><?php echo ( Package::oss_procedure_is_enabled() ? _x( 'End OSS participation', 'oss', 'oss-woocommerce' ) : _x( 'Start OSS participation', 'oss', 'oss-woocommerce' ) ); ?></a>
-            <a class="oss-settings-refresh-tax-rates" onclick="return confirm('<?php echo esc_html( _x( 'Are you sure? Please backup your tax rates before proceeding.', 'oss', 'oss-woocommerce' ) ); ?>');" href="<?php echo wp_nonce_url( admin_url( 'admin.php?page=wc-status&tab=tools&action=refresh_oss_tax_rates' ), 'debug_action' ); ?> "><?php _ex( 'refresh VAT rates', 'oss', 'oss-woocommerce' ); ?></a>
+			<a class="button button-secondary" onclick="return confirm('<?php echo esc_html( _x( 'Are you sure? Please backup your tax rates before proceeding.', 'oss', 'oss-woocommerce' ) ); ?>');" href="<?php echo esc_url( self::get_oss_switch_link() ); ?>"><?php echo ( Package::oss_procedure_is_enabled() ? _x( 'End OSS participation', 'oss', 'oss-woocommerce' ) : _x( 'Start OSS participation', 'oss', 'oss-woocommerce' ) ); ?></a>
+            <a class="oss-settings-refresh-tax-rates" onclick="return confirm('<?php echo esc_html( _x( 'Are you sure? Please backup your tax rates before proceeding.', 'oss', 'oss-woocommerce' ) ); ?>');" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=wc-status&tab=tools&action=refresh_oss_tax_rates' ), 'debug_action' ) ); ?> "><?php _ex( 'refresh VAT rates', 'oss', 'oss-woocommerce' ); ?></a>
             <a class="oss-settings-learn-more" href="https://vendidero.github.io/one-stop-shop-woocommerce/tax-adjustments"><?php _ex( 'learn more', 'oss', 'oss-woocommerce' ); ?></a>
 		</p>
 			<p class="oss-woocommerce-additional-desc wc-gzd-additional-desc"><?php _ex( 'Use this option to automatically adjust tax-related options in WooCommerce. Warning: This option will delete your current tax rates and add new tax rates based on your OSS participation status.', 'oss', 'oss-woocommerce' ); ?></p>
@@ -147,7 +147,7 @@ class Settings {
 		if ( ! $observer_report || Queue::get_running_observer() ) {
 		    $running = Package::get_observer_report() ? Package::get_observer_report() : Queue::get_running_observer();
 
-		    $status_link = $running ? '<a href="' . $running->get_url() . '">' . _x( 'See status', 'oss', 'oss-woocommerce' ) . '</a>' : '<a href="' . add_query_arg( array( 'action' => 'oss_init_observer' ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_init_observer' ) ) . '">' . _x( 'Start initial report', 'oss', 'oss-woocommerce' ) . '</a>';
+		    $status_link = $running ? '<a href="' . esc_url( $running->get_url() ) . '">' . _x( 'See status', 'oss', 'oss-woocommerce' ) . '</a>' : '<a href="' . esc_url( add_query_arg( array( 'action' => 'oss_init_observer' ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_init_observer' ) ) ) . '">' . _x( 'Start initial report', 'oss', 'oss-woocommerce' ) . '</a>';
 			$status_text = sprintf( ( $running ? _x( 'Report not yet completed. %s', 'oss', 'oss-woocommerce' ) : _x( 'Report not yet started. %s', 'oss', 'oss-woocommerce' ) ), $status_link );
 		    ob_start();
 			?>

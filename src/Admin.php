@@ -79,7 +79,7 @@ class Admin {
 			'desc'   => sprintf(
 				'<strong class="red">%1$s</strong> %2$s',
 				_x( 'Note:', 'oss', 'oss-woocommerce' ),
-				sprintf( _x( 'This option will delete all of your current EU VAT rates and re-import them based on your current <a href="%s">OSS status</a>.', 'oss', 'oss-woocommerce' ), Settings::get_settings_url() )
+				sprintf( _x( 'This option will delete all of your current EU VAT rates and re-import them based on your current <a href="%s">OSS status</a>.', 'oss', 'oss-woocommerce' ), esc_url( Settings::get_settings_url() ) )
 			),
 		);
 
@@ -317,11 +317,11 @@ class Admin {
 				$referer = admin_url( 'admin.php?page=oss-reports' );
 			}
 
-		    wp_safe_redirect( add_query_arg( array( 'report_deleted' => $report_id ), $referer ) );
+		    wp_safe_redirect( esc_url_raw( add_query_arg( array( 'report_deleted' => $report_id ), $referer ) ) );
 		    exit();
         }
 
-		wp_safe_redirect( wp_get_referer() );
+		wp_safe_redirect( esc_url_raw( wp_get_referer() ) );
 		exit();
     }
 
@@ -372,11 +372,11 @@ class Admin {
 		if ( ! empty( $report_id ) && ( $report = Package::get_report( $report_id ) ) ) {
 			Queue::start( $report->get_type(), $report->get_date_start(), $report->get_date_end() );
 
-			wp_safe_redirect( add_query_arg( array( 'report_restarted' => $report_id ), self::get_clean_referer() ) );
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'report_restarted' => $report_id ), self::get_clean_referer() ) ) );
 			exit();
 		}
 
-		wp_safe_redirect( wp_get_referer() );
+		wp_safe_redirect( esc_url_raw( wp_get_referer() ) );
 		exit();
 	}
 
@@ -399,11 +399,11 @@ class Admin {
 				$referer = admin_url( 'admin.php?page=oss-reports' );
 			}
 
-			wp_safe_redirect( add_query_arg( array( 'report_cancelled' => $report_id ), $referer ) );
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'report_cancelled' => $report_id ), $referer ) ) );
 			exit();
 		}
 
-		wp_safe_redirect( wp_get_referer() );
+		wp_safe_redirect( esc_url_raw( wp_get_referer() ) );
 		exit();
 	}
 
@@ -479,7 +479,7 @@ class Admin {
         }
         ?>
         <div class="wrap oss-reports create-oss-reports">
-            <form class="create-oss-report" method="post" action="<?php echo admin_url( 'admin-post.php' ); ?>">
+            <form class="create-oss-report" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
                 <header>
                     <h2><?php _ex( 'New Report', 'oss', 'oss-woocommerce' ); ?></h2>
                 </header>
@@ -562,7 +562,7 @@ class Admin {
 		?>
         <div class="wrap oss-reports">
             <h1 class="wp-heading-inline"><?php echo _x( 'One Stop Shop', 'oss', 'oss-woocommerce' ); ?></h1>
-            <a href="<?php echo add_query_arg( array( 'new' => 'yes' ), admin_url( 'admin.php?page=oss-reports' ) ); ?>" class="page-title-action"><?php _ex( 'New report', 'oss', 'oss-woocommerce' ); ?></a>
+            <a href="<?php echo esc_url( add_query_arg( array( 'new' => 'yes' ), admin_url( 'admin.php?page=oss-reports' ) ) ); ?>" class="page-title-action"><?php _ex( 'New report', 'oss', 'oss-woocommerce' ); ?></a>
 
             <hr class="wp-header-end" />
 
@@ -706,7 +706,7 @@ class Admin {
             <?php else :
 	            $details = Queue::get_queue_details( $report_id );
                 ?>
-                <p class="summary"><?php printf( _x( 'Currently processed %1$s orders. Next iteration is scheduled for %2$s. <a href="%3$s">Find pending actions</a>', 'oss', 'oss-woocommerce' ), $details['order_count'], $details['next_date'] ? $details['next_date']->date_i18n( wc_date_format() . ' @ ' . wc_time_format() ) : _x( 'Not yet known', 'oss', 'oss-woocommerce' ), esc_url( $details['link'] ) ); ?></p>
+                <p class="summary"><?php printf( _x( 'Currently processed %1$s orders. Next iteration is scheduled for %2$s. <a href="%3$s">Find pending actions</a>', 'oss', 'oss-woocommerce' ), esc_html( $details['order_count'] ), $details['next_date'] ? $details['next_date']->date_i18n( wc_date_format() . ' @ ' . wc_time_format() ) : _x( 'Not yet known', 'oss', 'oss-woocommerce' ), esc_url( $details['link'] ) ); ?></p>
             <?php endif; ?>
         </div>
         <?php
@@ -762,10 +762,10 @@ class Admin {
 
             $sendback = remove_query_arg( array( 'action', 'action2', '_status', 'bulk_edit', 'report', 'report_created' ), $sendback );
 
-            wp_redirect( $sendback );
+            wp_redirect( esc_url_raw( $sendback ) );
             exit();
         } elseif ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
-            wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
+            wp_redirect( esc_url_raw( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) );
             exit;
         }
 
