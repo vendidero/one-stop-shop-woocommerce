@@ -19,7 +19,7 @@ class Install {
 				Package::dependency_notice();
 				$notice = ob_get_clean();
 
-				wp_die( $notice );
+				wp_die( wp_kses_post( $notice ) );
 			}
 
 			self::add_options();
@@ -27,8 +27,8 @@ class Install {
 	}
 
 	private static function add_options() {
-		foreach( Settings::get_sections() as $section ) {
-			foreach( Settings::get_settings( $section ) as $setting ) {
+		foreach ( Settings::get_sections() as $section ) {
+			foreach ( Settings::get_settings( $section ) as $setting ) {
 				if ( isset( $setting['default'] ) && isset( $setting['id'] ) ) {
 					wp_cache_delete( $setting['id'], 'options' );
 

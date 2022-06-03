@@ -16,16 +16,19 @@ class AsyncReportGenerator {
 		$default_start = new \WC_DateTime( 'now' );
 		$default_start->modify( '-1 year' );
 
-		$args = wp_parse_args( $args, array(
-			'start'            => $default_start->format( 'Y-m-d' ),
-			'end'              => $default_end->format( 'Y-m-d' ),
-			'limit'            => Queue::get_batch_size(),
-			'status'           => Queue::get_order_statuses(),
-			'offset'           => 0,
-			'order_types'      => array( 'shop_order' ),
-			'orders_processed' => 0,
-			'date_field'       => Queue::use_date_paid() ? 'date_paid' : 'date_created',
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'start'            => $default_start->format( 'Y-m-d' ),
+				'end'              => $default_end->format( 'Y-m-d' ),
+				'limit'            => Queue::get_batch_size(),
+				'status'           => Queue::get_order_statuses(),
+				'offset'           => 0,
+				'order_types'      => array( 'shop_order' ),
+				'orders_processed' => 0,
+				'date_field'       => Queue::use_date_paid() ? 'date_paid' : 'date_created',
+			)
+		);
 
 		/**
 		 * Observers do not treat refunds separately
@@ -34,11 +37,11 @@ class AsyncReportGenerator {
 			$args['order_types'] = array( 'shop_order' );
 		}
 
-		foreach( array( 'start', 'end' ) as $date_field ) {
+		foreach ( array( 'start', 'end' ) as $date_field ) {
 			if ( is_a( $args[ $date_field ], 'WC_DateTime' ) ) {
 				$args[ $date_field ] = $args[ $date_field ]->format( 'Y-m-d' );
-			} elseif( is_numeric( $args[ $date_field ] ) ) {
-				$date = new \WC_DateTime( '@' . $args[ $date_field ] );
+			} elseif ( is_numeric( $args[ $date_field ] ) ) {
+				$date                = new \WC_DateTime( '@' . $args[ $date_field ] );
 				$args[ $date_field ] = $date->format( 'Y-m-d' );
 			}
 		}
@@ -115,11 +118,11 @@ class AsyncReportGenerator {
 			$included = false;
 		}
 
-		if ( $order->get_total_tax() == 0 ) {
+		if ( floatval( $order->get_total_tax() ) === 0.0 ) {
 			$included = false;
 		}
 
-		return apply_filters( "oss_woocommerce_report_include_order", $included, $order );
+		return apply_filters( 'oss_woocommerce_report_include_order', $included, $order );
 	}
 
 	protected function get_taxable_country_iso( $country ) {
@@ -149,12 +152,12 @@ class AsyncReportGenerator {
 		$results          = Queue::query( $args );
 		$orders_processed = 0;
 		$tax_data         = $this->get_temporary_result();
-		$supports_refunds = in_array( 'shop_order_refund', $args['order_types'] );
+		$supports_refunds = in_array( 'shop_order_refund', $args['order_types'], true );
 
-		Package::extended_log( sprintf( '%d applicable orders found', sizeof( $results ) ) );
+		Package::extended_log( sprintf( '%d applicable orders found', count( $results ) ) );
 
 		if ( ! empty( $results ) ) {
-			foreach( $results as $result ) {
+			foreach ( $results as $result ) {
 				if ( $order = wc_get_order( $result->ID ) ) {
 					$forced_parent_order = false;
 
@@ -206,12 +209,12 @@ class AsyncReportGenerator {
 							Package::extended_log( sprintf( 'Refunded tax %1$s = %2$s', $tax_percent, $refunded ) );
 						}
 
-						if ( $tax_percent <= 0 || $tax_total == 0 ) {
+						if ( $tax_percent <= 0 || 0.0 === $tax_total ) {
 							if ( $tax_percent <= 0 ) {
 								Package::extended_log( sprintf( 'Skipping order due to missing tax percentage' ) );
 							}
 
-							if ( $tax_total == 0 ) {
+							if ( 0.0 === $tax_total ) {
 								Package::extended_log( sprintf( 'Skipping order due to tax total = 0' ) );
 							}
 
@@ -233,10 +236,10 @@ class AsyncReportGenerator {
 						$net_total = wc_add_number_precision( $net_total, false );
 						$tax_total = wc_add_number_precision( $tax_total, false );
 
-						$tax_data[ $country_iso ][ "$tax_percent" ]['tax_total'] = (float) $tax_data[ $country_iso ][ "$tax_percent" ]['tax_total'];
+						$tax_data[ $country_iso ][ "$tax_percent" ]['tax_total']  = (float) $tax_data[ $country_iso ][ "$tax_percent" ]['tax_total'];
 						$tax_data[ $country_iso ][ "$tax_percent" ]['tax_total'] += $tax_total;
 
-						$tax_data[ $country_iso ][ "$tax_percent" ]['net_total'] = (float) $tax_data[ $country_iso ][ "$tax_percent" ]['net_total'];
+						$tax_data[ $country_iso ][ "$tax_percent" ]['net_total']  = (float) $tax_data[ $country_iso ][ "$tax_percent" ]['net_total'];
 						$tax_data[ $country_iso ][ "$tax_percent" ]['net_total'] += $net_total;
 
 						$orders_processed++;
@@ -265,8 +268,8 @@ class AsyncReportGenerator {
 		$tax_total  = 0;
 		$net_total  = 0;
 
-		foreach( $tmp_result as $country => $tax_data ) {
-			foreach( $tax_data as $percent => $totals ) {
+		foreach ( $tmp_result as $country => $tax_data ) {
+			foreach ( $tax_data as $percent => $totals ) {
 				$tax_total += (float) $totals['tax_total'];
 				$net_total += (float) $totals['net_total'];
 

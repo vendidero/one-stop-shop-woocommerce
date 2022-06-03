@@ -22,7 +22,7 @@ class Queue {
 		if ( 'observer' !== $type ) {
 			$args['order_types'] = array(
 				'shop_order',
-				'shop_order_refund'
+				'shop_order_refund',
 			);
 		}
 
@@ -50,7 +50,7 @@ class Queue {
 
 			$running = self::get_reports_running();
 
-			if ( ! in_array( $generator->get_id(), $running ) ) {
+			if ( ! in_array( $generator->get_id(), $running, true ) ) {
 				$running[] = $generator->get_id();
 			}
 
@@ -70,11 +70,11 @@ class Queue {
 	public static function get_queue_details( $report_id ) {
 		$details = array(
 			'next_date'   => null,
-			'link'        => admin_url( 'admin.php?page=wc-status&tab=action-scheduler&s=' . esc_attr( $report_id ) .'&status=pending' ),
+			'link'        => admin_url( 'admin.php?page=wc-status&tab=action-scheduler&s=' . esc_attr( $report_id ) . '&status=pending' ),
 			'order_count' => 0,
 			'has_action'  => false,
 			'is_finished' => false,
-			'action'      => false
+			'action'      => false,
 		);
 
 		if ( $queue = self::get_queue() ) {
@@ -97,7 +97,7 @@ class Queue {
 			 */
 			if ( empty( $results ) ) {
 				$search_args['status'] = \ActionScheduler_Store::STATUS_PENDING;
-				$results = $queue->search( $search_args );
+				$results               = $queue->search( $search_args );
 			}
 
 			/**
@@ -105,7 +105,7 @@ class Queue {
 			 */
 			if ( empty( $results ) ) {
 				$search_args['status'] = \ActionScheduler_Store::STATUS_COMPLETE;
-				$results = $queue->search( $search_args );
+				$results               = $queue->search( $search_args );
 			}
 
 			if ( ! empty( $results ) ) {
@@ -156,12 +156,12 @@ class Queue {
 		$post_type_in         = self::generate_in_query_sql( isset( $args['order_types'] ) ? (array) $args['order_types'] : array( 'shop_order' ) );
 		$where_country_sql    = "mt1.meta_value IN {$taxable_countries_in}";
 
-		if ( in_array( 'shop_order_refund', $args['order_types'] ) ) {
-			$joins[] = "LEFT JOIN {$wpdb->postmeta} AS mt1_parent ON {$wpdb->posts}.post_parent = mt1_parent.post_id AND (mt1_parent.meta_key = '_shipping_country' OR mt1_parent.meta_key = '_billing_country')";
+		if ( in_array( 'shop_order_refund', $args['order_types'], true ) ) {
+			$joins[]           = "LEFT JOIN {$wpdb->postmeta} AS mt1_parent ON {$wpdb->posts}.post_parent = mt1_parent.post_id AND (mt1_parent.meta_key = '_shipping_country' OR mt1_parent.meta_key = '_billing_country')";
 			$where_country_sql = "( {$wpdb->posts}.post_parent > 0 AND (mt1_parent.meta_value IN {$taxable_countries_in}) ) OR ( mt1.meta_value IN {$taxable_countries_in} )";
 		}
 
-		$where_date_sql = $wpdb->prepare( "{$wpdb->posts}.post_date >= '%s' AND {$wpdb->posts}.post_date <= '%s'", $args['start'], $args['end'] );
+		$where_date_sql = $wpdb->prepare( "{$wpdb->posts}.post_date >= %s AND {$wpdb->posts}.post_date <= %s", $args['start'], $args['end'] );
 
 		if ( 'date_paid' === $args['date_field'] ) {
 			/**
@@ -179,10 +179,10 @@ class Queue {
 			$joins[] = "LEFT JOIN {$wpdb->postmeta} AS mt3 ON ( {$wpdb->posts}.ID = mt3.post_id AND mt3.meta_key = '_date_paid' )";
 
 			$where_date_sql = $wpdb->prepare(
-				"( {$wpdb->posts}.post_date >= '%s' AND {$wpdb->posts}.post_date <= '%s' ) AND NOT mt3.post_id IS NULL AND (
-			  		mt3.meta_key = '_date_paid' AND mt3.meta_value >= '%d' AND mt3.meta_value <= '%d'
+				"( {$wpdb->posts}.post_date >= %s AND {$wpdb->posts}.post_date <= %s ) AND NOT mt3.post_id IS NULL AND (
+			  		mt3.meta_key = '_date_paid' AND mt3.meta_value >= %s AND mt3.meta_value <= %s
 			  	) OR {$wpdb->posts}.post_parent > 0 AND (
-			  	    {$wpdb->posts}.post_date >= '%s' AND {$wpdb->posts}.post_date <= '%s'
+			  	    {$wpdb->posts}.post_date >= %s AND {$wpdb->posts}.post_date <= %s
 			  	)",
 				$args['start'],
 				$max_end->format( 'Y-m-d' ),
@@ -193,9 +193,11 @@ class Queue {
 			);
 		}
 
-		$join_sql = implode( " ", $joins );
+		$join_sql = implode( ' ', $joins );
 
-		$sql = $wpdb->prepare( "
+		// @codingStandardsIgnoreStart
+		$sql = $wpdb->prepare(
+			"
 			SELECT {$wpdb->posts}.* FROM {$wpdb->posts}  
 			$join_sql
 			WHERE 1=1 
@@ -207,6 +209,7 @@ class Queue {
 			$args['offset'],
 			$args['limit']
 		);
+		// @codingStandardsIgnoreEnd
 
 		return $sql;
 	}
@@ -216,11 +219,11 @@ class Queue {
 
 		$in_query = array();
 
-		foreach( $values as $value ) {
-			$in_query[] = $wpdb->prepare( "'%s'", $value );
+		foreach ( $values as $value ) {
+			$in_query[] = $wpdb->prepare( "'%s'", $value ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedSimplePlaceholder
 		}
 
-		return "(" . implode( ',', $in_query ) . ")";
+		return '(' . implode( ',', $in_query ) . ')';
 	}
 
 	public static function query( $args ) {
@@ -231,7 +234,7 @@ class Queue {
 		Package::extended_log( sprintf( 'Building new query: %s', wc_print_r( $args, true ) ) );
 		Package::extended_log( $query );
 
-		return $wpdb->get_results( $query );
+		return $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	public static function cancel( $id ) {
@@ -262,7 +265,7 @@ class Queue {
 	public static function is_running( $id ) {
 		$running = self::get_reports_running();
 
-		if ( in_array( $id, $running ) && self::get_queue()->get_next( 'oss_woocommerce_' . $id ) ) {
+		if ( in_array( $id, $running, true ) && self::get_queue()->get_next( 'oss_woocommerce_' . $id ) ) {
 			return true;
 		}
 
@@ -348,8 +351,8 @@ class Queue {
 			$observer_report->set_net_total( $observer_report->get_net_total( false ) + $report->get_net_total( false ) );
 			$observer_report->set_tax_total( $observer_report->get_tax_total( false ) + $report->get_tax_total( false ) );
 
-			foreach( $report->get_countries() as $country ) {
-				foreach( $report->get_tax_rates_by_country( $country ) as $tax_rate ) {
+			foreach ( $report->get_countries() as $country ) {
+				foreach ( $report->get_tax_rates_by_country( $country ) as $tax_rate ) {
 					$observer_report->set_country_tax_total( $country, $tax_rate, ( $observer_report->get_country_tax_total( $country, $tax_rate, false ) + $report->get_country_tax_total( $country, $tax_rate, false ) ) );
 					$observer_report->set_country_net_total( $country, $tax_rate, ( $observer_report->get_country_net_total( $country, $tax_rate, false ) + $report->get_country_net_total( $country, $tax_rate, false ) ) );
 				}
@@ -379,7 +382,7 @@ class Queue {
 	public static function get_running_observer() {
 		$report = false;
 
-		foreach( self::get_reports_running() as $id ) {
+		foreach ( self::get_reports_running() as $id ) {
 			/**
 			 * Make sure to return the last running observer in case more of one observer exists
 			 * in running queue.
@@ -395,7 +398,7 @@ class Queue {
 	public static function maybe_stop_report( $report_id ) {
 		$reports_running = self::get_reports_running();
 
-		if ( in_array( $report_id, $reports_running ) ) {
+		if ( in_array( $report_id, $reports_running, true ) ) {
 			$reports_running = array_diff( $reports_running, array( $report_id ) );
 			update_option( 'oss_woocommerce_reports_running', $reports_running, false );
 
@@ -424,11 +427,11 @@ class Queue {
 		$start_indicator = is_null( $date ) ? new \WC_DateTime() : $date;
 
 		if ( ! is_a( $start_indicator, 'WC_DateTime' ) && is_numeric( $start_indicator ) ) {
-			$start_indicator = new \WC_DateTime( "@" . $start_indicator );
+			$start_indicator = new \WC_DateTime( '@' . $start_indicator );
 		}
 
 		if ( ! is_null( $date_end ) && ! is_a( $date_end, 'WC_DateTime' ) && is_numeric( $date_end ) ) {
-			$date_end = new \WC_DateTime( "@" . $date_end );
+			$date_end = new \WC_DateTime( '@' . $date_end );
 		}
 
 		if ( 'quarterly' === $type ) {
@@ -448,19 +451,19 @@ class Queue {
 				$end_month   = 'Dec';
 			}
 
-			$date_start = new \WC_DateTime( "first day of " . $start_month . " " . $start_indicator->format( 'Y' ) . " midnight" );
-			$date_end   = new \WC_DateTime( "last day of " . $end_month . " " . $start_indicator->format( 'Y' ) . " midnight" );
+			$date_start = new \WC_DateTime( 'first day of ' . $start_month . ' ' . $start_indicator->format( 'Y' ) . ' midnight' );
+			$date_end   = new \WC_DateTime( 'last day of ' . $end_month . ' ' . $start_indicator->format( 'Y' ) . ' midnight' );
 		} elseif ( 'monthly' === $type ) {
 			$month = $start_indicator->format( 'M' );
 
-			$date_start = new \WC_DateTime( "first day of " . $month . " " . $start_indicator->format( 'Y' ) . " midnight" );
-			$date_end   = new \WC_DateTime( "last day of " . $month . " " . $start_indicator->format( 'Y' ) . " midnight" );
+			$date_start = new \WC_DateTime( 'first day of ' . $month . ' ' . $start_indicator->format( 'Y' ) . ' midnight' );
+			$date_end   = new \WC_DateTime( 'last day of ' . $month . ' ' . $start_indicator->format( 'Y' ) . ' midnight' );
 		} elseif ( 'yearly' === $type ) {
 			$date_end   = clone $start_indicator;
 			$date_start = clone $start_indicator;
 
-			$date_end->modify( "last day of dec " . $start_indicator->format( 'Y' ) . " midnight" );
-			$date_start->modify( "first day of jan " . $start_indicator->format( 'Y' ) . " midnight" );
+			$date_end->modify( 'last day of dec ' . $start_indicator->format( 'Y' ) . ' midnight' );
+			$date_start->modify( 'first day of jan ' . $start_indicator->format( 'Y' ) . ' midnight' );
 		} elseif ( 'observer' === $type ) {
 			$date_start = clone $start_indicator;
 			$report     = Package::get_observer_report( $date_start->format( 'Y' ) );
@@ -468,10 +471,10 @@ class Queue {
 			if ( ! $report ) {
 				// Calculate starting with the first day of the current year until yesterday
 				$date_end   = clone $date_start;
-				$date_start = new \WC_DateTime( "first day of jan " . $start_indicator->format( 'Y' ) . " midnight" );
+				$date_start = new \WC_DateTime( 'first day of jan ' . $start_indicator->format( 'Y' ) . ' midnight' );
 			} else {
 				// In case a report has already been generated lets do only calculate the timeframe between the end of the last report and now
-				$date_end   = clone $date_start;
+				$date_end = clone $date_start;
 				$date_end->setTime( 0, 0 );
 
 				$date_start = clone $report->get_date_end();
@@ -503,7 +506,7 @@ class Queue {
 
 		return array(
 			'start' => $date_start,
-			'end'   => $date_end
+			'end'   => $date_end,
 		);
 	}
 }

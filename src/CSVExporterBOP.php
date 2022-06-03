@@ -18,28 +18,31 @@ class CSVExporterBOP extends CSVExporter {
 	 * @return array
 	 */
 	public function get_default_column_names() {
-		return apply_filters( "one_stop_shop_woocommerce_bop_export_default_columns", array(
-			'bop_type'     => 'Satzart',
-			'country'      => 'Land des Verbrauchs',
-			'tax_type'     => 'Umsatzsteuertyp',
-			'tax_rate'     => 'Umsatzsteuersatz',
-			'taxable_base' => 'Steuerbemessungsgrundlage, Nettobetrag',
-			'amount'       => 'Umsatzsteuerbetrag',
-		) );
+		return apply_filters(
+			'one_stop_shop_woocommerce_bop_export_default_columns',
+			array(
+				'bop_type'     => 'Satzart',
+				'country'      => 'Land des Verbrauchs',
+				'tax_type'     => 'Umsatzsteuertyp',
+				'tax_rate'     => 'Umsatzsteuersatz',
+				'taxable_base' => 'Steuerbemessungsgrundlage, Nettobetrag',
+				'amount'       => 'Umsatzsteuerbetrag',
+			)
+		);
 	}
 
 	protected function get_column_value_bop_type( $country, $tax_rate ) {
-		return apply_filters( "one_stop_shop_woocommerce_bop_export_type", 3 );
+		return apply_filters( 'one_stop_shop_woocommerce_bop_export_type', 3 );
 	}
 
 	protected function get_column_value_tax_type( $country, $tax_rate ) {
 		$tax_type        = Tax::get_tax_type_by_country_rate( $tax_rate, $country );
 		$tax_return_type = 'STANDARD';
 
-		switch( $tax_type ) {
-			case "reduced":
-			case "greater-reduced":
-			case "super-reduced":
+		switch ( $tax_type ) {
+			case 'reduced':
+			case 'greater-reduced':
+			case 'super-reduced':
 				$tax_return_type = 'REDUCED';
 				break;
 			default:
@@ -61,12 +64,17 @@ class CSVExporterBOP extends CSVExporter {
 				$tax_rates = $this->report->get_tax_rates_by_country( $country );
 
 				if ( ! empty( $tax_rates ) ) {
-					$this->row_data[] = apply_filters( 'one_stop_shop_woocommerce_export_bop_country_header_data', array(
-						'country'  => $country,
-						'bop_type' => 1,
-					), $country, $this );
+					$this->row_data[] = apply_filters(
+						'one_stop_shop_woocommerce_export_bop_country_header_data',
+						array(
+							'country'  => $country,
+							'bop_type' => 1,
+						),
+						$country,
+						$this
+					);
 
-					foreach( $tax_rates as $tax_rate ) {
+					foreach ( $tax_rates as $tax_rate ) {
 						$this->row_data[] = apply_filters( 'one_stop_shop_woocommerce_bop_export_row_data', $this->get_row_data( $country, $tax_rate ), $country, $tax_rate, $this );
 					}
 				}
@@ -84,7 +92,7 @@ class CSVExporterBOP extends CSVExporter {
 		$csv_data = $this->export_column_headers() . $this->get_csv_data();
 
 		// Replace newlines with Windows-style.
-		$csv_data = preg_replace('~\R~u', "\r", $csv_data );
+		$csv_data = preg_replace( '~\R~u', "\r", $csv_data );
 
 		$this->send_content( $csv_data );
 		die();
@@ -93,7 +101,7 @@ class CSVExporterBOP extends CSVExporter {
 	protected function export_column_headers() {
 		$buffer = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen
 		ob_start();
-		fwrite( $buffer, "#v1.1" . PHP_EOL );
+		fwrite( $buffer, '#v1.1' . PHP_EOL ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fwrite
 		$content = ob_get_clean();
 
 		return $content;

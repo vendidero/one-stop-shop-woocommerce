@@ -7,14 +7,17 @@ defined( 'ABSPATH' ) || exit;
 class DeliveryThresholdWarning extends AdminNote {
 
 	public static function get_actions() {
-		return array_merge( array(
+		return array_merge(
 			array(
-				'target'     => '',
-				'title'      => _x( 'See details', 'oss', 'oss-woocommerce' ),
-				'url'        => Settings::get_settings_url(),
-				'is_primary' => true,
-			)
-		), parent::get_actions() );
+				array(
+					'target'     => '',
+					'title'      => _x( 'See details', 'oss', 'oss-woocommerce' ),
+					'url'        => Settings::get_settings_url(),
+					'is_primary' => true,
+				),
+			),
+			parent::get_actions()
+		);
 	}
 
 	public static function get_content() {
@@ -32,6 +35,6 @@ class DeliveryThresholdWarning extends AdminNote {
 	}
 
 	public static function get_id() {
-		return 'delivery-threshold-warning-' . date( 'Y' );
+		return 'delivery-threshold-warning-' . date( 'Y' ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 	}
 }

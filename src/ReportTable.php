@@ -60,10 +60,13 @@ class ReportTable extends WP_List_Table {
 	}
 
 	public function enable_query_removing( $args ) {
-		$args = array_merge( $args, array(
-			'changed',
-			'bulk_action'
-		) );
+		$args = array_merge(
+			$args,
+			array(
+				'changed',
+				'bulk_action',
+			)
+		);
 
 		return $args;
 	}
@@ -77,10 +80,10 @@ class ReportTable extends WP_List_Table {
 	 * @return string
 	 */
 	public function handle_bulk_actions( $action, $ids, $redirect_to ) {
-		$ids         = array_reverse( wc_clean( $ids ) );
-		$changed     = 0;
+		$ids     = array_reverse( wc_clean( $ids ) );
+		$changed = 0;
 
-		if( 'delete' === $action ) {
+		if ( 'delete' === $action ) {
 			foreach ( $ids as $id ) {
 				if ( $report = Package::get_report( $id ) ) {
 					if ( $report->delete() ) {
@@ -97,7 +100,7 @@ class ReportTable extends WP_List_Table {
 				array(
 					'changed'     => $changed,
 					'ids'         => join( ',', $ids ),
-					'bulk_action' => $action
+					'bulk_action' => $action,
 				),
 				$redirect_to
 			);
@@ -114,8 +117,8 @@ class ReportTable extends WP_List_Table {
 	 * Show confirmation message that order status changed for number of orders.
 	 */
 	public function set_bulk_notice() {
-		$number      = isset( $_REQUEST['changed'] ) ? absint( $_REQUEST['changed'] ) : 0; // WPCS: input var ok, CSRF ok.
-		$bulk_action = isset( $_REQUEST['bulk_action'] ) ? wc_clean( wp_unslash( $_REQUEST['bulk_action'] ) ) : ''; // WPCS: input var ok, CSRF ok.
+		$number      = isset( $_REQUEST['changed'] ) ? absint( $_REQUEST['changed'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$bulk_action = isset( $_REQUEST['bulk_action'] ) ? wc_clean( wp_unslash( $_REQUEST['bulk_action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		if ( 'delete' === $bulk_action ) {
 			$this->add_notice( sprintf( _nx( '%d report deleted.', '%d reports deleted.', $number, 'oss', 'oss-woocommerce' ), number_format_i18n( $number ) ) );
@@ -132,7 +135,7 @@ class ReportTable extends WP_List_Table {
 	 * @return bool
 	 */
 	public function ajax_user_can() {
-		return current_user_can( "manage_woocommerce" );
+		return current_user_can( 'manage_woocommerce' );
 	}
 
 	public function get_page_option() {
@@ -140,8 +143,8 @@ class ReportTable extends WP_List_Table {
 	}
 
 	public function get_reports( $args ) {
-	    return Package::get_reports( $args );
-    }
+		return Package::get_reports( $args );
+	}
 
 	/**
 	 * @global array    $avail_post_stati
@@ -152,20 +155,20 @@ class ReportTable extends WP_List_Table {
 	public function prepare_items() {
 		global $per_page;
 
-		$per_page        = $this->get_items_per_page( $this->get_page_option(), 10 );
-		$per_page        = apply_filters( "{$this->get_hook_prefix()}edit_per_page", $per_page );
-		$this->counts    = Package::get_report_counts();
-		$paged           = $this->get_pagenum();
-		$report_type     = isset( $_REQUEST['type'] ) ? wc_clean( $_REQUEST['type'] ) : '';
-		$report_type     = in_array( $report_type, array_keys( Package::get_available_report_types( true ) ) ) ? $report_type : '';
+		$per_page     = $this->get_items_per_page( $this->get_page_option(), 10 ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$per_page     = apply_filters( "{$this->get_hook_prefix()}edit_per_page", $per_page ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$this->counts = Package::get_report_counts();
+		$paged        = $this->get_pagenum();
+		$report_type  = isset( $_REQUEST['type'] ) ? wc_clean( wp_unslash( $_REQUEST['type'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$report_type  = in_array( $report_type, array_keys( Package::get_available_report_types( true ) ), true ) ? $report_type : '';
 
 		$args = array(
 			'limit'            => $per_page,
 			'paginate'         => true,
 			'offset'           => ( $paged - 1 ) * $per_page,
 			'count_total'      => true,
-            'type'             => $report_type,
-            'include_observer' => 'observer' === $report_type ? true : false,
+			'type'             => $report_type,
+			'include_observer' => 'observer' === $report_type ? true : false,
 		);
 
 		$this->items = $this->get_reports( $args );
@@ -181,7 +184,7 @@ class ReportTable extends WP_List_Table {
 	/**
 	 */
 	public function no_items() {
-		echo _x( 'No reports found', 'oss', 'oss-woocommerce' );
+		echo esc_html_x( 'No reports found', 'oss', 'oss-woocommerce' );
 	}
 
 	/**
@@ -192,7 +195,7 @@ class ReportTable extends WP_List_Table {
 	 * @return bool Whether the current view is the "All" view.
 	 */
 	protected function is_base_request() {
-		$vars = $_GET;
+		$vars = $_GET; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset( $vars['paged'] );
 
 		if ( empty( $vars ) ) {
@@ -216,7 +219,7 @@ class ReportTable extends WP_List_Table {
 		$all_args          = array();
 		$include_observers = Package::enable_auto_observer();
 
-		if ( empty( $class ) && ( $this->is_base_request() || isset( $_REQUEST['all_reports'] ) ) ) {
+		if ( empty( $class ) && ( $this->is_base_request() || isset( $_REQUEST['all_reports'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$class = 'current';
 		}
 
@@ -224,7 +227,9 @@ class ReportTable extends WP_List_Table {
 			_nx(
 				'All <span class="count">(%s)</span>',
 				'All <span class="count">(%s)</span>',
-				$total_reports, 'oss', 'oss-woocommerce'
+				$total_reports,
+				'oss',
+				'oss-woocommerce'
 			),
 			number_format_i18n( $total_reports )
 		);
@@ -238,7 +243,7 @@ class ReportTable extends WP_List_Table {
 				continue;
 			}
 
-			if ( isset( $_REQUEST['type'] ) && $type === $_REQUEST['type'] ) {
+			if ( isset( $_REQUEST['type'] ) && $type === $_REQUEST['type'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				$class = 'current';
 			}
 
@@ -247,7 +252,7 @@ class ReportTable extends WP_List_Table {
 			);
 
 			$type_label = sprintf(
-				translate_nooped_plural( _nx_noop( $title . ' <span class="count">(%s)</span>', $title . ' <span class="count">(%s)</span>', 'oss', 'oss-woocommerce' ), $num_reports[ $type ] ),
+				translate_nooped_plural( _nx_noop( $title . ' <span class="count">(%s)</span>', $title . ' <span class="count">(%s)</span>', 'oss', 'oss-woocommerce' ), $num_reports[ $type ] ), // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralPlural,WordPress.WP.I18n.NonSingularStringLiteralSingle
 				number_format_i18n( $num_reports[ $type ] )
 			);
 
@@ -295,7 +300,7 @@ class ReportTable extends WP_List_Table {
 	 * @return string
 	 */
 	public function current_action() {
-		if ( isset( $_REQUEST['delete_all'] ) || isset( $_REQUEST['delete_all2'] ) ) {
+		if ( isset( $_REQUEST['delete_all'] ) || isset( $_REQUEST['delete_all2'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return 'delete_all';
 		}
 
@@ -312,13 +317,11 @@ class ReportTable extends WP_List_Table {
 			if ( 'top' === $which && ! is_singular() ) {
 				ob_start();
 				$this->render_filters();
-
 				do_action( "{$this->get_hook_prefix()}filters", $which );
-
 				$output = ob_get_clean();
 
 				if ( ! empty( $output ) ) {
-					echo $output;
+					echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 					submit_button( _x( 'Filter', 'oss', 'oss-woocommerce' ), '', 'filter_action', false, array( 'id' => 'oss-filter-submit' ) );
 				}
@@ -346,14 +349,14 @@ class ReportTable extends WP_List_Table {
 	public function get_columns() {
 		$columns = array();
 
-		$columns['cb']             = '<input type="checkbox" />';
-		$columns['title']          = _x( 'Title', 'oss', 'oss-woocommerce' );
-		$columns['date_start']     = _x( 'Start', 'oss', 'oss-woocommerce' );
-		$columns['date_end']       = _x( 'End', 'oss', 'oss-woocommerce' );
-		$columns['net_total']      = _x( 'Net total', 'oss', 'oss-woocommerce' );
-		$columns['tax_total']      = _x( 'Tax total', 'oss', 'oss-woocommerce' );
-		$columns['status']         = _x( 'Status', 'oss', 'oss-woocommerce' );
-		$columns['actions']        = _x( 'Actions', 'oss', 'oss-woocommerce' );
+		$columns['cb']         = '<input type="checkbox" />';
+		$columns['title']      = _x( 'Title', 'oss', 'oss-woocommerce' );
+		$columns['date_start'] = _x( 'Start', 'oss', 'oss-woocommerce' );
+		$columns['date_end']   = _x( 'End', 'oss', 'oss-woocommerce' );
+		$columns['net_total']  = _x( 'Net total', 'oss', 'oss-woocommerce' );
+		$columns['tax_total']  = _x( 'Tax total', 'oss', 'oss-woocommerce' );
+		$columns['status']     = _x( 'Status', 'oss', 'oss-woocommerce' );
+		$columns['actions']    = _x( 'Actions', 'oss', 'oss-woocommerce' );
 
 		$columns = apply_filters( "{$this->get_hook_prefix()}columns", $columns );
 
@@ -409,18 +412,18 @@ class ReportTable extends WP_List_Table {
 
 		$actions = Admin::get_report_actions( $report );
 
-        Admin::render_actions( $actions );
+		Admin::render_actions( $actions );
 
 		do_action( "{$this->get_hook_prefix()}actions_end", $report );
 	}
 
 	public function column_cb( $report ) {
-	    ?>
+		?>
 			<label class="screen-reader-text" for="cb-select-<?php echo esc_attr( $report->get_id() ); ?>">
-				<?php printf( _x( 'Select %s', 'oss', 'oss-woocommerce' ), $report->get_id() ); ?>
+				<?php printf( esc_html_x( 'Select %s', 'oss', 'oss-woocommerce' ), esc_html( $report->get_id() ) ); ?>
 			</label>
 			<input id="cb-select-<?php echo esc_attr( $report->get_id() ); ?>" type="checkbox" name="report[]" value="<?php echo esc_attr( $report->get_id() ); ?>" />
-        <?php
+		<?php
 	}
 
 	/**
@@ -429,7 +432,7 @@ class ReportTable extends WP_List_Table {
 	public function column_title( $report ) {
 		$title = $report->get_title();
 
-        echo '<a href="' . esc_url( $report->get_url() ) . '">' . $title . '</a> ';
+		echo '<a href="' . esc_url( $report->get_url() ) . '">' . esc_html( $title ) . '</a> ';
 	}
 
 	/**
@@ -445,7 +448,7 @@ class ReportTable extends WP_List_Table {
 	 * @param Report $report
 	 */
 	public function column_net_total( $report ) {
-        return wc_price( $report->get_net_total() );
+		return wc_price( $report->get_net_total() );
 	}
 
 	/**
@@ -499,7 +502,7 @@ class ReportTable extends WP_List_Table {
 		$GLOBALS['report'] = $report;
 		$classes           = 'report report-' . $report->get_type();
 		?>
-		<tr id="report-<?php echo $report->get_id(); ?>" class="<?php echo esc_attr( $classes ); ?>">
+		<tr id="report-<?php echo esc_attr( $report->get_id() ); ?>" class="<?php echo esc_attr( $classes ); ?>">
 			<?php $this->single_row_columns( $report ); ?>
 		</tr>
 		<?php
@@ -509,7 +512,7 @@ class ReportTable extends WP_List_Table {
 	 * @return array
 	 */
 	protected function get_bulk_actions() {
-		$actions = array();
+		$actions           = array();
 		$actions['delete'] = _x( 'Delete Permanently', 'oss', 'oss-woocommerce' );
 
 		return apply_filters( "{$this->get_hook_prefix()}bulk_actions", $actions );

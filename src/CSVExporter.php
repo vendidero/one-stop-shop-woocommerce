@@ -48,12 +48,15 @@ class CSVExporter extends \WC_CSV_Exporter {
 	 * @return array
 	 */
 	public function get_default_column_names() {
-		return apply_filters( "one_stop_shop_woocommerce_export_default_columns", array(
-			'country'      => _x( 'Country code', 'oss', 'oss-woocommerce' ),
-			'tax_rate'     => _x( 'Tax rate', 'oss', 'oss-woocommerce' ),
-			'taxable_base' => _x( 'Taxable base', 'oss', 'oss-woocommerce' ),
-			'amount'       => _x( 'Amount', 'oss', 'oss-woocommerce' ),
-		) );
+		return apply_filters(
+			'one_stop_shop_woocommerce_export_default_columns',
+			array(
+				'country'      => _x( 'Country code', 'oss', 'oss-woocommerce' ),
+				'tax_rate'     => _x( 'Tax rate', 'oss', 'oss-woocommerce' ),
+				'taxable_base' => _x( 'Taxable base', 'oss', 'oss-woocommerce' ),
+				'amount'       => _x( 'Amount', 'oss', 'oss-woocommerce' ),
+			)
+		);
 	}
 
 	public function get_report() {
@@ -71,17 +74,17 @@ class CSVExporter extends \WC_CSV_Exporter {
 	protected function get_row_data( $country, $tax_rate ) {
 		$row = array();
 
-		foreach( array_keys( $this->get_column_names() ) as $column_id ) {
+		foreach ( array_keys( $this->get_column_names() ) as $column_id ) {
 			$column_id = strstr( $column_id, ':' ) ? current( explode( ':', $column_id ) ) : $column_id;
 			$value     = '';
 
 			if ( 'country' === $column_id ) {
 				$value = strtoupper( $country );
-			} elseif( 'tax_rate' === $column_id ) {
+			} elseif ( 'tax_rate' === $column_id ) {
 				$value = $this->format_decimal( $tax_rate );
-			} elseif( 'taxable_base' === $column_id ) {
+			} elseif ( 'taxable_base' === $column_id ) {
 				$value = $this->format_decimal( $this->report->get_country_net_total( $country, $tax_rate, $this->get_decimals() ) );
-			} elseif( 'amount' === $column_id ) {
+			} elseif ( 'amount' === $column_id ) {
 				$value = $this->format_decimal( $this->report->get_country_tax_total( $country, $tax_rate, $this->get_decimals() ) );
 			} elseif ( is_callable( array( $this, "get_column_value_{$column_id}" ) ) ) {
 				$value = $this->{"get_column_value_{$column_id}"}( $country, $tax_rate );
@@ -103,7 +106,7 @@ class CSVExporter extends \WC_CSV_Exporter {
 
 		if ( ! empty( $countries ) ) {
 			foreach ( $countries as $country ) {
-				foreach( $this->report->get_tax_rates_by_country( $country ) as $tax_rate ) {
+				foreach ( $this->report->get_tax_rates_by_country( $country ) as $tax_rate ) {
 					$this->row_data[] = apply_filters( 'one_stop_shop_woocommerce_export_row_data', $this->get_row_data( $country, $tax_rate ), $country, $tax_rate, $this );
 				}
 			}
