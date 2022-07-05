@@ -53,6 +53,16 @@ class CSVExporterBOP extends CSVExporter {
 		return $tax_return_type;
 	}
 
+	protected function format_country( $country ) {
+		$country = parent::format_country( $country );
+
+		if ( 'GR' === $country ) {
+			$country = 'EL';
+		}
+
+		return $country;
+	}
+
 	/**
 	 * Prepare data that will be exported.
 	 */
@@ -67,7 +77,7 @@ class CSVExporterBOP extends CSVExporter {
 					$this->row_data[] = apply_filters(
 						'one_stop_shop_woocommerce_export_bop_country_header_data',
 						array(
-							'country'  => $country,
+							'country'  => $this->format_country( $country ),
 							'bop_type' => 1,
 						),
 						$country,

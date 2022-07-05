@@ -71,6 +71,10 @@ class CSVExporter extends \WC_CSV_Exporter {
 		return wc_format_decimal( $value, $this->get_decimals() );
 	}
 
+	protected function format_country( $country ) {
+		return strtoupper( $country );
+	}
+
 	protected function get_row_data( $country, $tax_rate ) {
 		$row = array();
 
@@ -79,7 +83,7 @@ class CSVExporter extends \WC_CSV_Exporter {
 			$value     = '';
 
 			if ( 'country' === $column_id ) {
-				$value = strtoupper( $country );
+				$value = $this->format_country( $country );
 			} elseif ( 'tax_rate' === $column_id ) {
 				$value = $this->format_decimal( $tax_rate );
 			} elseif ( 'taxable_base' === $column_id ) {
