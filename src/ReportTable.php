@@ -2,7 +2,7 @@
 
 namespace Vendidero\OneStopShop;
 
-use WC_DateTime;
+use Vendidero\TaxHelper\Report;
 use WP_List_Table;
 use WP_Query;
 
@@ -85,7 +85,7 @@ class ReportTable extends WP_List_Table {
 
 		if ( 'delete' === $action ) {
 			foreach ( $ids as $id ) {
-				if ( $report = Package::get_report( $id ) ) {
+				if ( $report = \Vendidero\TaxHelper\Package::get_report( $id ) ) {
 					if ( $report->delete() ) {
 						$changed++;
 					}
@@ -143,7 +143,7 @@ class ReportTable extends WP_List_Table {
 	}
 
 	public function get_reports( $args ) {
-		return Package::get_reports( $args );
+		return \Vendidero\TaxHelper\Package::get_reports( $args );
 	}
 
 	/**
@@ -157,10 +157,10 @@ class ReportTable extends WP_List_Table {
 
 		$per_page     = $this->get_items_per_page( $this->get_page_option(), 10 ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$per_page     = apply_filters( "{$this->get_hook_prefix()}edit_per_page", $per_page ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-		$this->counts = Package::get_report_counts();
+		$this->counts = \Vendidero\TaxHelper\Package::get_report_counts();
 		$paged        = $this->get_pagenum();
 		$report_type  = isset( $_REQUEST['type'] ) ? wc_clean( wp_unslash( $_REQUEST['type'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$report_type  = in_array( $report_type, array_keys( Package::get_available_report_types( true ) ), true ) ? $report_type : '';
+		$report_type  = in_array( $report_type, array_keys( \Vendidero\TaxHelper\Package::get_available_report_types( true ) ), true ) ? $report_type : '';
 
 		$args = array(
 			'limit'            => $per_page,
@@ -217,7 +217,7 @@ class ReportTable extends WP_List_Table {
 		$total_reports     = $total_reports - ( isset( $num_reports['observer'] ) ? $num_reports['observer'] : 0 );
 		$class             = '';
 		$all_args          = array();
-		$include_observers = Package::enable_auto_observer();
+		$include_observers = \Vendidero\TaxHelper\Package::enable_auto_observer();
 
 		if ( empty( $class ) && ( $this->is_base_request() || isset( $_REQUEST['all_reports'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$class = 'current';
@@ -236,7 +236,7 @@ class ReportTable extends WP_List_Table {
 
 		$type_links['all'] = $this->get_edit_link( $all_args, $all_inner_html, $class );
 
-		foreach ( Package::get_available_report_types( $include_observers ) as $type => $title ) {
+		foreach ( \Vendidero\TaxHelper\Package::get_available_report_types( $include_observers ) as $type => $title ) {
 			$class = '';
 
 			if ( empty( $num_reports[ $type ] ) ) {
@@ -441,7 +441,7 @@ class ReportTable extends WP_List_Table {
 	public function column_status( $report ) {
 		$status = $report->get_status();
 
-		return '<span class="oss-woo-status report-status-' . esc_attr( $status ) . '">' . esc_html( Package::get_report_status_title( $status ) ) . '</span>';
+		return '<span class="oss-woo-status report-status-' . esc_attr( $status ) . '">' . esc_html( \Vendidero\TaxHelper\Package::get_report_status_title( $status ) ) . '</span>';
 	}
 
 	/**

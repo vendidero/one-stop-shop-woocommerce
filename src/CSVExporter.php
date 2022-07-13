@@ -1,6 +1,8 @@
 <?php
 namespace Vendidero\OneStopShop;
 
+use Vendidero\TaxHelper\Report;
+
 defined( 'ABSPATH' ) || exit;
 
 if ( ! class_exists( 'WC_CSV_Exporter', false ) ) {

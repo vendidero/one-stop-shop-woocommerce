@@ -36,7 +36,7 @@ class CSVExporterBOP extends CSVExporter {
 	}
 
 	protected function get_column_value_tax_type( $country, $tax_rate ) {
-		$tax_type        = Tax::get_tax_type_by_country_rate( $tax_rate, $country );
+		$tax_type        = \Vendidero\TaxHelper\Tax::get_tax_type_by_country_rate( $tax_rate, $country );
 		$tax_return_type = 'STANDARD';
 
 		switch ( $tax_type ) {

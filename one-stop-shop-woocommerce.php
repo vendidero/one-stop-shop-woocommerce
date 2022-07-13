@@ -74,4 +74,5 @@ if ( is_readable( $autoloader ) ) {
 
 register_activation_hook( __FILE__, array( '\Vendidero\OneStopShop\Package', 'install' ) );
 register_deactivation_hook( __FILE__, array( '\Vendidero\OneStopShop\Package', 'deactivate' ) );
+
 add_action( 'plugins_loaded', array( '\Vendidero\OneStopShop\Package', 'init' ) );
