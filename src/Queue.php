@@ -2,6 +2,8 @@
 
 namespace Vendidero\OneStopShop;
 
+use Vendidero\EUTaxHelper\Helper;
+
 defined( 'ABSPATH' ) || exit;
 
 class Queue {
@@ -151,7 +153,7 @@ class Queue {
 			"LEFT JOIN {$wpdb->postmeta} AS mt1 ON {$wpdb->posts}.ID = mt1.post_id AND (mt1.meta_key = '_shipping_country' OR mt1.meta_key = '_billing_country')",
 		);
 
-		$taxable_countries_in = self::generate_in_query_sql( Package::get_non_base_eu_countries( true ) );
+		$taxable_countries_in = self::generate_in_query_sql( Helper::get_non_base_eu_countries( true ) );
 		$post_status_in       = self::generate_in_query_sql( $args['status'] );
 		$post_type_in         = self::generate_in_query_sql( isset( $args['order_types'] ) ? (array) $args['order_types'] : array( 'shop_order' ) );
 		$where_country_sql    = "mt1.meta_value IN {$taxable_countries_in}";

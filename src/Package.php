@@ -77,6 +77,8 @@ class Package {
 
 		add_action( 'wc_admin_daily', array( '\Vendidero\OneStopShop\Admin', 'queue_wc_admin_notes' ) );
 		add_action( 'woocommerce_note_updated', array( '\Vendidero\OneStopShop\Admin', 'on_wc_admin_note_update' ) );
+
+        add_filter( 'woocommerce_eu_tax_helper_oss_procedure_is_enabled', array( __CLASS__, 'oss_procedure_is_enabled' ) );
 	}
 
 	public static function cleanup() {
@@ -656,62 +658,6 @@ class Package {
 
 	public static function has_dependencies() {
 		return ( class_exists( 'WooCommerce' ) );
-	}
-
-	public static function get_base_country() {
-		if ( WC()->countries ) {
-			return WC()->countries->get_base_country();
-		} else {
-			return wc_get_base_location()['country'];
-		}
-	}
-
-	/**
-	 * Returns a list of EU countries except base country.
-	 *
-	 * @return string[]
-	 */
-	public static function get_non_base_eu_countries( $include_gb = false ) {
-		$countries = WC()->countries->get_european_union_countries( 'eu_vat' );
-
-		/**
-		 * Include GB to allow Northern Ireland
-		 */
-		if ( $include_gb && ! in_array( 'GB', $countries, true ) ) {
-			$countries = array_merge( $countries, array( 'GB' ) );
-		}
-
-		$base_country = self::get_base_country();
-		$countries    = array_diff( $countries, array( $base_country ) );
-
-		return $countries;
-	}
-
-	public static function country_supports_eu_vat( $country, $postcode = '' ) {
-		$supports_vat = in_array( $country, self::get_non_base_eu_countries(), true );
-		$exemptions   = Tax::get_vat_postcode_exemptions_by_country( $country );
-		$postcode     = wc_normalize_postcode( $postcode );
-		$wildcards    = wc_get_wildcard_postcodes( $postcode, $country );
-
-		if ( 'GB' === $country && in_array( 'BT*', $wildcards, true ) ) {
-			$supports_vat = true;
-		} elseif ( 'IX' === $country ) {
-			$supports_vat = true;
-		}
-
-		/**
-		 * Check whether the country + postcode is a VAT exemption.
-		 */
-		if ( ! empty( $exemptions ) ) {
-			foreach ( $exemptions as $exempt_postcode ) {
-				if ( in_array( $exempt_postcode, $wildcards, true ) ) {
-					$supports_vat = false;
-					break;
-				}
-			}
-		}
-
-		return $supports_vat;
 	}
 
 	public static function install() {

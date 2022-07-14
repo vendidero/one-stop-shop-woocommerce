@@ -4,6 +4,7 @@ namespace Vendidero\OneStopShop;
 
 use Automattic\WooCommerce\Admin\Notes\Note;
 use Automattic\WooCommerce\Admin\Notes\Notes;
+use Vendidero\EUTaxHelper\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -88,10 +89,10 @@ class Admin {
 	}
 
 	public static function refresh_vat_rates() {
-		if ( Package::oss_procedure_is_enabled() ) {
-			Tax::import_oss_tax_rates();
+		if ( Helper::oss_procedure_is_enabled() ) {
+			Helper::import_oss_tax_rates();
 		} else {
-			Tax::import_default_tax_rates();
+			Helper::import_default_tax_rates();
 		}
 	}
 
@@ -235,17 +236,17 @@ class Admin {
 			wp_die();
 		}
 
-		if ( Package::oss_procedure_is_enabled() ) {
+		if ( Helper::oss_procedure_is_enabled() ) {
 			update_option( 'oss_use_oss_procedure', 'no' );
 
-			Tax::import_default_tax_rates();
+			Helper::import_default_tax_rates();
 
 			do_action( 'woocommerce_oss_disabled_oss_procedure' );
 		} else {
 			update_option( 'woocommerce_tax_based_on', 'shipping' );
 			update_option( 'oss_use_oss_procedure', 'yes' );
 
-			Tax::import_oss_tax_rates();
+			Helper::import_oss_tax_rates();
 
 			do_action( 'woocommerce_oss_enabled_oss_procedure' );
 		}
@@ -343,7 +344,7 @@ class Admin {
 
 		if ( ! empty( $report_id ) && ( $report = Package::get_report( $report_id ) ) ) {
 			$exporter_class = '\Vendidero\OneStopShop\CSVExporter';
-			$base_country   = Package::get_base_country();
+			$base_country   = Helper::get_base_country();
 
 			if ( 'bop' === $export_type ) {
 				$exporter_class = '\Vendidero\OneStopShop\CSVExporterBOP';
@@ -636,7 +637,7 @@ class Admin {
 			unset( $actions['export_bop'] );
 		}
 
-		if ( 'DE' !== Package::get_base_country() && isset( $actions['export_bop'] ) ) {
+		if ( 'DE' !== Helper::get_base_country() && isset( $actions['export_bop'] ) ) {
 			unset( $actions['export_bop'] );
 		}
 

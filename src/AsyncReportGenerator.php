@@ -2,6 +2,8 @@
 
 namespace Vendidero\OneStopShop;
 
+use Vendidero\EUTaxHelper\Helper;
+
 defined( 'ABSPATH' ) || exit;
 
 class AsyncReportGenerator {
@@ -83,7 +85,7 @@ class AsyncReportGenerator {
 	 */
 	protected function get_order_taxable_country( $order ) {
 		if ( ! is_callable( array( $order, 'get_shipping_country' ) ) ) {
-			return Package::get_base_country();
+			return Helper::get_base_country();
 		}
 
 		$taxable_country_type = ! empty( $order->get_shipping_country() ) ? 'shipping' : 'billing';
@@ -114,7 +116,7 @@ class AsyncReportGenerator {
 		$taxable_postcode = $this->get_order_taxable_postcode( $order );
 		$included         = true;
 
-		if ( ! Package::country_supports_eu_vat( $taxable_country, $taxable_postcode ) ) {
+		if ( ! Helper::country_supports_eu_vat( $taxable_country, $taxable_postcode ) ) {
 			$included = false;
 		}
 
@@ -196,7 +198,7 @@ class AsyncReportGenerator {
 					}
 
 					foreach ( $order->get_taxes() as $key => $tax ) {
-						$tax_percent = (float) Tax::get_tax_rate_percent( $tax->get_rate_id(), $forced_parent_order );
+						$tax_percent = (float) Helper::get_tax_rate_percent( $tax->get_rate_id(), $forced_parent_order );
 						$tax_total   = (float) $tax->get_tax_total() + (float) $tax->get_shipping_tax_total();
 
 						/**

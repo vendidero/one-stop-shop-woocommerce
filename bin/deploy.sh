@@ -245,6 +245,11 @@ if ! $SKIP_GH_BUILD; then
   git add .
   git commit -m "Adding /vendor directory to release" --no-verify
 
+  # Force libs directory to be part of release branch
+  git add libs/. --force
+  git add .
+  git commit -m "Adding /libs directory to release" --no-verify
+
   # Force assets directory with compiled and minified files to part of release branch
   git add assets/. --force
   git add .

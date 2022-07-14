@@ -2,6 +2,8 @@
 
 namespace Vendidero\OneStopShop;
 
+use Vendidero\EUTaxHelper\Helper;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -87,7 +89,7 @@ class Settings {
 			)
 		);
 
-		if ( Package::oss_procedure_is_enabled() && wc_prices_include_tax() ) {
+		if ( Helper::oss_procedure_is_enabled() && wc_prices_include_tax() ) {
 			$settings = array_merge(
 				$settings,
 				array(
@@ -133,7 +135,7 @@ class Settings {
 		ob_start();
 		?>
 		<p>
-			<a class="button button-secondary" onclick="return confirm('<?php echo esc_html( _x( 'Are you sure? Please backup your tax rates before proceeding.', 'oss', 'oss-woocommerce' ) ); ?>');" href="<?php echo esc_url( self::get_oss_switch_link() ); ?>"><?php echo ( Package::oss_procedure_is_enabled() ? esc_html_x( 'End OSS participation', 'oss', 'oss-woocommerce' ) : esc_html_x( 'Start OSS participation', 'oss', 'oss-woocommerce' ) ); ?></a>
+			<a class="button button-secondary" onclick="return confirm('<?php echo esc_html( _x( 'Are you sure? Please backup your tax rates before proceeding.', 'oss', 'oss-woocommerce' ) ); ?>');" href="<?php echo esc_url( self::get_oss_switch_link() ); ?>"><?php echo ( Helper::oss_procedure_is_enabled() ? esc_html_x( 'End OSS participation', 'oss', 'oss-woocommerce' ) : esc_html_x( 'Start OSS participation', 'oss', 'oss-woocommerce' ) ); ?></a>
 			<a class="oss-settings-refresh-tax-rates" onclick="return confirm('<?php echo esc_html( _x( 'Are you sure? Please backup your tax rates before proceeding.', 'oss', 'oss-woocommerce' ) ); ?>');" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=wc-status&tab=tools&action=refresh_oss_tax_rates' ), 'debug_action' ) ); ?> "><?php echo esc_html_x( 'refresh VAT rates', 'oss', 'oss-woocommerce' ); ?></a>
 			<a class="oss-settings-learn-more" href="https://vendidero.github.io/one-stop-shop-woocommerce/tax-adjustments"><?php echo esc_html_x( 'learn more', 'oss', 'oss-woocommerce' ); ?></a>
 		</p>
@@ -152,9 +154,9 @@ class Settings {
 			Package::update_observer_report();
 		}
 
-		if ( Package::oss_procedure_is_enabled() && ( ! isset( $_POST['oss_use_oss_procedure'] ) || 'no' === wc_bool_to_string( wc_clean( wp_unslash( $_POST['oss_use_oss_procedure'] ) ) ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( Helper::oss_procedure_is_enabled() && ( ! isset( $_POST['oss_use_oss_procedure'] ) || 'no' === wc_bool_to_string( wc_clean( wp_unslash( $_POST['oss_use_oss_procedure'] ) ) ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			do_action( 'woocommerce_oss_disabled_oss_procedure' );
-		} elseif ( ! Package::oss_procedure_is_enabled() && isset( $_POST['oss_use_oss_procedure'] ) && 'yes' === wc_bool_to_string( wc_clean( wp_unslash( $_POST['oss_use_oss_procedure'] ) ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		} elseif ( ! Helper::oss_procedure_is_enabled() && isset( $_POST['oss_use_oss_procedure'] ) && 'yes' === wc_bool_to_string( wc_clean( wp_unslash( $_POST['oss_use_oss_procedure'] ) ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			do_action( 'woocommerce_oss_enabled_oss_procedure' );
 		}
 	}
