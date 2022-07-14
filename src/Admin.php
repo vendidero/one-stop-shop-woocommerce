@@ -4,8 +4,6 @@ namespace Vendidero\OneStopShop;
 
 use Automattic\WooCommerce\Admin\Notes\Note;
 use Automattic\WooCommerce\Admin\Notes\Notes;
-use Vendidero\TaxHelper\Queue;
-use Vendidero\TaxHelper\Report;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -27,9 +25,17 @@ class Admin {
 		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ), 25 );
 
 		add_action( 'admin_post_oss_create_report', array( __CLASS__, 'create_report' ) );
-		add_action( 'admin_post_oss_export_report', array( __CLASS__, 'export_report' ) );
+
+		foreach ( array( 'delete', 'refresh', 'cancel', 'export' ) as $action ) {
+			add_action( 'admin_post_oss_' . $action . '_report', array( __CLASS__, $action . '_report' ) );
+		}
 
 		add_action( 'admin_post_oss_switch_procedure', array( __CLASS__, 'switch_procedure' ) );
+		add_action( 'admin_post_oss_init_observer', array( __CLASS__, 'init_observer' ) );
+
+		add_action( 'admin_notices', array( __CLASS__, 'admin_notices' ) );
+		add_action( 'admin_post_oss_hide_notice', array( __CLASS__, 'hide_notice' ) );
+
 		add_filter( 'woocommerce_screen_ids', array( __CLASS__, 'add_table_view' ), 10 );
 
 		add_filter( 'set-screen-option', array( __CLASS__, 'set_screen_option' ), 10, 3 );
@@ -40,6 +46,30 @@ class Admin {
 		}
 
 		add_filter( 'woocommerce_debug_tools', array( __CLASS__, 'register_tax_rate_refresh_tool' ), 10, 1 );
+	}
+
+	public static function on_wc_admin_note_update( $note_id ) {
+		try {
+			if ( self::supports_wc_admin() ) {
+				$note = new Note( $note_id );
+
+				foreach ( self::get_notes() as $oss_note ) {
+					$wc_admin_note_name = self::get_wc_admin_note_name( $oss_note::get_id() );
+
+					if ( $note->get_name() === $wc_admin_note_name ) {
+						/**
+						 * Update notice hide in case note has been actioned (e.g. button click by user)
+						 */
+						if ( Note::E_WC_ADMIN_NOTE_ACTIONED === $note->get_status() ) {
+							update_option( 'oss_hide_notice_' . sanitize_key( $oss_note::get_id() ), 'yes' );
+						}
+
+						break;
+					}
+				}
+			}
+		} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+		}
 	}
 
 	public static function register_tax_rate_refresh_tool( $tools ) {
@@ -90,6 +120,116 @@ class Admin {
 		return $new_value;
 	}
 
+	public static function admin_notices() {
+		$screen         = get_current_screen();
+		$screen_id      = $screen ? $screen->id : '';
+		$supports_notes = self::supports_wc_admin();
+
+		if ( ! $supports_notes || in_array( $screen_id, array( 'dashboard', 'plugins' ), true ) ) {
+			foreach ( self::get_notes() as $note ) {
+				if ( $note::is_enabled() ) {
+					$note::render();
+				}
+			}
+		}
+	}
+
+	/**
+	 * @return AdminNote[]
+	 */
+	public static function get_notes() {
+		$notes = array( 'Vendidero\OneStopShop\DeliveryThresholdWarning' );
+
+		if ( ! Package::enable_auto_observer() ) {
+			$notes = array();
+		}
+
+		return $notes;
+	}
+
+	public static function supports_wc_admin() {
+		$supports_notes = class_exists( 'Automattic\WooCommerce\Admin\Notes\Note' );
+
+		try {
+			$data_store = \WC_Data_Store::load( 'admin-note' );
+		} catch ( \Exception $e ) {
+			$supports_notes = false;
+		}
+
+		return $supports_notes;
+	}
+
+	protected static function get_wc_admin_note_name( $oss_note_id ) {
+		return 'oss_' . $oss_note_id;
+	}
+
+	protected static function get_wc_admin_note( $oss_note_id ) {
+		$note_name  = self::get_wc_admin_note_name( $oss_note_id );
+		$data_store = \WC_Data_Store::load( 'admin-note' );
+		$note_ids   = $data_store->get_notes_with_name( $note_name );
+
+		if ( ! empty( $note_ids ) && ( $note = Notes::get_note( $note_ids[0] ) ) ) {
+			return $note;
+		}
+
+		return false;
+	}
+
+	public static function queue_wc_admin_notes() {
+		if ( self::supports_wc_admin() ) {
+			foreach ( self::get_notes() as $oss_note ) {
+				$note = self::get_wc_admin_note( $oss_note::get_id() );
+
+				if ( ! $note && $oss_note::is_enabled() ) {
+					$note = new Note();
+					$note->set_title( $oss_note::get_title() );
+					$note->set_content( $oss_note::get_content() );
+					$note->set_content_data( (object) array() );
+					$note->set_type( 'update' );
+					$note->set_name( self::get_wc_admin_note_name( $oss_note::get_id() ) );
+					$note->set_source( 'oss-woocommerce' );
+					$note->set_status( Note::E_WC_ADMIN_NOTE_UNACTIONED );
+
+					foreach ( $oss_note::get_actions() as $action ) {
+						$note->add_action(
+							'oss_' . sanitize_key( $action['title'] ),
+							$action['title'],
+							$action['url'],
+							Note::E_WC_ADMIN_NOTE_ACTIONED,
+							$action['is_primary'] ? true : false
+						);
+					}
+
+					$note->save();
+				} elseif ( $oss_note::is_enabled() && $note ) {
+					$note->set_status( Note::E_WC_ADMIN_NOTE_UNACTIONED );
+					$note->save();
+				}
+			}
+		}
+	}
+
+	public static function get_threshold_notice_content() {
+		return sprintf( _x( 'Seems like you have reached (or are close to reaching) the delivery threshold for the current year. Please make sure to check the <a href="%s" target="_blank">report details</a> and take action in case necessary.', 'oss', 'oss-woocommerce' ), esc_url( Package::get_observer_report()->get_url() ) );
+	}
+
+	public static function get_threshold_notice_title() {
+		return _x( 'Delivery threshold reached (OSS)', 'oss', 'oss-woocommerce' );
+	}
+
+	public static function init_observer() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? wp_unslash( $_GET['_wpnonce'] ) : '', 'oss_init_observer' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			wp_die();
+		}
+
+		if ( ! Queue::get_running_observer() ) {
+			Package::update_observer_report();
+		}
+
+		wp_safe_redirect( wp_get_referer() );
+		exit();
+	}
+
 	public static function switch_procedure() {
 		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? wp_unslash( $_GET['_wpnonce'] ) : '', 'oss_switch_procedure' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			wp_die();
@@ -98,14 +238,14 @@ class Admin {
 		if ( Package::oss_procedure_is_enabled() ) {
 			update_option( 'oss_use_oss_procedure', 'no' );
 
-			\Vendidero\TaxHelper\Tax::import_default_tax_rates();
+			Tax::import_default_tax_rates();
 
 			do_action( 'woocommerce_oss_disabled_oss_procedure' );
 		} else {
 			update_option( 'woocommerce_tax_based_on', 'shipping' );
 			update_option( 'oss_use_oss_procedure', 'yes' );
 
-			\Vendidero\TaxHelper\Tax::import_oss_tax_rates();
+			Tax::import_oss_tax_rates();
 
 			do_action( 'woocommerce_oss_enabled_oss_procedure' );
 		}
@@ -113,6 +253,76 @@ class Admin {
 		do_action( 'woocommerce_oss_switched_oss_procedure_status' );
 
 		wp_safe_redirect( wp_get_referer() );
+		exit();
+	}
+
+	public static function hide_notice() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? wp_unslash( $_GET['_wpnonce'] ) : '', 'oss_hide_notice' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			wp_die();
+		}
+
+		$notice_id = isset( $_GET['notice'] ) ? wc_clean( wp_unslash( $_GET['notice'] ) ) : '';
+
+		foreach ( self::get_notes() as $oss_note ) {
+			if ( $oss_note::get_id() === $notice_id ) {
+				update_option( 'oss_hide_notice_' . sanitize_key( $oss_note::get_id() ), 'yes' );
+
+				if ( self::supports_wc_admin() ) {
+					self::delete_wc_admin_note( $oss_note );
+				}
+
+				break;
+			}
+		}
+
+		wp_safe_redirect( wp_get_referer() );
+		exit();
+	}
+
+	/**
+	 * @param AdminNote $oss_note
+	 */
+	public static function delete_wc_admin_note( $oss_note ) {
+		if ( ! self::supports_wc_admin() ) {
+			return false;
+		}
+
+		try {
+			if ( $note = self::get_wc_admin_note( $oss_note::get_id() ) ) {
+				$note->delete( true );
+				return true;
+			}
+
+			return false;
+		} catch ( \Exception $e ) {
+			return false;
+		}
+	}
+
+	public static function delete_report() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? wp_unslash( $_GET['_wpnonce'] ) : '', 'oss_delete_report' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			wp_die();
+		}
+
+		$report_id = isset( $_GET['report_id'] ) ? wc_clean( wp_unslash( $_GET['report_id'] ) ) : '';
+
+		if ( ! empty( $report_id ) && ( $report = Package::get_report( $report_id ) ) ) {
+			$report->delete();
+
+			$referer = self::get_clean_referer();
+
+			/**
+			 * Do not redirect deleted, refreshed reports back to report details page
+			 */
+			if ( strstr( $referer, '&report=' ) ) {
+				$referer = admin_url( 'admin.php?page=oss-reports' );
+			}
+
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'report_deleted' => $report_id ), $referer ) ) );
+			exit();
+		}
+
+		wp_safe_redirect( esc_url_raw( wp_get_referer() ) );
 		exit();
 	}
 
@@ -131,9 +341,9 @@ class Admin {
 		$decimals    = isset( $_GET['decimals'] ) ? absint( wp_unslash( $_GET['decimals'] ) ) : wc_get_price_decimals();
 		$export_type = isset( $_GET['export_type'] ) ? wc_clean( wp_unslash( $_GET['export_type'] ) ) : '';
 
-		if ( ! empty( $report_id ) && ( $report = \Vendidero\TaxHelper\Package::get_report( $report_id ) ) ) {
+		if ( ! empty( $report_id ) && ( $report = Package::get_report( $report_id ) ) ) {
 			$exporter_class = '\Vendidero\OneStopShop\CSVExporter';
-			$base_country   = \Vendidero\TaxHelper\Tax::get_base_country();
+			$base_country   = Package::get_base_country();
 
 			if ( 'bop' === $export_type ) {
 				$exporter_class = '\Vendidero\OneStopShop\CSVExporterBOP';
@@ -153,13 +363,58 @@ class Admin {
 		}
 	}
 
+	public static function refresh_report() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? wp_unslash( $_GET['_wpnonce'] ) : '', 'oss_refresh_report' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			wp_die();
+		}
+
+		$report_id = isset( $_GET['report_id'] ) ? wc_clean( wp_unslash( $_GET['report_id'] ) ) : '';
+
+		if ( ! empty( $report_id ) && ( $report = Package::get_report( $report_id ) ) ) {
+			Queue::start( $report->get_type(), $report->get_date_start(), $report->get_date_end() );
+
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'report_restarted' => $report_id ), self::get_clean_referer() ) ) );
+			exit();
+		}
+
+		wp_safe_redirect( esc_url_raw( wp_get_referer() ) );
+		exit();
+	}
+
+	public static function cancel_report() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? wp_unslash( $_GET['_wpnonce'] ) : '', 'oss_cancel_report' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			wp_die();
+		}
+
+		$report_id = isset( $_GET['report_id'] ) ? wc_clean( wp_unslash( $_GET['report_id'] ) ) : '';
+
+		if ( ! empty( $report_id ) && Queue::is_running( $report_id ) ) {
+			Queue::cancel( $report_id );
+
+			$referer = self::get_clean_referer();
+
+			/**
+			 * Do not redirect deleted, refreshed reports back to report details page
+			 */
+			if ( strstr( $referer, '&report=' ) ) {
+				$referer = admin_url( 'admin.php?page=oss-reports' );
+			}
+
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'report_cancelled' => $report_id ), $referer ) ) );
+			exit();
+		}
+
+		wp_safe_redirect( esc_url_raw( wp_get_referer() ) );
+		exit();
+	}
+
 	public static function create_report() {
 		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_POST['_wpnonce'] ) ? wp_unslash( $_POST['_wpnonce'] ) : '', 'oss_create_report' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			wp_die();
 		}
 
 		$report_type = ! empty( $_POST['report_type'] ) ? wc_clean( wp_unslash( $_POST['report_type'] ) ) : 'yearly';
-		$report_type = array_key_exists( $report_type, \Vendidero\TaxHelper\Package::get_available_report_types() ) ? $report_type : 'yearly';
+		$report_type = array_key_exists( $report_type, Package::get_available_report_types() ) ? $report_type : 'yearly';
 		$start_date  = null;
 		$end_date    = null;
 
@@ -238,7 +493,7 @@ class Admin {
 							</th>
 							<td id="oss-report-type-data">
 								<select name="report_type" id="oss-report-type" class="wc-enhanced-select">
-									<?php foreach ( \Vendidero\TaxHelper\Package::get_available_report_types() as $type => $title ) : ?>
+									<?php foreach ( Package::get_available_report_types() as $type => $title ) : ?>
 										<option value="<?php echo esc_attr( $type ); ?>"><?php echo esc_html( $title ); ?></option>
 									<?php endforeach; ?>
 								</select>
@@ -381,7 +636,7 @@ class Admin {
 			unset( $actions['export_bop'] );
 		}
 
-		if ( 'DE' !== \Vendidero\TaxHelper\Tax::get_base_country() && isset( $actions['export_bop'] ) ) {
+		if ( 'DE' !== Package::get_base_country() && isset( $actions['export_bop'] ) ) {
 			unset( $actions['export_bop'] );
 		}
 
@@ -402,7 +657,7 @@ class Admin {
 			return;
 		}
 
-		if ( ! $report = \Vendidero\TaxHelper\Package::get_report( $report_id ) ) {
+		if ( ! $report = Package::get_report( $report_id ) ) {
 			return;
 		}
 

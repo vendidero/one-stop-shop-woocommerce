@@ -2,8 +2,6 @@
 
 namespace Vendidero\OneStopShop;
 
-use Vendidero\TaxHelper\Queue;
-
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -51,7 +49,7 @@ class Settings {
 			),
 		);
 
-		if ( \Vendidero\TaxHelper\Package::enable_auto_observer() ) {
+		if ( Package::enable_auto_observer() ) {
 			$settings = array_merge(
 				$settings,
 				array(
@@ -149,9 +147,9 @@ class Settings {
 		/**
 		 * In case observer is switched on and the current report is outdated - queue the observer report now.
 		 */
-		if ( ! \Vendidero\TaxHelper\Package::enable_auto_observer() && isset( $_POST['oss_enable_auto_observation'] ) && \Vendidero\TaxHelper\Package::observer_report_is_outdated() ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! Package::enable_auto_observer() && isset( $_POST['oss_enable_auto_observation'] ) && Package::observer_report_is_outdated() ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			update_option( 'oss_enable_auto_observation', 'yes' );
-			\Vendidero\TaxHelper\Package::update_observer_report();
+			Package::update_observer_report();
 		}
 
 		if ( Package::oss_procedure_is_enabled() && ( ! isset( $_POST['oss_use_oss_procedure'] ) || 'no' === wc_bool_to_string( wc_clean( wp_unslash( $_POST['oss_use_oss_procedure'] ) ) ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -166,10 +164,10 @@ class Settings {
 	}
 
 	protected static function get_observer_report_html() {
-		$observer_report = \Vendidero\TaxHelper\Package::get_completed_observer_report();
+		$observer_report = Package::get_completed_observer_report();
 
 		if ( ! $observer_report || Queue::get_running_observer() ) {
-			$running = \Vendidero\TaxHelper\Package::get_observer_report() ? \Vendidero\TaxHelper\Package::get_observer_report() : Queue::get_running_observer();
+			$running = Package::get_observer_report() ? Package::get_observer_report() : Queue::get_running_observer();
 
 			$status_link = $running ? '<a href="' . esc_url( $running->get_url() ) . '">' . esc_html_x( 'See status', 'oss', 'oss-woocommerce' ) . '</a>' : '<a href="' . esc_url( add_query_arg( array( 'action' => 'oss_init_observer' ), wp_nonce_url( admin_url( 'admin-post.php' ), 'oss_init_observer' ) ) ) . '">' . esc_html_x( 'Start initial report', 'oss', 'oss-woocommerce' ) . '</a>';
 			$status_text = sprintf( ( $running ? esc_html_x( 'Report not yet completed. %s', 'oss', 'oss-woocommerce' ) : esc_html_x( 'Report not yet started. %s', 'oss', 'oss-woocommerce' ) ), $status_link );
@@ -182,15 +180,15 @@ class Settings {
 
 		$total_class = 'observer-total-green';
 
-		if ( $observer_report->get_net_total() >= \Vendidero\TaxHelper\Package::get_delivery_threshold() ) {
+		if ( $observer_report->get_net_total() >= Package::get_delivery_threshold() ) {
 			$total_class = 'observer-total-red';
-		} elseif ( $observer_report->get_net_total() >= \Vendidero\TaxHelper\Package::get_delivery_notification_threshold() ) {
+		} elseif ( $observer_report->get_net_total() >= Package::get_delivery_notification_threshold() ) {
 			$total_class = 'observer-total-orange';
 		}
 
 		ob_start();
 		?>
-			<p class="oss-observer-details"><span class="oss-observer-total <?php echo esc_attr( $total_class ); ?>"><?php echo wc_price( $observer_report->get_net_total() ); ?></span> <?php echo esc_html_x( 'of', 'oss-amounts', 'oss-woocommerce' ); ?> <span class="oss-observer-delivery-threshold"><?php echo wc_price( \Vendidero\TaxHelper\Package::get_delivery_threshold() ); ?></span> <span class="oss-observer-date-end"><?php printf( esc_html_x( 'As of: %s', 'oss', 'oss-woocommerce' ), wc_format_datetime( $observer_report->get_date_end() ) ); ?></span> <a class="oss-settings-learn-more" href="<?php echo esc_url( $observer_report->get_url() ); ?>"><?php echo esc_html_x( 'see details', 'oss', 'oss-woocommerce' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></a></p>
+			<p class="oss-observer-details"><span class="oss-observer-total <?php echo esc_attr( $total_class ); ?>"><?php echo wc_price( $observer_report->get_net_total() ); ?></span> <?php echo esc_html_x( 'of', 'oss-amounts', 'oss-woocommerce' ); ?> <span class="oss-observer-delivery-threshold"><?php echo wc_price( Package::get_delivery_threshold() ); ?></span> <span class="oss-observer-date-end"><?php printf( esc_html_x( 'As of: %s', 'oss', 'oss-woocommerce' ), wc_format_datetime( $observer_report->get_date_end() ) ); ?></span> <a class="oss-settings-learn-more" href="<?php echo esc_url( $observer_report->get_url() ); ?>"><?php echo esc_html_x( 'see details', 'oss', 'oss-woocommerce' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></a></p>
 			<p class="oss-woocommerce-additional-desc wc-gzd-additional-desc"><?php echo wp_kses_post( sprintf( _x( 'This value indicates your current net total amount applicable for the One Stop Shop procedure delivery threshold of the current year. You should take action in case the delivery threshold is or is close to being exceeded. <a href="%s">Find out more</a> about the calculation.', 'oss', 'oss-woocommerce' ), 'https://vendidero.github.io/one-stop-shop-woocommerce/report-calculation' ) ); ?></p>
 		<?php
 
