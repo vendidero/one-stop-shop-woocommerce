@@ -22,7 +22,7 @@ class Settings {
 	}
 
 	public static function get_help_url() {
-		return '';
+		return 'https://vendidero.github.io/one-stop-shop-woocommerce/';
 	}
 
 	public static function get_settings( $current_section = '' ) {
