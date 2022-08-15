@@ -2,10 +2,10 @@
 Contributors: vendidero, vdwoocommercesupport
 Tags: one stop shop, woocommerce, OSS, EU, compliance
 Requires at least: 5.4
-Tested up to: 5.9
+Tested up to: 6.0
 WC requires at least: 3.9
-WC tested up to: 6.4
-Stable tag: 1.2.4
+WC tested up to: 6.8
+Stable tag: 1.3.0
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -60,6 +60,10 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 3. Create a new report
 
 == Changelog ==
+= 1.3.0 =
+* Improvement: Refactored EU VAT checks to shared library
+* Fix: Use EL instead of GR for BOP exports
+
 = 1.2.4 =
 * Improvement: PHP Code sniffer refactoring
 

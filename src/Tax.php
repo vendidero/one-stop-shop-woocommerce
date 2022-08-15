@@ -40,7 +40,7 @@ class Tax {
 				 * By default, do not force gross prices for third countries to make sure
 				 * net prices are used within cart/checkout.
 				 */
-				if ( ! Helper::country_supports_eu_vat( $country, $postcode ) && apply_filters( 'oss_disable_static_gross_prices_third_countries', ( 'yes' !== get_option( 'oss_fixed_gross_prices_for_third_countries' ) ), $tax_location ) ) {
+				if ( Helper::is_third_country( $country, $postcode ) && apply_filters( 'oss_disable_static_gross_prices_third_countries', ( 'yes' !== get_option( 'oss_fixed_gross_prices_for_third_countries' ) ), $tax_location ) ) {
 					$fixed_gross_prices = false;
 				}
 			}

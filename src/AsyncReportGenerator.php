@@ -116,7 +116,7 @@ class AsyncReportGenerator {
 		$taxable_postcode = $this->get_order_taxable_postcode( $order );
 		$included         = true;
 
-		if ( ! Helper::country_supports_eu_vat( $taxable_country, $taxable_postcode ) ) {
+		if ( ! Helper::is_eu_vat_country( $taxable_country, $taxable_postcode ) ) {
 			$included = false;
 		}
 
