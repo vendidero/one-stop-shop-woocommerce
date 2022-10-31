@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: One Stop Shop for WooCommerce\n"
-"POT-Creation-Date: 2022-07-14 16:42+0200\n"
-"PO-Revision-Date: 2022-07-14 16:43+0200\n"
+"POT-Creation-Date: 2022-10-31 11:39+0100\n"
+"PO-Revision-Date: 2022-10-31 11:39+0100\n"
 "Last-Translator: Dennis Nissle <info@vendidero.de>\n"
 "Language-Team: \n"
 "Language: de_DE@formal\n"
@@ -10,7 +10,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.1\n"
+"X-Generator: Poedit 3.1.1\n"
 "X-Poedit-Basepath: ../..\n"
 "X-Poedit-Flags-xgettext: --add-comments=translators:\n"
 "X-Poedit-WPHeader: one-stop-shop-woocommerce.php\n"
@@ -24,41 +24,41 @@ msgstr ""
 "X-Poedit-SearchPathExcluded-2: node_modules\n"
 "X-Poedit-SearchPathExcluded-3: build\n"
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:212
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:312
 msgid "Reduced rate"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:213
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:313
 msgctxt "tax-helper-tax-class-name"
 msgid "Greater reduced rate"
 msgstr "Zusätzlicher reduzierter Preis"
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:214
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:314
 msgctxt "tax-helper-tax-class-name"
 msgid "Super reduced rate"
 msgstr "Stark reduzierter Preis"
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:617
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:718
 msgctxt "tax-helper"
 msgid "Madeira"
 msgstr "Madeira"
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:624
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:725
 msgctxt "tax-helper"
 msgid "Acores"
 msgstr "Azoren"
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:660
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:761
 msgctxt "tax-helper"
 msgid "Northern Ireland"
 msgstr "Nordirland"
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:673
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:774
 msgctxt "tax-helper-rate-import"
 msgid "Exempt"
 msgstr "Ausnahme"
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:742
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:843
 #, php-format
 msgctxt "tax-helper-rate-import"
 msgid "VAT %1$s %% %2$s"
