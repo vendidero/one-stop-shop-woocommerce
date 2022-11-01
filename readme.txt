@@ -5,7 +5,7 @@ Requires at least: 5.4
 Tested up to: 6.1
 WC requires at least: 3.9
 WC tested up to: 7.1
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -60,6 +60,9 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 3. Create a new report
 
 == Changelog ==
+= 1.3.2 =
+* Fix: Jetpack autoloader version constraint in composer.json
+
 = 1.3.1 =
 * Fix: Explicitly exclude base country in reports
 
