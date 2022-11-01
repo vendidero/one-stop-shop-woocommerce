@@ -229,6 +229,11 @@ fi
 
 # Create build from GH
 cd "$GIT_PATH" || exit
+
+output 2 "Bumping composer.json version..."
+chmod +x bin/bump-version.sh
+bin/bump-version.sh -s -c -v ${PLUGIN_VERSION}
+
 output 2 "Installing autoload packages..."
 # Install composer packages
 composer install --no-dev || exit "$?"
