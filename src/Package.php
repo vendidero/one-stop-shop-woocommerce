@@ -78,7 +78,7 @@ class Package {
 		add_action( 'wc_admin_daily', array( '\Vendidero\OneStopShop\Admin', 'queue_wc_admin_notes' ) );
 		add_action( 'woocommerce_note_updated', array( '\Vendidero\OneStopShop\Admin', 'on_wc_admin_note_update' ) );
 
-        add_filter( 'woocommerce_eu_tax_helper_oss_procedure_is_enabled', array( __CLASS__, 'oss_procedure_is_enabled' ) );
+		add_filter( 'woocommerce_eu_tax_helper_oss_procedure_is_enabled', array( __CLASS__, 'oss_procedure_is_enabled' ) );
 	}
 
 	public static function cleanup() {
@@ -496,6 +496,8 @@ class Package {
 	}
 
 	public static function load_plugin_textdomain() {
+		add_filter( 'plugin_locale', array( __CLASS__, 'support_german_language_variants' ), 10, 2 );
+
 		if ( function_exists( 'determine_locale' ) ) {
 			$locale = determine_locale();
 		} else {
@@ -508,6 +510,14 @@ class Package {
 		unload_textdomain( 'oss-woocommerce' );
 		load_textdomain( 'oss-woocommerce', trailingslashit( WP_LANG_DIR ) . 'oss-woocommerce/oss-woocommerce-' . $locale . '.mo' );
 		load_plugin_textdomain( 'oss-woocommerce', false, plugin_basename( dirname( __FILE__ ) ) . '/i18n/languages/' );
+	}
+
+	public static function support_german_language_variants( $locale, $domain ) {
+		if ( 'oss-woocommerce' === $domain && apply_filters( 'oss_woocommerce_force_de_language', in_array( $locale, array( 'de_CH', 'de_AT' ), true ) ) ) {
+			$locale = 'de_DE';
+		}
+
+		return $locale;
 	}
 
 	public static function register_emails( $emails ) {
