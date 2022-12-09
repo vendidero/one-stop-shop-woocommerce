@@ -38,7 +38,7 @@ class Package {
 	}
 
 	protected static function init_hooks() {
-        add_action( 'init', array( __CLASS__, 'load_plugin_textdomain' ) );
+		add_action( 'init', array( __CLASS__, 'load_plugin_textdomain' ) );
 
 		/**
 		 * Listen to action scheduler hooks for report generation
@@ -506,8 +506,8 @@ class Package {
 		$locale = apply_filters( 'plugin_locale', $locale, 'one-stop-shop-woocommerce' );
 
 		unload_textdomain( 'one-stop-shop-woocommerce' );
-        load_textdomain( 'one-stop-shop-woocommerce', trailingslashit( WP_LANG_DIR ) . 'one-stop-shop-woocommerce/one-stop-shop-woocommerce-' . $locale . '.mo' );
-        load_plugin_textdomain( 'one-stop-shop-woocommerce', false, plugin_basename( self::get_path() ) . '/i18n/languages/' );
+		load_textdomain( 'one-stop-shop-woocommerce', trailingslashit( WP_LANG_DIR ) . 'one-stop-shop-woocommerce/one-stop-shop-woocommerce-' . $locale . '.mo' );
+		load_plugin_textdomain( 'one-stop-shop-woocommerce', false, plugin_basename( self::get_path() ) . '/i18n/languages/' );
 	}
 
 	public static function support_german_language_variants( $locale, $domain ) {
