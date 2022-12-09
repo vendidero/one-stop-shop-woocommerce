@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: One Stop Shop for WooCommerce\n"
-"POT-Creation-Date: 2022-10-31 11:39+0100\n"
-"PO-Revision-Date: 2022-10-31 11:39+0100\n"
+"POT-Creation-Date: 2022-12-09 11:36+0100\n"
+"PO-Revision-Date: 2022-12-09 11:36+0100\n"
 "Last-Translator: Dennis Nissle <info@vendidero.de>\n"
 "Language-Team: \n"
 "Language: de_DE@formal\n"
@@ -341,42 +341,42 @@ msgctxt "oss"
 msgid "Observer %1$s"
 msgstr "Beobachter %1$s"
 
-#: src/Package.php:626
+#: src/Package.php:636
 msgctxt "oss"
 msgid "Quarterly"
 msgstr "Quartalsweise"
 
-#: src/Package.php:627
+#: src/Package.php:637
 msgctxt "oss"
 msgid "Yearly"
 msgstr "Jährlich"
 
-#: src/Package.php:628
+#: src/Package.php:638
 msgctxt "oss"
 msgid "Monthly"
 msgstr "Monatlich"
 
-#: src/Package.php:629
+#: src/Package.php:639
 msgctxt "oss"
 msgid "Custom"
 msgstr "Individuell"
 
-#: src/Package.php:633
+#: src/Package.php:643
 msgctxt "oss"
 msgid "Observer"
 msgstr "Beobachter"
 
-#: src/Package.php:647
+#: src/Package.php:657
 msgctxt "oss"
 msgid "Pending"
 msgstr "In Bearbeitung"
 
-#: src/Package.php:648
+#: src/Package.php:658
 msgctxt "oss"
 msgid "Completed"
 msgstr "Fertiggestellt"
 
-#: src/Package.php:649
+#: src/Package.php:659
 msgctxt "oss"
 msgid "Failed"
 msgstr "Fehlgeschlagen"

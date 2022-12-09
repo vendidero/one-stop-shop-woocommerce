@@ -2,7 +2,7 @@
 /**
  * Admin delivery threshold notification.
  *
- * @version 1.0.1
+ * @version 1.0.2
  *
  * @var \Vendidero\OneStopShop\Report $report
  */
@@ -14,7 +14,7 @@ echo "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n";
 echo esc_html( wp_strip_all_tags( $email_heading ) );
 echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
 
-echo wp_kses_post( sprintf( esc_html_x( 'Your OSS delivery threshold of %1$s has been reached. Please take action immediately. Visit the OSS Settings Panel (%2$s) for details.', 'oss', 'oss-woocommerce' ), wp_strip_all_tags( wc_price( \Vendidero\OneStopShop\Package::get_delivery_notification_threshold() ) ), esc_url( \Vendidero\OneStopShop\Settings::get_settings_url() ) ) );
+echo wp_kses_post( sprintf( esc_html_x( 'Your OSS delivery threshold of %1$s has been reached. Please take action immediately. Visit the OSS Settings Panel (%2$s) for details.', 'oss', 'one-stop-shop-woocommerce' ), wp_strip_all_tags( wc_price( \Vendidero\OneStopShop\Package::get_delivery_notification_threshold() ) ), esc_url( \Vendidero\OneStopShop\Settings::get_settings_url() ) ) );
 
 echo "\n\n";
 

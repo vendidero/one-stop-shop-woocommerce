@@ -75,13 +75,13 @@ class Admin {
 
 	public static function register_tax_rate_refresh_tool( $tools ) {
 		$tools['refresh_oss_tax_rates'] = array(
-			'name'     => _x( 'Refresh VAT rates (OSS)', 'oss', 'oss-woocommerce' ),
-			'button'   => _x( 'Refresh VAT rates (OSS)', 'oss', 'oss-woocommerce' ),
+			'name'     => _x( 'Refresh VAT rates (OSS)', 'oss', 'one-stop-shop-woocommerce' ),
+			'button'   => _x( 'Refresh VAT rates (OSS)', 'oss', 'one-stop-shop-woocommerce' ),
 			'callback' => array( __CLASS__, 'refresh_vat_rates' ),
 			'desc'     => sprintf(
 				'<strong class="red">%1$s</strong> %2$s',
-				_x( 'Note:', 'oss', 'oss-woocommerce' ),
-				sprintf( _x( 'This option will delete all of your current EU VAT rates and re-import them based on your current <a href="%s">OSS status</a>.', 'oss', 'oss-woocommerce' ), esc_url( Settings::get_settings_url() ) )
+				_x( 'Note:', 'oss', 'one-stop-shop-woocommerce' ),
+				sprintf( _x( 'This option will delete all of your current EU VAT rates and re-import them based on your current <a href="%s">OSS status</a>.', 'oss', 'one-stop-shop-woocommerce' ), esc_url( Settings::get_settings_url() ) )
 			),
 		);
 
@@ -211,11 +211,11 @@ class Admin {
 	}
 
 	public static function get_threshold_notice_content() {
-		return sprintf( _x( 'Seems like you have reached (or are close to reaching) the delivery threshold for the current year. Please make sure to check the <a href="%s" target="_blank">report details</a> and take action in case necessary.', 'oss', 'oss-woocommerce' ), esc_url( Package::get_observer_report()->get_url() ) );
+		return sprintf( _x( 'Seems like you have reached (or are close to reaching) the delivery threshold for the current year. Please make sure to check the <a href="%s" target="_blank">report details</a> and take action in case necessary.', 'oss', 'one-stop-shop-woocommerce' ), esc_url( Package::get_observer_report()->get_url() ) );
 	}
 
 	public static function get_threshold_notice_title() {
-		return _x( 'Delivery threshold reached (OSS)', 'oss', 'oss-woocommerce' );
+		return _x( 'Delivery threshold reached (OSS)', 'oss', 'one-stop-shop-woocommerce' );
 	}
 
 	public static function init_observer() {
@@ -445,7 +445,7 @@ class Admin {
 	}
 
 	public static function add_menu() {
-		add_submenu_page( 'woocommerce', _x( 'OSS', 'oss', 'oss-woocommerce' ), _x( 'One Stop Shop', 'oss', 'oss-woocommerce' ), 'manage_woocommerce', 'oss-reports', array( __CLASS__, 'render_report_page' ) );
+		add_submenu_page( 'woocommerce', _x( 'OSS', 'oss', 'one-stop-shop-woocommerce' ), _x( 'One Stop Shop', 'oss', 'one-stop-shop-woocommerce' ), 'manage_woocommerce', 'oss-reports', array( __CLASS__, 'render_report_page' ) );
 	}
 
 	protected static function render_create_report() {
@@ -466,7 +466,7 @@ class Admin {
 				$start_day   = date( 'Y-m-d', strtotime( $year . '-' . $start_month . '-01' ) ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 
 				if ( date( 'Y-m-d' ) >= $start_day ) { // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
-					$quarters_selectable[ $start_day ] = sprintf( _x( 'Q%1$s/%2$s', 'oss', 'oss-woocommerce' ), $i, $year );
+					$quarters_selectable[ $start_day ] = sprintf( _x( 'Q%1$s/%2$s', 'oss', 'one-stop-shop-woocommerce' ), $i, $year );
 				}
 			}
 
@@ -475,7 +475,7 @@ class Admin {
 				$month     = date( 'm', strtotime( $year . '-' . $i . '-01' ) ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 
 				if ( date( 'Y-m-d' ) >= $start_day ) { // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
-					$months_selectable[ $start_day ] = sprintf( _x( '%1$s/%2$s', 'oss', 'oss-woocommerce' ), $month, $year );
+					$months_selectable[ $start_day ] = sprintf( _x( '%1$s/%2$s', 'oss', 'one-stop-shop-woocommerce' ), $month, $year );
 				}
 			}
 		}
@@ -483,14 +483,14 @@ class Admin {
 		<div class="wrap oss-reports create-oss-reports">
 			<form class="create-oss-report" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<header>
-					<h2><?php echo esc_html_x( 'New Report', 'oss', 'oss-woocommerce' ); ?></h2>
+					<h2><?php echo esc_html_x( 'New Report', 'oss', 'one-stop-shop-woocommerce' ); ?></h2>
 				</header>
 				<section>
 					<table class="form-table oss-report-options">
 						<tbody>
 						<tr id="oss-report-type-wrapper">
 							<th scope="row">
-								<label for="oss-report-type"><?php echo esc_html_x( 'Type', 'oss', 'oss-woocommerce' ); ?></label>
+								<label for="oss-report-type"><?php echo esc_html_x( 'Type', 'oss', 'one-stop-shop-woocommerce' ); ?></label>
 							</th>
 							<td id="oss-report-type-data">
 								<select name="report_type" id="oss-report-type" class="wc-enhanced-select">
@@ -502,7 +502,7 @@ class Admin {
 						</tr>
 						<tr id="oss-report-year-wrapper" class="oss-report-hidden oss-report-yearly">
 							<th scope="row">
-								<label for="oss-report-year"><?php echo esc_html_x( 'Year', 'oss', 'oss-woocommerce' ); ?></label>
+								<label for="oss-report-year"><?php echo esc_html_x( 'Year', 'oss', 'one-stop-shop-woocommerce' ); ?></label>
 							</th>
 							<td id="oss-report-year-data">
 								<select name="report_year" id="oss-report-year" class="wc-enhanced-select">
@@ -514,7 +514,7 @@ class Admin {
 						</tr>
 						<tr id="oss-report-quarter-wrapper" class="oss-report-hidden oss-report-quarterly">
 							<th scope="row">
-								<label for="oss-report-quarter"><?php echo esc_html_x( 'Quarter', 'oss', 'oss-woocommerce' ); ?></label>
+								<label for="oss-report-quarter"><?php echo esc_html_x( 'Quarter', 'oss', 'one-stop-shop-woocommerce' ); ?></label>
 							</th>
 							<td id="oss-report-quarter-data">
 								<select name="report_quarter" id="oss-report-quarter" class="wc-enhanced-select">
@@ -526,7 +526,7 @@ class Admin {
 						</tr>
 						<tr id="oss-report-month-wrapper" class="oss-report-hidden oss-report-monthly">
 							<th scope="row">
-								<label for="oss-report-month"><?php echo esc_html_x( 'Month', 'oss', 'oss-woocommerce' ); ?></label>
+								<label for="oss-report-month"><?php echo esc_html_x( 'Month', 'oss', 'one-stop-shop-woocommerce' ); ?></label>
 							</th>
 							<td id="oss-report-month-data">
 								<select name="report_month" id="oss-report-month" class="wc-enhanced-select">
@@ -538,7 +538,7 @@ class Admin {
 						</tr>
 						<tr id="oss-report-timeframe-wrapper" class="oss-report-hidden oss-report-custom">
 							<th scope="row">
-								<label for="oss-report-date-start"><?php echo esc_html_x( 'Date range', 'oss', 'oss-woocommerce' ); ?></label>
+								<label for="oss-report-date-start"><?php echo esc_html_x( 'Date range', 'oss', 'one-stop-shop-woocommerce' ); ?></label>
 							</th>
 							<td id="oss-report-custom-data">
                                 <input type="text" size="11" placeholder="yyyy-mm-dd" value="" id="oss-report-date-start" name="date_start" class="oss_range_datepicker from" autocomplete="off" /><?php //@codingStandardsIgnoreLine ?>
@@ -550,7 +550,7 @@ class Admin {
 					</table>
 				</section>
 				<div class="oss-actions">
-					<button type="submit" class="oss-new-report-button button button-primary" value="<?php echo esc_attr_x( 'Start report', 'oss', 'oss-woocommerce' ); ?>"><?php echo esc_attr_x( 'Start report', 'oss', 'oss-woocommerce' ); ?></button>
+					<button type="submit" class="oss-new-report-button button button-primary" value="<?php echo esc_attr_x( 'Start report', 'oss', 'one-stop-shop-woocommerce' ); ?>"><?php echo esc_attr_x( 'Start report', 'oss', 'one-stop-shop-woocommerce' ); ?></button>
 				</div>
 				<?php wp_nonce_field( 'oss_create_report' ); ?>
 				<input type="hidden" name="action" value="oss_create_report" />
@@ -563,8 +563,8 @@ class Admin {
 		global $wp_list_table;
 		?>
 		<div class="wrap oss-reports">
-			<h1 class="wp-heading-inline"><?php echo esc_html_x( 'One Stop Shop', 'oss', 'oss-woocommerce' ); ?></h1>
-			<a href="<?php echo esc_url( add_query_arg( array( 'new' => 'yes' ), admin_url( 'admin.php?page=oss-reports' ) ) ); ?>" class="page-title-action"><?php echo esc_html_x( 'New report', 'oss', 'oss-woocommerce' ); ?></a>
+			<h1 class="wp-heading-inline"><?php echo esc_html_x( 'One Stop Shop', 'oss', 'one-stop-shop-woocommerce' ); ?></h1>
+			<a href="<?php echo esc_url( add_query_arg( array( 'new' => 'yes' ), admin_url( 'admin.php?page=oss-reports' ) ) ); ?>" class="page-title-action"><?php echo esc_html_x( 'New report', 'oss', 'one-stop-shop-woocommerce' ); ?></a>
 
 			<hr class="wp-header-end" />
 
@@ -606,29 +606,29 @@ class Admin {
 		$actions = array(
 			'view'       => array(
 				'url'   => $report->get_url(),
-				'title' => _x( 'View', 'oss', 'oss-woocommerce' ),
+				'title' => _x( 'View', 'oss', 'one-stop-shop-woocommerce' ),
 			),
 			'export'     => array(
 				'url'   => $report->get_export_link(),
-				'title' => _x( 'Export', 'oss', 'oss-woocommerce' ),
+				'title' => _x( 'Export', 'oss', 'one-stop-shop-woocommerce' ),
 			),
 			'export_bop' => array(
 				'url'   => $report->get_export_link( 'bop' ),
-				'title' => _x( 'Export BOP', 'oss', 'oss-woocommerce' ),
+				'title' => _x( 'Export BOP', 'oss', 'one-stop-shop-woocommerce' ),
 			),
 			'refresh'    => array(
 				'url'   => $report->get_refresh_link(),
-				'title' => _x( 'Refresh', 'oss', 'oss-woocommerce' ),
+				'title' => _x( 'Refresh', 'oss', 'one-stop-shop-woocommerce' ),
 			),
 			'delete'     => array(
 				'url'   => $report->get_delete_link(),
-				'title' => _x( 'Delete', 'oss', 'oss-woocommerce' ),
+				'title' => _x( 'Delete', 'oss', 'one-stop-shop-woocommerce' ),
 			),
 		);
 
 		if ( 'completed' !== $report->get_status() ) {
 			$actions['cancel']          = $actions['delete'];
-			$actions['cancel']['title'] = _x( 'Cancel', 'oss', 'oss-woocommerce' );
+			$actions['cancel']['title'] = _x( 'Cancel', 'oss', 'one-stop-shop-woocommerce' );
 
 			unset( $actions['view'] );
 			unset( $actions['refresh'] );
@@ -666,10 +666,10 @@ class Admin {
 		unset( $actions['view'] );
 
 		$columns = array(
-			'country'   => _x( 'Country', 'oss', 'oss-woocommerce' ),
-			'tax_rate'  => _x( 'Tax Rate', 'oss', 'oss-woocommerce' ),
-			'net_total' => _x( 'Net Total', 'oss', 'oss-woocommerce' ),
-			'tax_total' => _x( 'Tax Total', 'oss', 'oss-woocommerce' ),
+			'country'   => _x( 'Country', 'oss', 'one-stop-shop-woocommerce' ),
+			'tax_rate'  => _x( 'Tax Rate', 'oss', 'one-stop-shop-woocommerce' ),
+			'net_total' => _x( 'Net Total', 'oss', 'one-stop-shop-woocommerce' ),
+			'tax_total' => _x( 'Tax Total', 'oss', 'one-stop-shop-woocommerce' ),
 		);
 
 		$countries = $report->get_countries();
@@ -700,7 +700,7 @@ class Admin {
 								?>
 							<tr>
 								<td class="oss-report-table-country"><?php echo esc_html( $country ); ?></td>
-								<td class="oss-report-table-tax_rate"><?php echo esc_html( sprintf( _x( '%1$s %%', 'oss', 'oss-woocommerce' ), $tax_rate ) ); ?></td>
+								<td class="oss-report-table-tax_rate"><?php echo esc_html( sprintf( _x( '%1$s %%', 'oss', 'one-stop-shop-woocommerce' ), $tax_rate ) ); ?></td>
 								<td class="oss-report-table-net_total"><?php echo wc_price( $report->get_country_net_total( $country, $tax_rate ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></td>
 								<td class="oss-report-table-tax_total"><?php echo wc_price( $report->get_country_tax_total( $country, $tax_rate ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></td>
 							</tr>
@@ -713,7 +713,7 @@ class Admin {
 			else :
 				$details = Queue::get_queue_details( $report_id );
 				?>
-				<p class="summary"><?php printf( _x( 'Currently processed %1$s orders. Next iteration is scheduled for %2$s. <a href="%3$s">Find pending actions</a>', 'oss', 'oss-woocommerce' ), esc_html( $details['order_count'] ), ( $details['next_date'] ? esc_html( $details['next_date']->date_i18n( wc_date_format() . ' @ ' . wc_time_format() ) ) : esc_html_x( 'Not yet known', 'oss', 'oss-woocommerce' ) ), esc_url( $details['link'] ) ); ?></p>
+				<p class="summary"><?php printf( _x( 'Currently processed %1$s orders. Next iteration is scheduled for %2$s. <a href="%3$s">Find pending actions</a>', 'oss', 'one-stop-shop-woocommerce' ), esc_html( $details['order_count'] ), ( $details['next_date'] ? esc_html( $details['next_date']->date_i18n( wc_date_format() . ' @ ' . wc_time_format() ) ) : esc_html_x( 'Not yet known', 'oss', 'one-stop-shop-woocommerce' ) ), esc_url( $details['link'] ) ); ?></p>
 			<?php endif; ?>
 		</div>
 		<?php
@@ -744,7 +744,7 @@ class Admin {
 			 * This nonce is dynamically constructed by WP_List_Table and uses
 			 * the normalized plural argument.
 			 */
-			check_admin_referer( 'bulk-' . sanitize_key( _x( 'Reports', 'oss', 'oss-woocommerce' ) ) );
+			check_admin_referer( 'bulk-' . sanitize_key( _x( 'Reports', 'oss', 'one-stop-shop-woocommerce' ) ) );
 
 			$pagenum     = $wp_list_table->get_pagenum();
 			$parent_file = $wp_list_table->get_main_page();

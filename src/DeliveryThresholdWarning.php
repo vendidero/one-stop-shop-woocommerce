@@ -11,7 +11,7 @@ class DeliveryThresholdWarning extends AdminNote {
 			array(
 				array(
 					'target'     => '',
-					'title'      => _x( 'See details', 'oss', 'oss-woocommerce' ),
+					'title'      => _x( 'See details', 'oss', 'one-stop-shop-woocommerce' ),
 					'url'        => Settings::get_settings_url(),
 					'is_primary' => true,
 				),

@@ -5,12 +5,12 @@
  * Description: Comply with the One Stop Shop procedure while using WooCommerce.
  * Author: vendidero
  * Author URI: https://vendidero.de
- * Version: 1.3.3
+ * Version: 1.3.4
  * Requires PHP: 5.6
  * License: GPLv3
  * Tested up to: 6.1
  *
- * Text Domain: oss-woocommerce
+ * Text Domain: one-stop-shop-woocommerce
  * Domain Path: /i18n/languages/
  *
  * @author vendidero
@@ -41,7 +41,7 @@ if ( is_readable( $autoloader ) ) {
 		error_log(  // phpcs:ignore
 			sprintf(
 			/* translators: 1: composer command. 2: plugin directory */
-				esc_html_x( 'Your installation of the One Stop Shop feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'oss', 'oss-woocommerce' ),
+				esc_html_x( 'Your installation of the One Stop Shop feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'oss', 'one-stop-shop-woocommerce' ),
 				'`composer install`',
 				'`' . esc_html( str_replace( ABSPATH, '', __DIR__ ) ) . '`'
 			)
@@ -59,7 +59,7 @@ if ( is_readable( $autoloader ) ) {
 					<?php
 					printf(
 					/* translators: 1: composer command. 2: plugin directory */
-						esc_html_x( 'Your installation of the One Stop Shop feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'oss', 'oss-woocommerce' ),
+						esc_html_x( 'Your installation of the One Stop Shop feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'oss', 'one-stop-shop-woocommerce' ),
 						'<code>composer install</code>',
 						'<code>' . esc_html( str_replace( ABSPATH, '', __DIR__ ) ) . '</code>'
 					);

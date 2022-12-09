@@ -255,7 +255,7 @@ class AsyncReportGenerator {
 
 			return true;
 		} else {
-			return new \WP_Error( 'empty', _x( 'No orders found.', 'oss', 'oss-woocommerce' ) );
+			return new \WP_Error( 'empty', _x( 'No orders found.', 'oss', 'one-stop-shop-woocommerce' ) );
 		}
 	}
 

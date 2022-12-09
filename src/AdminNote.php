@@ -43,7 +43,7 @@ class AdminNote {
 		return array(
 			array(
 				'target'     => '',
-				'title'      => _x( 'Dismiss', 'oss', 'oss-woocommerce' ),
+				'title'      => _x( 'Dismiss', 'oss', 'one-stop-shop-woocommerce' ),
 				'url'        => static::get_dismiss_url(),
 				'is_primary' => false,
 			),

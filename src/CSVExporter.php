@@ -51,10 +51,10 @@ class CSVExporter extends \WC_CSV_Exporter {
 		return apply_filters(
 			'one_stop_shop_woocommerce_export_default_columns',
 			array(
-				'country'      => _x( 'Country code', 'oss', 'oss-woocommerce' ),
-				'tax_rate'     => _x( 'Tax rate', 'oss', 'oss-woocommerce' ),
-				'taxable_base' => _x( 'Taxable base', 'oss', 'oss-woocommerce' ),
-				'amount'       => _x( 'Amount', 'oss', 'oss-woocommerce' ),
+				'country'      => _x( 'Country code', 'oss', 'one-stop-shop-woocommerce' ),
+				'tax_rate'     => _x( 'Tax rate', 'oss', 'one-stop-shop-woocommerce' ),
+				'taxable_base' => _x( 'Taxable base', 'oss', 'one-stop-shop-woocommerce' ),
+				'amount'       => _x( 'Amount', 'oss', 'one-stop-shop-woocommerce' ),
 			)
 		);
 	}

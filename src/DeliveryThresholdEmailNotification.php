@@ -16,8 +16,8 @@ class DeliveryThresholdEmailNotification extends \WC_Email {
 	public function __construct() {
 		$this->template_base  = Package::get_path() . '/templates/';
 		$this->id             = 'oss_delivery_threshold_email_notification';
-		$this->title          = _x( 'OSS Delivery Threshold Notification', 'oss', 'oss-woocommerce' );
-		$this->description    = _x( 'This email notifies shop owners in case the delivery threshold (OSS) is close to being reached.', 'oss', 'oss-woocommerce' );
+		$this->title          = _x( 'OSS Delivery Threshold Notification', 'oss', 'one-stop-shop-woocommerce' );
+		$this->description    = _x( 'This email notifies shop owners in case the delivery threshold (OSS) is close to being reached.', 'oss', 'one-stop-shop-woocommerce' );
 		$this->template_html  = 'emails/admin-delivery-threshold.php';
 		$this->template_plain = 'emails/plain/admin-delivery-threshold.php';
 		$this->customer_email = false;
@@ -35,7 +35,7 @@ class DeliveryThresholdEmailNotification extends \WC_Email {
 	 * @return string
 	 */
 	public function get_default_subject() {
-		return _x( '[{site_title}]: OSS delivery threshold reached', 'oss', 'oss-woocommerce' );
+		return _x( '[{site_title}]: OSS delivery threshold reached', 'oss', 'one-stop-shop-woocommerce' );
 	}
 
 	/**
@@ -45,7 +45,7 @@ class DeliveryThresholdEmailNotification extends \WC_Email {
 	 * @return string
 	 */
 	public function get_default_heading() {
-		return _x( 'OSS delivery threshold reached', 'oss', 'oss-woocommerce' );
+		return _x( 'OSS delivery threshold reached', 'oss', 'one-stop-shop-woocommerce' );
 	}
 
 	/**

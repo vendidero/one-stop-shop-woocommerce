@@ -257,10 +257,10 @@ class Tax {
 						'id'            => "variable_tax_class_by_countries{$loop}_{$country}",
 						'name'          => "variable_tax_class_by_countries[{$loop}][{$country}]",
 						'value'         => $tax_class,
-						'label'         => sprintf( _x( 'Tax class (%s)', 'oss', 'oss-woocommerce' ), $country ),
-						'options'       => array( 'parent' => _x( 'Same as parent', 'oss', 'oss-woocommerce' ) ) + wc_get_product_tax_class_options(),
+						'label'         => sprintf( _x( 'Tax class (%s)', 'oss', 'one-stop-shop-woocommerce' ), $country ),
+						'options'       => array( 'parent' => _x( 'Same as parent', 'oss', 'one-stop-shop-woocommerce' ) ) + wc_get_product_tax_class_options(),
 						'wrapper_class' => 'oss-tax-class-by-country-field form-row form-row-full',
-						'description'   => '<a href="#" class="dashicons dashicons-no-alt oss-remove-tax-class-by-country" data-country="' . esc_attr( $country ) . '">' . _x( 'remove', 'oss', 'oss-woocommerce' ) . '</a>',
+						'description'   => '<a href="#" class="dashicons dashicons-no-alt oss-remove-tax-class-by-country" data-country="' . esc_attr( $country ) . '">' . _x( 'remove', 'oss', 'one-stop-shop-woocommerce' ) . '</a>',
 					)
 				);
 			}
@@ -270,14 +270,14 @@ class Tax {
 
 		<p class="form-field oss-add-tax-class-by-country">
 			<label>&nbsp;</label>
-			<a href="#" class="oss-add-new-tax-class-by-country">+ <?php echo esc_html_x( 'Add country specific tax class (OSS)', 'oss', 'oss-woocommerce' ); ?></a>
+			<a href="#" class="oss-add-new-tax-class-by-country">+ <?php echo esc_html_x( 'Add country specific tax class (OSS)', 'oss', 'one-stop-shop-woocommerce' ); ?></a>
 		</p>
 
 		<div class="oss-add-tax-class-by-country-template">
 			<p class="form-field form-row form-row-full oss-add-tax-class-by-country-field">
 				<label for="tax_class_countries">
 					<select class="enhanced select oss-tax-class-new-country" name="variable_tax_class_by_countries_new_countries[<?php echo esc_attr( $loop ); ?>][]">
-						<option value="" selected="selected"><?php echo esc_html_x( 'Select country', 'oss', 'oss-woocommerce' ); ?></option>
+						<option value="" selected="selected"><?php echo esc_html_x( 'Select country', 'oss', 'one-stop-shop-woocommerce' ); ?></option>
 						<?php
 						foreach ( $countries_left as $country_code ) {
 							echo '<option value="' . esc_attr( $country_code ) . '">' . esc_html( self::get_country_name( $country_code ) ) . '</option>';
@@ -293,7 +293,7 @@ class Tax {
 					?>
 				</select>
 				<span class="description">
-					<a href="#" class="dashicons dashicons-no-alt oss-remove-tax-class-by-country"><?php echo esc_html_x( 'remove', 'oss', 'oss-woocommerce' ); ?></a>
+					<a href="#" class="dashicons dashicons-no-alt oss-remove-tax-class-by-country"><?php echo esc_html_x( 'remove', 'oss', 'one-stop-shop-woocommerce' ); ?></a>
 				</span>
 			</p>
 		</div>
@@ -302,7 +302,7 @@ class Tax {
 
 	protected static function get_selectable_countries() {
 		$countries = Helper::get_non_base_eu_countries( true );
-		$eu        = array( 'EU-wide' => _x( 'EU-wide', 'oss', 'oss-woocommerce' ) );
+		$eu        = array( 'EU-wide' => _x( 'EU-wide', 'oss', 'one-stop-shop-woocommerce' ) );
 
 		return $eu + $countries;
 	}
@@ -312,7 +312,7 @@ class Tax {
 		$countries    = WC()->countries ? WC()->countries->get_countries() : array();
 
 		if ( 'EU-wide' === $country_code ) {
-			$country_name = _x( 'EU-wide', 'oss', 'oss-woocommerce' );
+			$country_name = _x( 'EU-wide', 'oss', 'one-stop-shop-woocommerce' );
 		} elseif ( isset( $countries[ $country_code ] ) ) {
 			$country_name = $countries[ $country_code ];
 		}
@@ -335,9 +335,9 @@ class Tax {
 						'id'          => '_tax_class_by_countries_' . $country,
 						'name'        => '_tax_class_by_countries[' . $country . ']',
 						'value'       => $tax_class,
-						'label'       => sprintf( _x( 'Tax class (%s)', 'oss', 'oss-woocommerce' ), $country ),
+						'label'       => sprintf( _x( 'Tax class (%s)', 'oss', 'one-stop-shop-woocommerce' ), $country ),
 						'options'     => wc_get_product_tax_class_options(),
-						'description' => '<a href="#" class="dashicons dashicons-no-alt oss-remove-tax-class-by-country" data-country="' . esc_attr( $country ) . '">' . _x( 'remove', 'oss', 'oss-woocommerce' ) . '</a>',
+						'description' => '<a href="#" class="dashicons dashicons-no-alt oss-remove-tax-class-by-country" data-country="' . esc_attr( $country ) . '">' . _x( 'remove', 'oss', 'one-stop-shop-woocommerce' ) . '</a>',
 					)
 				);
 			}
@@ -348,14 +348,14 @@ class Tax {
 
 		<p class="form-field oss-add-tax-class-by-country hide_if_grouped hide_if_external">
 			<label>&nbsp;</label>
-			<a href="#" class="oss-add-new-tax-class-by-country">+ <?php echo esc_html_x( 'Add country specific tax class (OSS)', 'oss', 'oss-woocommerce' ); ?></a>
+			<a href="#" class="oss-add-new-tax-class-by-country">+ <?php echo esc_html_x( 'Add country specific tax class (OSS)', 'oss', 'one-stop-shop-woocommerce' ); ?></a>
 		</p>
 
 		<div class="oss-add-tax-class-by-country-template">
 			<p class="form-field">
 				<label for="tax_class_countries">
 					<select class="enhanced select" name="_tax_class_by_countries_new_countries[]">
-						<option value="" selected="selected"><?php echo esc_html_x( 'Select country', 'oss', 'oss-woocommerce' ); ?></option>
+						<option value="" selected="selected"><?php echo esc_html_x( 'Select country', 'oss', 'one-stop-shop-woocommerce' ); ?></option>
 						<?php
 						foreach ( $countries_left as $country_code ) {
 							echo '<option value="' . esc_attr( $country_code ) . '">' . esc_html( self::get_country_name( $country_code ) ) . '</option>';
@@ -371,7 +371,7 @@ class Tax {
 					?>
 				</select>
 				<span class="description">
-					<a href="#" class="dashicons dashicons-no-alt oss-remove-tax-class-by-country"><?php echo esc_html_x( 'remove', 'oss', 'oss-woocommerce' ); ?></a>
+					<a href="#" class="dashicons dashicons-no-alt oss-remove-tax-class-by-country"><?php echo esc_html_x( 'remove', 'oss', 'one-stop-shop-woocommerce' ); ?></a>
 				</span>
 			</p>
 		</div>

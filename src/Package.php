@@ -14,7 +14,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.3.3';
+	const VERSION = '1.3.4';
 
 	/**
 	 * Init the package
@@ -175,7 +175,7 @@ class Package {
 
 	public static function dependency_notice() {
 		?>
-		<div class="error notice notice-error"><p><?php echo esc_html_x( 'To use the OSS for WooCommerce plugin please make sure that WooCommerce is installed and activated.', 'oss', 'oss-woocommerce' ); ?></p></div>
+		<div class="error notice notice-error"><p><?php echo esc_html_x( 'To use the OSS for WooCommerce plugin please make sure that WooCommerce is installed and activated.', 'oss', 'one-stop-shop-woocommerce' ); ?></p></div>
 		<?php
 	}
 
@@ -347,7 +347,7 @@ class Package {
 
 	public static function get_report_title( $id ) {
 		$args  = self::get_report_data( $id );
-		$title = _x( 'Report', 'oss', 'oss-woocommerce' );
+		$title = _x( 'Report', 'oss', 'one-stop-shop-woocommerce' );
 
 		if ( 'quarterly' === $args['type'] ) {
 			$date_start = $args['date_start'];
@@ -362,26 +362,26 @@ class Package {
 				$quarter = 4;
 			}
 
-			$title = sprintf( _x( 'Q%1$s/%2$s', 'oss', 'oss-woocommerce' ), $quarter, $date_start->date_i18n( 'Y' ) );
+			$title = sprintf( _x( 'Q%1$s/%2$s', 'oss', 'one-stop-shop-woocommerce' ), $quarter, $date_start->date_i18n( 'Y' ) );
 		} elseif ( 'monthly' === $args['type'] ) {
 			$date_start = $args['date_start'];
 			$month_num  = $date_start->date_i18n( 'm' );
 
-			$title = sprintf( _x( '%1$s/%2$s', 'oss', 'oss-woocommerce' ), $month_num, $date_start->date_i18n( 'Y' ) );
+			$title = sprintf( _x( '%1$s/%2$s', 'oss', 'one-stop-shop-woocommerce' ), $month_num, $date_start->date_i18n( 'Y' ) );
 		} elseif ( 'yearly' === $args['type'] ) {
 			$date_start = $args['date_start'];
 
-			$title = sprintf( _x( '%1$s', 'oss', 'oss-woocommerce' ), $date_start->date_i18n( 'Y' ) ); // phpcs:ignore WordPress.WP.I18n.NoEmptyStrings
+			$title = sprintf( _x( '%1$s', 'oss', 'one-stop-shop-woocommerce' ), $date_start->date_i18n( 'Y' ) ); // phpcs:ignore WordPress.WP.I18n.NoEmptyStrings
 		} elseif ( 'custom' === $args['type'] ) {
 			$date_start = $args['date_start'];
 			$date_end   = $args['date_end'];
 
-			$title = sprintf( _x( '%1$s - %2$s', 'oss', 'oss-woocommerce' ), $date_start->date_i18n( 'Y-m-d' ), $date_end->date_i18n( 'Y-m-d' ) );
+			$title = sprintf( _x( '%1$s - %2$s', 'oss', 'one-stop-shop-woocommerce' ), $date_start->date_i18n( 'Y-m-d' ), $date_end->date_i18n( 'Y-m-d' ) );
 		} elseif ( 'observer' === $args['type'] ) {
 			$date_start = $args['date_start'];
 			$date_end   = $args['date_end'];
 
-			$title = sprintf( _x( 'Observer %1$s', 'oss', 'oss-woocommerce' ), $date_start->date_i18n( 'Y' ) );
+			$title = sprintf( _x( 'Observer %1$s', 'oss', 'one-stop-shop-woocommerce' ), $date_start->date_i18n( 'Y' ) );
 		}
 
 		return $title;
@@ -505,15 +505,15 @@ class Package {
 			$locale = is_admin() ? get_user_locale() : get_locale();
 		}
 
-		$locale = apply_filters( 'plugin_locale', $locale, 'oss-woocommerce' );
+		$locale = apply_filters( 'plugin_locale', $locale, 'one-stop-shop-woocommerce' );
 
-		unload_textdomain( 'oss-woocommerce' );
-		load_textdomain( 'oss-woocommerce', trailingslashit( WP_LANG_DIR ) . 'oss-woocommerce/oss-woocommerce-' . $locale . '.mo' );
-		load_plugin_textdomain( 'oss-woocommerce', false, plugin_basename( dirname( __FILE__ ) ) . '/i18n/languages/' );
+		unload_textdomain( 'one-stop-shop-woocommerce' );
+        load_textdomain( 'one-stop-shop-woocommerce', trailingslashit( WP_LANG_DIR ) . 'one-stop-shop-woocommerce/one-stop-shop-woocommerce-' . $locale . '.mo' );
+        load_plugin_textdomain( 'one-stop-shop-woocommerce', false, plugin_basename( self::get_path() ) . '/i18n/languages/' );
 	}
 
 	public static function support_german_language_variants( $locale, $domain ) {
-		if ( 'oss-woocommerce' === $domain && apply_filters( 'oss_woocommerce_force_de_language', in_array( $locale, array( 'de_CH', 'de_AT' ), true ) ) ) {
+		if ( 'one-stop-shop-woocommerce' === $domain && apply_filters( 'oss_woocommerce_force_de_language', in_array( $locale, array( 'de_CH', 'de_AT' ), true ) ) ) {
 			$locale = 'de_DE';
 		}
 
@@ -633,14 +633,14 @@ class Package {
 
 	public static function get_available_report_types( $include_observer = false ) {
 		$types = array(
-			'quarterly' => _x( 'Quarterly', 'oss', 'oss-woocommerce' ),
-			'yearly'    => _x( 'Yearly', 'oss', 'oss-woocommerce' ),
-			'monthly'   => _x( 'Monthly', 'oss', 'oss-woocommerce' ),
-			'custom'    => _x( 'Custom', 'oss', 'oss-woocommerce' ),
+			'quarterly' => _x( 'Quarterly', 'oss', 'one-stop-shop-woocommerce' ),
+			'yearly'    => _x( 'Yearly', 'oss', 'one-stop-shop-woocommerce' ),
+			'monthly'   => _x( 'Monthly', 'oss', 'one-stop-shop-woocommerce' ),
+			'custom'    => _x( 'Custom', 'oss', 'one-stop-shop-woocommerce' ),
 		);
 
 		if ( $include_observer ) {
-			$types['observer'] = _x( 'Observer', 'oss', 'oss-woocommerce' );
+			$types['observer'] = _x( 'Observer', 'oss', 'one-stop-shop-woocommerce' );
 		}
 
 		return $types;
@@ -654,9 +654,9 @@ class Package {
 
 	public static function get_report_statuses() {
 		return array(
-			'pending'   => _x( 'Pending', 'oss', 'oss-woocommerce' ),
-			'completed' => _x( 'Completed', 'oss', 'oss-woocommerce' ),
-			'failed'    => _x( 'Failed', 'oss', 'oss-woocommerce' ),
+			'pending'   => _x( 'Pending', 'oss', 'one-stop-shop-woocommerce' ),
+			'completed' => _x( 'Completed', 'oss', 'one-stop-shop-woocommerce' ),
+			'failed'    => _x( 'Failed', 'oss', 'one-stop-shop-woocommerce' ),
 		);
 	}
 

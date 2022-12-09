@@ -14,13 +14,13 @@ class SettingsPage extends \WC_Settings_Page {
 	 */
 	public function __construct() {
 		$this->id    = 'oss';
-		$this->label = _x( 'OSS', 'oss', 'oss-woocommerce' );
+		$this->label = _x( 'OSS', 'oss', 'one-stop-shop-woocommerce' );
 
 		parent::__construct();
 	}
 
 	public function output() {
-		echo '<h2 class="oss-woocommerce-settings-title">' . esc_html_x( 'One Stop Shop', 'oss', 'oss-woocommerce' ) . ' <a class="page-title-action" href="' . esc_url( admin_url( 'admin.php?page=oss-reports' ) ) . '">' . esc_html_x( 'Reports', 'oss', 'oss-woocommerce' ) . '</a> <a class="page-title-action" target="_blank" href="' . esc_url( Settings::get_help_url() ) . '">' . esc_html_x( 'Learn More', 'oss', 'oss-woocommerce' ) . '</a></h2>';
+		echo '<h2 class="oss-woocommerce-settings-title">' . esc_html_x( 'One Stop Shop', 'oss', 'one-stop-shop-woocommerce' ) . ' <a class="page-title-action" href="' . esc_url( admin_url( 'admin.php?page=oss-reports' ) ) . '">' . esc_html_x( 'Reports', 'oss', 'one-stop-shop-woocommerce' ) . '</a> <a class="page-title-action" target="_blank" href="' . esc_url( Settings::get_help_url() ) . '">' . esc_html_x( 'Learn More', 'oss', 'one-stop-shop-woocommerce' ) . '</a></h2>';
 
 		parent::output();
 	}
