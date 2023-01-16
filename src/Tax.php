@@ -18,6 +18,7 @@ class Tax {
 
 			add_filter( 'woocommerce_product_get_tax_class', array( __CLASS__, 'filter_tax_class' ), 250, 2 );
 			add_filter( 'woocommerce_product_variation_get_tax_class', array( __CLASS__, 'filter_tax_class' ), 250, 2 );
+			add_action( 'woocommerce_before_save_order_item', array( __CLASS__, 'maybe_filter_order_item_tax_class' ) );
 
 			add_filter( 'woocommerce_adjust_non_base_location_prices', array( __CLASS__, 'disable_location_price' ), 250 );
 			add_filter( 'woocommerce_customer_taxable_address', array( __CLASS__, 'vat_exempt_taxable_address' ), 10 );
@@ -113,6 +114,39 @@ class Tax {
 	}
 
 	/**
+	 * Maybe reset order item tax class while recalculating order totals as the product tax class
+	 * filter will only work for the initial add to order event.
+	 *
+	 * @param \WC_Order_Item $item
+	 *
+	 * @return void
+	 */
+	public static function maybe_filter_order_item_tax_class( $item ) {
+		if ( is_a( $item, 'WC_Order_Item_Product' ) && ( $order = $item->get_order() ) ) {
+			if ( isset( $_POST['action'] ) && 'woocommerce_calc_line_taxes' === wc_clean( wp_unslash( $_POST['action'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				if ( $product = $item->get_product() ) {
+					$taxable_address = Helper::get_order_taxable_location( $order );
+
+					if ( isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) ) {
+						$address = array(
+							'country'  => $taxable_address[0],
+							'state'    => isset( $taxable_address[1] ) ? $taxable_address[1] : '',
+							'postcode' => isset( $taxable_address[2] ) ? $taxable_address[2] : '',
+							'city'     => isset( $taxable_address[3] ) ? $taxable_address[3] : '',
+						);
+
+						$tax_class = self::get_product_tax_class_by_country( $product, $address );
+
+						if ( $tax_class !== $item->get_tax_class() && apply_filters( 'oss_woocommerce_switch_order_item_tax_class', true, $tax_class, $item ) ) {
+							$item->set_tax_class( $tax_class );
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * @param $tax_class
 	 * @param \WC_Product $product
 	 */
@@ -120,7 +154,6 @@ class Tax {
 		$taxable_address = Helper::get_taxable_location();
 
 		if ( isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) && WC()->countries->get_base_country() !== $taxable_address[0] ) {
-
 			$address = array(
 				'country'  => $taxable_address[0],
 				'state'    => isset( $taxable_address[1] ) ? $taxable_address[1] : '',
