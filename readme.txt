@@ -2,10 +2,10 @@
 Contributors: vendidero, vdwoocommercesupport
 Tags: one stop shop, woocommerce, OSS, EU, compliance
 Requires at least: 5.4
-Tested up to: 6.1
+Tested up to: 6.2
 WC requires at least: 3.9
-WC tested up to: 7.1
-Stable tag: 1.3.4
+WC tested up to: 7.4
+Stable tag: 1.3.5
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -60,6 +60,10 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 3. Create a new report
 
 == Changelog ==
+= 1.3.5 =
+* Improvement: Updated LU tax rates
+* Improvement: Tax rate filtering while recalculating order totals
+
 = 1.3.4 =
 * Fix: Update textdomain to reflect plugin slug
 * Fix: Fallback language file path
