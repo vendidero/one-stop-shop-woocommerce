@@ -101,7 +101,7 @@ class Tax {
 	 * @return array|mixed
 	 */
 	public static function vat_exempt_taxable_address( $location ) {
-		if ( Helper::current_request_has_vat_exempt() ) {
+		if ( Helper::current_request_has_vat_exempt() && apply_filters( 'oss_woocommerce_force_base_tax_rate_for_vat_exempt_net_calculation', true ) ) {
 			$location = array(
 				WC()->countries->get_base_country(),
 				WC()->countries->get_base_state(),
