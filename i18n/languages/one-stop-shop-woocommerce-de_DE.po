@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: One Stop Shop for WooCommerce\n"
-"POT-Creation-Date: 2022-12-09 11:36+0100\n"
-"PO-Revision-Date: 2022-12-09 11:36+0100\n"
+"POT-Creation-Date: 2023-03-09 12:23+0100\n"
+"PO-Revision-Date: 2023-03-09 12:23+0100\n"
 "Last-Translator: Dennis Nissle <info@vendidero.de>\n"
 "Language-Team: \n"
 "Language: de_DE\n"
@@ -10,7 +10,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 3.2.2\n"
 "X-Poedit-Basepath: ../..\n"
 "X-Poedit-Flags-xgettext: --add-comments=translators:\n"
 "X-Poedit-WPHeader: one-stop-shop-woocommerce.php\n"
@@ -122,13 +122,13 @@ msgctxt "oss"
 msgid "One Stop Shop"
 msgstr "One Stop Shop"
 
-#: src/Admin.php:469 src/Package.php:365
+#: src/Admin.php:469 src/Package.php:363
 #, php-format
 msgctxt "oss"
 msgid "Q%1$s/%2$s"
 msgstr "Q%1$s/%2$s"
 
-#: src/Admin.php:478 src/Package.php:370
+#: src/Admin.php:478 src/Package.php:368
 #, php-format
 msgctxt "oss"
 msgid "%1$s/%2$s"
@@ -304,12 +304,24 @@ msgctxt "oss"
 msgid "OSS delivery threshold reached"
 msgstr "OSS Lieferschwelle erreicht"
 
+#: src/DeliveryThresholdEmailNotification.php:124
+msgctxt "oss"
+msgid "Recipient(s)"
+msgstr "Empfänger"
+
+#. translators: %s: WP admin email
+#: src/DeliveryThresholdEmailNotification.php:127
+#, php-format
+msgctxt "oss"
+msgid "Enter recipients (comma separated) for this email. Defaults to %s."
+msgstr "Gib (kommasepariert) die Empfänger für die E-Mail ein. Standard: %s."
+
 #: src/DeliveryThresholdWarning.php:14
 msgctxt "oss"
 msgid "See details"
 msgstr "Details ansehen"
 
-#: src/Package.php:178
+#: src/Package.php:176
 msgctxt "oss"
 msgid ""
 "To use the OSS for WooCommerce plugin please make sure that WooCommerce is "
@@ -318,65 +330,65 @@ msgstr ""
 "Um das OSS für WooCommerce Plugin nutzen zu können muss WooCommerce "
 "installiert und aktiviert sein."
 
-#: src/Package.php:350 src/ReportTable.php:40
+#: src/Package.php:348 src/ReportTable.php:40
 msgctxt "oss"
 msgid "Report"
 msgstr "Bericht"
 
-#: src/Package.php:374
+#: src/Package.php:372
 #, php-format
 msgctxt "oss"
 msgid "%1$s"
 msgstr "%1$s"
 
-#: src/Package.php:379
+#: src/Package.php:377
 #, php-format
 msgctxt "oss"
 msgid "%1$s - %2$s"
 msgstr "%1$s - %2$s"
 
-#: src/Package.php:384
+#: src/Package.php:382
 #, php-format
 msgctxt "oss"
 msgid "Observer %1$s"
 msgstr "Beobachter %1$s"
 
-#: src/Package.php:636
+#: src/Package.php:634
 msgctxt "oss"
 msgid "Quarterly"
 msgstr "Quartalsweise"
 
-#: src/Package.php:637
+#: src/Package.php:635
 msgctxt "oss"
 msgid "Yearly"
 msgstr "Jährlich"
 
-#: src/Package.php:638
+#: src/Package.php:636
 msgctxt "oss"
 msgid "Monthly"
 msgstr "Monatlich"
 
-#: src/Package.php:639
+#: src/Package.php:637
 msgctxt "oss"
 msgid "Custom"
 msgstr "Individuell"
 
-#: src/Package.php:643
+#: src/Package.php:641
 msgctxt "oss"
 msgid "Observer"
 msgstr "Beobachter"
 
-#: src/Package.php:657
+#: src/Package.php:655
 msgctxt "oss"
 msgid "Pending"
 msgstr "In Bearbeitung"
 
-#: src/Package.php:658
+#: src/Package.php:656
 msgctxt "oss"
 msgid "Completed"
 msgstr "Fertiggestellt"
 
-#: src/Package.php:659
+#: src/Package.php:657
 msgctxt "oss"
 msgid "Failed"
 msgstr "Fehlgeschlagen"
@@ -470,12 +482,12 @@ msgstr "Allgemein"
 msgctxt "oss"
 msgid ""
 "Find useful options regarding the <a href=\"https://ec.europa.eu/"
-"taxation_customs/business/vat/oss_en\" target=\"_blank\" rel=\"noopener"
-"\">One Stop Shop procedure</a> here."
+"taxation_customs/business/vat/oss_en\" target=\"_blank\" "
+"rel=\"noopener\">One Stop Shop procedure</a> here."
 msgstr ""
 "Finde hier nützliche Optionen zum <a href=\"https://ec.europa.eu/"
-"taxation_customs/business/vat/oss_de\" target=\"_blank\" rel=\"noopener"
-"\">One Stop Shop Verfahren</a>."
+"taxation_customs/business/vat/oss_de\" target=\"_blank\" "
+"rel=\"noopener\">One Stop Shop Verfahren</a>."
 
 #: src/Settings.php:38
 msgctxt "oss"
@@ -667,33 +679,33 @@ msgctxt "oss"
 msgid "Learn More"
 msgstr "Mehr erfahren"
 
-#: src/Tax.php:260 src/Tax.php:338
+#: src/Tax.php:293 src/Tax.php:371
 #, php-format
 msgctxt "oss"
 msgid "Tax class (%s)"
 msgstr "Steuerklasse (%s)"
 
-#: src/Tax.php:261
+#: src/Tax.php:294
 msgctxt "oss"
 msgid "Same as parent"
 msgstr "Gleiche wie übergeordnet"
 
-#: src/Tax.php:263 src/Tax.php:296 src/Tax.php:340 src/Tax.php:374
+#: src/Tax.php:296 src/Tax.php:329 src/Tax.php:373 src/Tax.php:407
 msgctxt "oss"
 msgid "remove"
 msgstr "Löschen"
 
-#: src/Tax.php:273 src/Tax.php:351
+#: src/Tax.php:306 src/Tax.php:384
 msgctxt "oss"
 msgid "Add country specific tax class (OSS)"
 msgstr "Länderspezifische Steuerklasse hinzufügen (OSS)"
 
-#: src/Tax.php:280 src/Tax.php:358
+#: src/Tax.php:313 src/Tax.php:391
 msgctxt "oss"
 msgid "Select country"
 msgstr "Land auswählen"
 
-#: src/Tax.php:305 src/Tax.php:315
+#: src/Tax.php:338 src/Tax.php:348
 msgctxt "oss"
 msgid "EU-wide"
 msgstr "EU-weit"

@@ -110,4 +110,26 @@ class DeliveryThresholdEmailNotification extends \WC_Email {
 			update_option( 'oss_woocommerce_notification_sent_' . $report->get_date_start()->format( 'Y' ), 'yes', false );
 		}
 	}
+
+	/**
+	 * Initialise settings form fields.
+	 */
+	public function init_form_fields() {
+		parent::init_form_fields();
+
+		$this->form_fields = array_merge(
+			$this->form_fields,
+			array(
+				'recipient' => array(
+					'title'       => _x( 'Recipient(s)', 'oss', 'one-stop-shop-woocommerce' ),
+					'type'        => 'text',
+					/* translators: %s: WP admin email */
+					'description' => sprintf( _x( 'Enter recipients (comma separated) for this email. Defaults to %s.', 'oss', 'one-stop-shop-woocommerce' ), '<code>' . esc_attr( get_option( 'admin_email' ) ) . '</code>' ),
+					'placeholder' => '',
+					'default'     => '',
+					'desc_tip'    => true,
+				),
+			)
+		);
+	}
 }

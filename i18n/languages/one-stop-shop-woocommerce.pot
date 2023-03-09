@@ -1,16 +1,16 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "Project-Id-Version: One Stop Shop for WooCommerce\n"
-"POT-Creation-Date: 2021-07-08 13:56+0200\n"
+"POT-Creation-Date: 2023-03-09 12:23+0100\n"
 "PO-Revision-Date: 2021-05-10 09:48+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.4.3\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"X-Generator: Poedit 3.2.2\n"
 "X-Poedit-Basepath: ../..\n"
 "X-Poedit-Flags-xgettext: --add-comments=translators:\n"
 "X-Poedit-WPHeader: one-stop-shop-woocommerce.php\n"
@@ -24,6 +24,46 @@ msgstr ""
 "X-Poedit-SearchPathExcluded-2: node_modules\n"
 "X-Poedit-SearchPathExcluded-3: build\n"
 
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:312
+msgid "Reduced rate"
+msgstr ""
+
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:313
+msgctxt "tax-helper-tax-class-name"
+msgid "Greater reduced rate"
+msgstr ""
+
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:314
+msgctxt "tax-helper-tax-class-name"
+msgid "Super reduced rate"
+msgstr ""
+
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:718
+msgctxt "tax-helper"
+msgid "Madeira"
+msgstr ""
+
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:725
+msgctxt "tax-helper"
+msgid "Acores"
+msgstr ""
+
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:761
+msgctxt "tax-helper"
+msgid "Northern Ireland"
+msgstr ""
+
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:774
+msgctxt "tax-helper-rate-import"
+msgid "Exempt"
+msgstr ""
+
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:843
+#, php-format
+msgctxt "tax-helper-rate-import"
+msgid "VAT %1$s %% %2$s"
+msgstr ""
+
 #. translators: 1: composer command. 2: plugin directory
 #: one-stop-shop-woocommerce.php:44 one-stop-shop-woocommerce.php:62
 #, php-format
@@ -33,17 +73,17 @@ msgid ""
 "run %1$s within the %2$s directory."
 msgstr ""
 
-#: src/Admin.php:76 src/Admin.php:77
+#: src/Admin.php:78 src/Admin.php:79
 msgctxt "oss"
 msgid "Refresh VAT rates (OSS)"
 msgstr ""
 
-#: src/Admin.php:81
+#: src/Admin.php:83
 msgctxt "oss"
 msgid "Note:"
 msgstr ""
 
-#: src/Admin.php:82
+#: src/Admin.php:84
 #, php-format
 msgctxt "oss"
 msgid ""
@@ -51,7 +91,7 @@ msgid ""
 "based on your current <a href=\"%s\">OSS status</a>."
 msgstr ""
 
-#: src/Admin.php:212
+#: src/Admin.php:214
 #, php-format
 msgctxt "oss"
 msgid ""
@@ -60,125 +100,130 @@ msgid ""
 "target=\"_blank\">report details</a> and take action in case necessary."
 msgstr ""
 
-#: src/Admin.php:216
+#: src/Admin.php:218
 msgctxt "oss"
 msgid "Delivery threshold reached (OSS)"
 msgstr ""
 
-#: src/Admin.php:432 src/SettingsPage.php:17
+#: src/Admin.php:448 src/SettingsPage.php:17
 msgctxt "oss"
 msgid "OSS"
 msgstr ""
 
-#: src/Admin.php:432 src/Admin.php:550 src/SettingsPage.php:23
+#: src/Admin.php:448 src/Admin.php:566 src/SettingsPage.php:23
 msgctxt "oss"
 msgid "One Stop Shop"
 msgstr ""
 
-#: src/Admin.php:453 src/Package.php:264
+#: src/Admin.php:469 src/Package.php:363
 #, php-format
 msgctxt "oss"
 msgid "Q%1$s/%2$s"
 msgstr ""
 
-#: src/Admin.php:462 src/Package.php:269
+#: src/Admin.php:478 src/Package.php:368
 #, php-format
 msgctxt "oss"
 msgid "%1$s/%2$s"
 msgstr ""
 
-#: src/Admin.php:470
+#: src/Admin.php:486
 msgctxt "oss"
 msgid "New Report"
 msgstr ""
 
-#: src/Admin.php:477
+#: src/Admin.php:493
 msgctxt "oss"
 msgid "Type"
 msgstr ""
 
-#: src/Admin.php:489
+#: src/Admin.php:505
 msgctxt "oss"
 msgid "Year"
 msgstr ""
 
-#: src/Admin.php:501
+#: src/Admin.php:517
 msgctxt "oss"
 msgid "Quarter"
 msgstr ""
 
-#: src/Admin.php:513
+#: src/Admin.php:529
 msgctxt "oss"
 msgid "Month"
 msgstr ""
 
-#: src/Admin.php:525
+#: src/Admin.php:541
 msgctxt "oss"
 msgid "Date range"
 msgstr ""
 
-#: src/Admin.php:537
+#: src/Admin.php:553
 msgctxt "oss"
 msgid "Start report"
 msgstr ""
 
-#: src/Admin.php:551
+#: src/Admin.php:567
 msgctxt "oss"
 msgid "New report"
 msgstr ""
 
-#: src/Admin.php:593
+#: src/Admin.php:609
 msgctxt "oss"
 msgid "View"
 msgstr ""
 
-#: src/Admin.php:597
+#: src/Admin.php:613
 msgctxt "oss"
 msgid "Export"
 msgstr ""
 
-#: src/Admin.php:601
+#: src/Admin.php:617
+msgctxt "oss"
+msgid "Export BOP"
+msgstr ""
+
+#: src/Admin.php:621
 msgctxt "oss"
 msgid "Refresh"
 msgstr ""
 
-#: src/Admin.php:605
+#: src/Admin.php:625
 msgctxt "oss"
 msgid "Delete"
 msgstr ""
 
-#: src/Admin.php:611
+#: src/Admin.php:631
 msgctxt "oss"
 msgid "Cancel"
 msgstr ""
 
-#: src/Admin.php:640
+#: src/Admin.php:669
 msgctxt "oss"
 msgid "Country"
 msgstr ""
 
-#: src/Admin.php:641
+#: src/Admin.php:670
 msgctxt "oss"
 msgid "Tax Rate"
 msgstr ""
 
-#: src/Admin.php:642
+#: src/Admin.php:671
 msgctxt "oss"
 msgid "Net Total"
 msgstr ""
 
-#: src/Admin.php:643
+#: src/Admin.php:672
 msgctxt "oss"
 msgid "Tax Total"
 msgstr ""
 
-#: src/Admin.php:674
+#: src/Admin.php:703
 #, php-format
 msgctxt "oss"
 msgid "%1$s %%"
 msgstr ""
 
-#: src/Admin.php:686
+#: src/Admin.php:716
 #, php-format
 msgctxt "oss"
 msgid ""
@@ -186,42 +231,42 @@ msgid ""
 "href=\"%3$s\">Find pending actions</a>"
 msgstr ""
 
-#: src/Admin.php:686
+#: src/Admin.php:716
 msgctxt "oss"
 msgid "Not yet known"
 msgstr ""
 
-#: src/Admin.php:717 src/ReportTable.php:39 src/SettingsPage.php:23
+#: src/Admin.php:747 src/ReportTable.php:39 src/SettingsPage.php:23
 msgctxt "oss"
 msgid "Reports"
 msgstr ""
 
-#: src/AdminNote.php:39
+#: src/AdminNote.php:46
 msgctxt "oss"
 msgid "Dismiss"
 msgstr ""
 
-#: src/AsyncReportGenerator.php:244
+#: src/AsyncReportGenerator.php:258
 msgctxt "oss"
 msgid "No orders found."
 msgstr ""
 
-#: src/CSVExporter.php:52
+#: src/CSVExporter.php:54
 msgctxt "oss"
 msgid "Country code"
 msgstr ""
 
-#: src/CSVExporter.php:53
+#: src/CSVExporter.php:55
 msgctxt "oss"
 msgid "Tax rate"
 msgstr ""
 
-#: src/CSVExporter.php:54
+#: src/CSVExporter.php:56
 msgctxt "oss"
 msgid "Taxable base"
 msgstr ""
 
-#: src/CSVExporter.php:55
+#: src/CSVExporter.php:57
 msgctxt "oss"
 msgid "Amount"
 msgstr ""
@@ -248,82 +293,94 @@ msgctxt "oss"
 msgid "OSS delivery threshold reached"
 msgstr ""
 
-#: src/DeliveryThresholdWarning.php:13
+#: src/DeliveryThresholdEmailNotification.php:124
+msgctxt "oss"
+msgid "Recipient(s)"
+msgstr ""
+
+#. translators: %s: WP admin email
+#: src/DeliveryThresholdEmailNotification.php:127
+#, php-format
+msgctxt "oss"
+msgid "Enter recipients (comma separated) for this email. Defaults to %s."
+msgstr ""
+
+#: src/DeliveryThresholdWarning.php:14
 msgctxt "oss"
 msgid "See details"
 msgstr ""
 
-#: src/Package.php:80
+#: src/Package.php:176
 msgctxt "oss"
 msgid ""
 "To use the OSS for WooCommerce plugin please make sure that WooCommerce is "
 "installed and activated."
 msgstr ""
 
-#: src/Package.php:249 src/ReportTable.php:40
+#: src/Package.php:348 src/ReportTable.php:40
 msgctxt "oss"
 msgid "Report"
 msgstr ""
 
-#: src/Package.php:273
+#: src/Package.php:372
 #, php-format
 msgctxt "oss"
 msgid "%1$s"
 msgstr ""
 
-#: src/Package.php:278
+#: src/Package.php:377
 #, php-format
 msgctxt "oss"
 msgid "%1$s - %2$s"
 msgstr ""
 
-#: src/Package.php:283
+#: src/Package.php:382
 #, php-format
 msgctxt "oss"
 msgid "Observer %1$s"
 msgstr ""
 
-#: src/Package.php:482
+#: src/Package.php:634
 msgctxt "oss"
 msgid "Quarterly"
 msgstr ""
 
-#: src/Package.php:483
+#: src/Package.php:635
 msgctxt "oss"
 msgid "Yearly"
 msgstr ""
 
-#: src/Package.php:484
+#: src/Package.php:636
 msgctxt "oss"
 msgid "Monthly"
 msgstr ""
 
-#: src/Package.php:485
+#: src/Package.php:637
 msgctxt "oss"
 msgid "Custom"
 msgstr ""
 
-#: src/Package.php:489
+#: src/Package.php:641
 msgctxt "oss"
 msgid "Observer"
 msgstr ""
 
-#: src/Package.php:503
+#: src/Package.php:655
 msgctxt "oss"
 msgid "Pending"
 msgstr ""
 
-#: src/Package.php:504
+#: src/Package.php:656
 msgctxt "oss"
 msgid "Completed"
 msgstr ""
 
-#: src/Package.php:505
+#: src/Package.php:657
 msgctxt "oss"
 msgid "Failed"
 msgstr ""
 
-#: src/ReportTable.php:121
+#: src/ReportTable.php:124
 #, php-format
 msgctxt "oss"
 msgid "%d report deleted."
@@ -331,12 +388,12 @@ msgid_plural "%d reports deleted."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ReportTable.php:184
+#: src/ReportTable.php:187
 msgctxt "oss"
 msgid "No reports found"
 msgstr ""
 
-#: src/ReportTable.php:225
+#: src/ReportTable.php:228
 #, php-format
 msgctxt "oss"
 msgid "All <span class=\"count\">(%s)</span>"
@@ -344,7 +401,7 @@ msgid_plural "All <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ReportTable.php:250
+#: src/ReportTable.php:255
 #, php-format
 msgctxt "oss"
 msgid " <span class=\"count\">(%s)</span>"
@@ -352,91 +409,91 @@ msgid_plural " <span class=\"count\">(%s)</span>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ReportTable.php:323
+#: src/ReportTable.php:326
 msgctxt "oss"
 msgid "Filter"
 msgstr ""
 
-#: src/ReportTable.php:350
+#: src/ReportTable.php:353
 msgctxt "oss"
 msgid "Title"
 msgstr ""
 
-#: src/ReportTable.php:351
+#: src/ReportTable.php:354
 msgctxt "oss"
 msgid "Start"
 msgstr ""
 
-#: src/ReportTable.php:352
+#: src/ReportTable.php:355
 msgctxt "oss"
 msgid "End"
 msgstr ""
 
-#: src/ReportTable.php:353 templates/emails/admin-delivery-threshold.php:25
+#: src/ReportTable.php:356 templates/emails/admin-delivery-threshold.php:25
 msgctxt "oss"
 msgid "Net total"
 msgstr ""
 
-#: src/ReportTable.php:354 templates/emails/admin-delivery-threshold.php:26
+#: src/ReportTable.php:357 templates/emails/admin-delivery-threshold.php:26
 msgctxt "oss"
 msgid "Tax total"
 msgstr ""
 
-#: src/ReportTable.php:355
+#: src/ReportTable.php:358
 msgctxt "oss"
 msgid "Status"
 msgstr ""
 
-#: src/ReportTable.php:356
+#: src/ReportTable.php:359
 msgctxt "oss"
 msgid "Actions"
 msgstr ""
 
-#: src/ReportTable.php:420
+#: src/ReportTable.php:423
 #, php-format
 msgctxt "oss"
 msgid "Select %s"
 msgstr ""
 
-#: src/ReportTable.php:513
+#: src/ReportTable.php:516
 msgctxt "oss"
 msgid "Delete Permanently"
 msgstr ""
 
-#: src/Settings.php:14
+#: src/Settings.php:16
 msgctxt "oss"
 msgid "General"
 msgstr ""
 
-#: src/Settings.php:19
+#: src/Settings.php:21
 msgctxt "oss"
 msgid ""
 "Find useful options regarding the <a href=\"https://ec.europa.eu/"
-"taxation_customs/business/vat/oss_en\" target=\"_blank\" rel=\"noopener"
-"\">One Stop Shop procedure</a> here."
+"taxation_customs/business/vat/oss_en\" target=\"_blank\" "
+"rel=\"noopener\">One Stop Shop procedure</a> here."
 msgstr ""
 
-#: src/Settings.php:31
+#: src/Settings.php:38
 msgctxt "oss"
 msgid "OSS status"
 msgstr ""
 
-#: src/Settings.php:32
+#: src/Settings.php:39
 msgctxt "oss"
 msgid "Yes, I'm currently participating in the OSS procedure."
 msgstr ""
 
-#: src/Settings.php:39
+#: src/Settings.php:46
 msgctxt "oss"
 msgid "Observation"
 msgstr ""
 
-#: src/Settings.php:40
+#: src/Settings.php:47
 msgctxt "oss"
 msgid "Automatically observe the delivery threshold of the current year."
 msgstr ""
 
-#: src/Settings.php:40
+#: src/Settings.php:47
 msgctxt "oss"
 msgid ""
 "This option will automatically calculate the amount applicable for the OSS "
@@ -445,54 +502,91 @@ msgid ""
 "observation to save processing time."
 msgstr ""
 
-#: src/Settings.php:50
+#: src/Settings.php:59
 msgctxt "oss"
 msgid "Delivery threshold"
 msgstr ""
 
-#: src/Settings.php:60
+#: src/Settings.php:72
 msgctxt "oss"
 msgid "Participation"
 msgstr ""
 
-#: src/Settings.php:70
+#: src/Settings.php:79
+msgctxt "oss"
+msgid "Report Order Date"
+msgstr ""
+
+#: src/Settings.php:80
+msgctxt "oss"
+msgid ""
+"Select the relevant order date to be used to determine whether to include an "
+"order in a report."
+msgstr ""
+
+#: src/Settings.php:85
+msgctxt "oss"
+msgid "Date paid"
+msgstr ""
+
+#: src/Settings.php:86
+msgctxt "oss"
+msgid "Date created"
+msgstr ""
+
+#: src/Settings.php:97
 msgctxt "oss"
 msgid "Fixed gross prices"
 msgstr ""
 
-#: src/Settings.php:71
+#: src/Settings.php:98
 msgctxt "oss"
-msgid "Apply the same gross price regardless of the tax rate."
+msgid "Apply the same gross price regardless of the tax rate for EU countries."
 msgstr ""
 
-#: src/Settings.php:71
+#: src/Settings.php:98
 msgctxt "oss"
 msgid ""
 "This option will make sure that your customers pay the same price no matter "
 "the tax rate (based on the country chosen) to be applied."
 msgstr ""
 
-#: src/Settings.php:92
+#: src/Settings.php:104
+msgctxt "oss"
+msgid "Third countries"
+msgstr ""
+
+#: src/Settings.php:105
+msgctxt "oss"
+msgid "Apply the same gross price for third countries too."
+msgstr ""
+
+#: src/Settings.php:138 src/Settings.php:139
 msgctxt "oss"
 msgid "Are you sure? Please backup your tax rates before proceeding."
 msgstr ""
 
-#: src/Settings.php:92
+#: src/Settings.php:138
 msgctxt "oss"
 msgid "End OSS participation"
 msgstr ""
 
-#: src/Settings.php:92
+#: src/Settings.php:138
 msgctxt "oss"
 msgid "Start OSS participation"
 msgstr ""
 
-#: src/Settings.php:93
+#: src/Settings.php:139
+msgctxt "oss"
+msgid "refresh VAT rates"
+msgstr ""
+
+#: src/Settings.php:140
 msgctxt "oss"
 msgid "learn more"
 msgstr ""
 
-#: src/Settings.php:95
+#: src/Settings.php:142
 msgctxt "oss"
 msgid ""
 "Use this option to automatically adjust tax-related options in WooCommerce. "
@@ -500,45 +594,45 @@ msgid ""
 "rates based on your OSS participation status."
 msgstr ""
 
-#: src/Settings.php:127
+#: src/Settings.php:174
 msgctxt "oss"
 msgid "See status"
 msgstr ""
 
-#: src/Settings.php:127
+#: src/Settings.php:174
 msgctxt "oss"
 msgid "Start initial report"
 msgstr ""
 
-#: src/Settings.php:128
+#: src/Settings.php:175
 #, php-format
 msgctxt "oss"
 msgid "Report not yet completed. %s"
 msgstr ""
 
-#: src/Settings.php:128
+#: src/Settings.php:175
 #, php-format
 msgctxt "oss"
 msgid "Report not yet started. %s"
 msgstr ""
 
-#: src/Settings.php:146
+#: src/Settings.php:193
 msgctxt "oss-amounts"
 msgid "of"
 msgstr ""
 
-#: src/Settings.php:146
+#: src/Settings.php:193
 #, php-format
 msgctxt "oss"
 msgid "As of: %s"
 msgstr ""
 
-#: src/Settings.php:146
+#: src/Settings.php:193
 msgctxt "oss"
 msgid "see details"
 msgstr ""
 
-#: src/Settings.php:147
+#: src/Settings.php:194
 #, php-format
 msgctxt "oss"
 msgid ""
@@ -553,71 +647,35 @@ msgctxt "oss"
 msgid "Learn More"
 msgstr ""
 
-#: src/Tax.php:278 src/Tax.php:336
+#: src/Tax.php:293 src/Tax.php:371
 #, php-format
 msgctxt "oss"
 msgid "Tax class (%s)"
 msgstr ""
 
-#: src/Tax.php:279
+#: src/Tax.php:294
 msgctxt "oss"
 msgid "Same as parent"
 msgstr ""
 
-#: src/Tax.php:281 src/Tax.php:314 src/Tax.php:338 src/Tax.php:372
+#: src/Tax.php:296 src/Tax.php:329 src/Tax.php:373 src/Tax.php:407
 msgctxt "oss"
 msgid "remove"
 msgstr ""
 
-#: src/Tax.php:291 src/Tax.php:349
+#: src/Tax.php:306 src/Tax.php:384
 msgctxt "oss"
 msgid "Add country specific tax class (OSS)"
 msgstr ""
 
-#: src/Tax.php:298 src/Tax.php:356
+#: src/Tax.php:313 src/Tax.php:391
 msgctxt "oss"
 msgid "Select country"
 msgstr ""
 
-#. translators: Do not translate
-#: src/Tax.php:452 src/Tax.php:579
-msgid "Reduced rate"
-msgstr ""
-
-#: src/Tax.php:455 src/Tax.php:571
+#: src/Tax.php:338 src/Tax.php:348
 msgctxt "oss"
-msgid "Greater reduced rate"
-msgstr ""
-
-#: src/Tax.php:458 src/Tax.php:575
-msgctxt "oss"
-msgid "Super reduced rate"
-msgstr ""
-
-#: src/Tax.php:751
-msgctxt "oss"
-msgid "Madeira"
-msgstr ""
-
-#: src/Tax.php:758
-msgctxt "oss"
-msgid "Acores"
-msgstr ""
-
-#: src/Tax.php:794
-msgctxt "oss"
-msgid "Northern Ireland"
-msgstr ""
-
-#: src/Tax.php:807
-msgctxt "oss-tax-rate-import"
-msgid "Exempt"
-msgstr ""
-
-#: src/Tax.php:873
-#, php-format
-msgctxt "oss-tax-rate-import"
-msgid "VAT %1$s %% %2$s"
+msgid "EU-wide"
 msgstr ""
 
 #. translators: %s: Customer billing full name

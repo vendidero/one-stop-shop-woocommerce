@@ -29,7 +29,7 @@ output 2 "Done"
 output 3 "Updating package textdomains..."
 
 # Replace text domains within packages with woocommerce
-find ./libs/woocommerce-eu-tax-helper -iname '*.php' -exec sed -i.bak -e "s/, 'woocommerce-eu-tax-helper'/, 'oss-woocommerce'/g" {} \;
+find ./libs/woocommerce-eu-tax-helper -iname '*.php' -exec sed -i.bak -e "s/, 'woocommerce-eu-tax-helper'/, 'one-stop-shop-woocommerce'/g" {} \;
 
 rm -rf ./libs/woocommerce-eu-tax-helper/vendor
 
