@@ -135,13 +135,13 @@ class Tax {
 							'city'     => isset( $taxable_address[3] ) ? $taxable_address[3] : '',
 						);
 
-                        if ( WC()->countries->get_base_country() !== $address['country'] && Helper::is_eu_vat_country( $address['country'], $address['postcode'] ) ) {
-	                        $tax_class = self::get_product_tax_class_by_country( $product, $address );
+						if ( WC()->countries->get_base_country() !== $address['country'] && Helper::is_eu_vat_country( $address['country'], $address['postcode'] ) ) {
+							$tax_class = self::get_product_tax_class_by_country( $product, $address );
 
-	                        if ( $tax_class !== $item->get_tax_class() && apply_filters( 'oss_woocommerce_switch_order_item_tax_class', true, $tax_class, $item ) ) {
-		                        $item->set_tax_class( $tax_class );
-	                        }
-                        }
+							if ( $tax_class !== $item->get_tax_class() && apply_filters( 'oss_woocommerce_switch_order_item_tax_class', true, $tax_class, $item ) ) {
+								$item->set_tax_class( $tax_class );
+							}
+						}
 					}
 				}
 			}
@@ -287,14 +287,14 @@ class Tax {
 
 		if ( ! empty( $tax_classes ) ) {
 			foreach ( $tax_classes as $country => $tax_class ) {
-				$countries_left = array_diff_key( $countries_left, array( $country => '' ) );
+				$countries_left = array_diff( $countries_left, array( $country ) );
 
 				woocommerce_wp_select(
 					array(
 						'id'            => "variable_tax_class_by_countries{$loop}_{$country}",
 						'name'          => "variable_tax_class_by_countries[{$loop}][{$country}]",
 						'value'         => $tax_class,
-						'label'         => sprintf( _x( 'Tax class (%s)', 'oss', 'one-stop-shop-woocommerce' ), $country ),
+						'label'         => sprintf( _x( 'Tax class (%s)', 'oss', 'one-stop-shop-woocommerce' ), self::get_country_short_name( $country ) ),
 						'options'       => array( 'parent' => _x( 'Same as parent', 'oss', 'one-stop-shop-woocommerce' ) ) + wc_get_product_tax_class_options(),
 						'wrapper_class' => 'oss-tax-class-by-country-field form-row form-row-full',
 						'description'   => '<a href="#" class="dashicons dashicons-no-alt oss-remove-tax-class-by-country" data-country="' . esc_attr( $country ) . '">' . _x( 'remove', 'oss', 'one-stop-shop-woocommerce' ) . '</a>',
@@ -339,7 +339,7 @@ class Tax {
 
 	protected static function get_selectable_countries() {
 		$countries = Helper::get_non_base_eu_countries( true );
-		$eu        = array( 'EU-wide' => _x( 'EU-wide', 'oss', 'one-stop-shop-woocommerce' ) );
+		$eu        = array( 'EU-wide' );
 
 		return $eu + $countries;
 	}
@@ -348,10 +348,20 @@ class Tax {
 		$country_name = $country_code;
 		$countries    = WC()->countries ? WC()->countries->get_countries() : array();
 
-		if ( 'EU-wide' === $country_code ) {
+		if ( 'EU-wide' === $country_code || _x( 'EU-wide', 'oss', 'one-stop-shop-woocommerce' ) === $country_code ) {
 			$country_name = _x( 'EU-wide', 'oss', 'one-stop-shop-woocommerce' );
 		} elseif ( isset( $countries[ $country_code ] ) ) {
 			$country_name = $countries[ $country_code ];
+		}
+
+		return $country_name;
+	}
+
+	protected static function get_country_short_name( $country_code ) {
+		$country_name = $country_code;
+
+		if ( 'EU-wide' === $country_code || _x( 'EU-wide', 'oss', 'one-stop-shop-woocommerce' ) === $country_code ) {
+			$country_name = _x( 'EU-wide', 'oss', 'one-stop-shop-woocommerce' );
 		}
 
 		return $country_name;
@@ -365,14 +375,14 @@ class Tax {
 
 		if ( ! empty( $tax_classes ) ) {
 			foreach ( $tax_classes as $country => $tax_class ) {
-				$countries_left = array_diff_key( $countries_left, array( $country => '' ) );
+				$countries_left = array_diff( $countries_left, array( $country ) );
 
 				woocommerce_wp_select(
 					array(
 						'id'          => '_tax_class_by_countries_' . $country,
 						'name'        => '_tax_class_by_countries[' . $country . ']',
 						'value'       => $tax_class,
-						'label'       => sprintf( _x( 'Tax class (%s)', 'oss', 'one-stop-shop-woocommerce' ), $country ),
+						'label'       => sprintf( _x( 'Tax class (%s)', 'oss', 'one-stop-shop-woocommerce' ), self::get_country_short_name( $country ) ),
 						'options'     => wc_get_product_tax_class_options(),
 						'description' => '<a href="#" class="dashicons dashicons-no-alt oss-remove-tax-class-by-country" data-country="' . esc_attr( $country ) . '">' . _x( 'remove', 'oss', 'one-stop-shop-woocommerce' ) . '</a>',
 					)
@@ -448,13 +458,16 @@ class Tax {
 			$matched_tax_class = false !== $matched_tax_cache ? wp_cache_get( $cache_key, 'products' ) : false;
 
 			if ( false === $matched_tax_class ) {
-				$tax_classes     = self::get_product_tax_classes( $product );
-				$tax_class_slugs = Helper::get_tax_class_slugs();
+				$tax_classes               = self::get_product_tax_classes( $product );
+				$tax_class_slugs           = Helper::get_tax_class_slugs();
+				$translated_legacy_eu_slug = _x( 'EU-wide', 'oss', 'one-stop-shop-woocommerce' );
 
 				if ( array_key_exists( $address['country'], $tax_classes ) ) {
 					$tax_class = $tax_classes[ $address['country'] ];
 				} elseif ( isset( $tax_classes['EU-wide'] ) ) {
 					$tax_class = $tax_classes['EU-wide'];
+				} elseif ( isset( $tax_classes[ $translated_legacy_eu_slug ] ) ) {
+					$tax_class = $tax_classes[ $translated_legacy_eu_slug ];
 				}
 
 				if ( $tax_class_slugs['super-reduced'] === $tax_class ) {
