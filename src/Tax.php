@@ -341,7 +341,7 @@ class Tax {
 		$countries = Helper::get_non_base_eu_countries( true );
 		$eu        = array( 'EU-wide' );
 
-		return $eu + $countries;
+		return array_merge( $eu, $countries );
 	}
 
 	protected static function get_country_name( $country_code ) {
