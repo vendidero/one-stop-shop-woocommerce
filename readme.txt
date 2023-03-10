@@ -5,7 +5,7 @@ Requires at least: 5.4
 Tested up to: 6.2
 WC requires at least: 3.9
 WC tested up to: 7.4
-Stable tag: 1.3.6
+Stable tag: 1.3.7
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -60,6 +60,9 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 3. Create a new report
 
 == Changelog ==
+= 1.3.7 =
+* Fix: Do only adjust country-specific product tax class for EU VAT countries
+
 = 1.3.6 =
 * Fix: Include recipient field in admin threshold notification email settings
 

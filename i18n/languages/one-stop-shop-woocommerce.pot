@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: One Stop Shop for WooCommerce\n"
-"POT-Creation-Date: 2023-03-09 12:23+0100\n"
+"POT-Creation-Date: 2023-03-10 13:13+0100\n"
 "PO-Revision-Date: 2021-05-10 09:48+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -38,27 +38,31 @@ msgctxt "tax-helper-tax-class-name"
 msgid "Super reduced rate"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:718
-msgctxt "tax-helper"
-msgid "Madeira"
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:315
+msgid "Zero rate"
 msgstr ""
 
 #: libs/woocommerce-eu-tax-helper/src/Helper.php:725
 msgctxt "tax-helper"
+msgid "Madeira"
+msgstr ""
+
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:732
+msgctxt "tax-helper"
 msgid "Acores"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:761
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:768
 msgctxt "tax-helper"
 msgid "Northern Ireland"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:774
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:781
 msgctxt "tax-helper-rate-import"
 msgid "Exempt"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:843
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:850
 #, php-format
 msgctxt "tax-helper-rate-import"
 msgid "VAT %1$s %% %2$s"
@@ -647,33 +651,33 @@ msgctxt "oss"
 msgid "Learn More"
 msgstr ""
 
-#: src/Tax.php:293 src/Tax.php:371
+#: src/Tax.php:297 src/Tax.php:375
 #, php-format
 msgctxt "oss"
 msgid "Tax class (%s)"
 msgstr ""
 
-#: src/Tax.php:294
+#: src/Tax.php:298
 msgctxt "oss"
 msgid "Same as parent"
 msgstr ""
 
-#: src/Tax.php:296 src/Tax.php:329 src/Tax.php:373 src/Tax.php:407
+#: src/Tax.php:300 src/Tax.php:333 src/Tax.php:377 src/Tax.php:411
 msgctxt "oss"
 msgid "remove"
 msgstr ""
 
-#: src/Tax.php:306 src/Tax.php:384
+#: src/Tax.php:310 src/Tax.php:388
 msgctxt "oss"
 msgid "Add country specific tax class (OSS)"
 msgstr ""
 
-#: src/Tax.php:313 src/Tax.php:391
+#: src/Tax.php:317 src/Tax.php:395
 msgctxt "oss"
 msgid "Select country"
 msgstr ""
 
-#: src/Tax.php:338 src/Tax.php:348
+#: src/Tax.php:342 src/Tax.php:352
 msgctxt "oss"
 msgid "EU-wide"
 msgstr ""

@@ -135,11 +135,13 @@ class Tax {
 							'city'     => isset( $taxable_address[3] ) ? $taxable_address[3] : '',
 						);
 
-						$tax_class = self::get_product_tax_class_by_country( $product, $address );
+                        if ( WC()->countries->get_base_country() !== $address['country'] && Helper::is_eu_vat_country( $address['country'], $address['postcode'] ) ) {
+	                        $tax_class = self::get_product_tax_class_by_country( $product, $address );
 
-						if ( $tax_class !== $item->get_tax_class() && apply_filters( 'oss_woocommerce_switch_order_item_tax_class', true, $tax_class, $item ) ) {
-							$item->set_tax_class( $tax_class );
-						}
+	                        if ( $tax_class !== $item->get_tax_class() && apply_filters( 'oss_woocommerce_switch_order_item_tax_class', true, $tax_class, $item ) ) {
+		                        $item->set_tax_class( $tax_class );
+	                        }
+                        }
 					}
 				}
 			}
@@ -153,7 +155,7 @@ class Tax {
 	public static function filter_tax_class( $tax_class, $product ) {
 		$taxable_address = Helper::get_taxable_location();
 
-		if ( isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) && WC()->countries->get_base_country() !== $taxable_address[0] ) {
+		if ( isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) ) {
 			$address = array(
 				'country'  => $taxable_address[0],
 				'state'    => isset( $taxable_address[1] ) ? $taxable_address[1] : '',
@@ -161,7 +163,9 @@ class Tax {
 				'city'     => isset( $taxable_address[3] ) ? $taxable_address[3] : '',
 			);
 
-			$tax_class = self::get_product_tax_class_by_country( $product, $address, $tax_class );
+			if ( WC()->countries->get_base_country() !== $address['country'] && Helper::is_eu_vat_country( $address['country'], $address['postcode'] ) ) {
+				$tax_class = self::get_product_tax_class_by_country( $product, $address, $tax_class );
+			}
 		}
 
 		return $tax_class;
