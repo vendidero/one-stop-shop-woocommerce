@@ -439,9 +439,10 @@ class Tax {
 			)
 		);
 
-		$tax_class        = false !== $default ? $default : $product->get_tax_class();
-		$postcode         = wc_normalize_postcode( $address['postcode'] );
-		$filter_tax_class = true;
+		$tax_class          = false !== $default ? $default : $product->get_tax_class();
+		$original_tax_class = $tax_class;
+		$postcode           = wc_normalize_postcode( $address['postcode'] );
+		$filter_tax_class   = true;
 
 		/**
 		 * Prevent tax class adjustment for GB (except Norther Ireland via postcode detection)
@@ -457,7 +458,28 @@ class Tax {
 			$matched_tax_cache = wp_cache_get( $cache_key_tax, 'taxes' );
 			$matched_tax_class = false !== $matched_tax_cache ? wp_cache_get( $cache_key, 'products' ) : false;
 
-			if ( false === $matched_tax_class ) {
+			if ( false !== $matched_tax_class ) {
+				if ( ! is_array( $matched_tax_class ) ) {
+					$matched_tax_class = array(
+						'tax_class'          => $matched_tax_class,
+						'original_tax_class' => $matched_tax_class,
+					);
+				}
+
+				$matched_tax_class = wp_parse_args(
+					$matched_tax_class,
+					array(
+						'tax_class'          => '',
+						'original_tax_class' => '',
+					)
+				);
+			}
+
+			/**
+			 * Prevent caching in case the original tax rate (now applied to the product) does not
+			 * match the original tax class retrieved from the cached data.
+			 */
+			if ( false === $matched_tax_class || $matched_tax_class['original_tax_class'] !== $original_tax_class ) {
 				$tax_classes               = self::get_product_tax_classes( $product );
 				$tax_class_slugs           = Helper::get_tax_class_slugs();
 				$translated_legacy_eu_slug = _x( 'EU-wide', 'oss', 'one-stop-shop-woocommerce' );
@@ -531,9 +553,16 @@ class Tax {
 				 * This cache entry depends on both the tax and product data.
 				 */
 				wp_cache_set( $cache_key_tax, $cache_key, 'taxes' );
-				wp_cache_set( $cache_key, $tax_class, 'products' );
+				wp_cache_set(
+					$cache_key,
+					array(
+						'tax_class'          => $tax_class,
+						'original_tax_class' => $original_tax_class,
+					),
+					'products'
+				);
 			} else {
-				$tax_class = $matched_tax_class;
+				$tax_class = $matched_tax_class['tax_class'];
 			}
 		}
 
