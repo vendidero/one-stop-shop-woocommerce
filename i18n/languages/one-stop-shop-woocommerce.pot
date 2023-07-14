@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: One Stop Shop for WooCommerce\n"
-"POT-Creation-Date: 2023-03-10 13:13+0100\n"
+"POT-Creation-Date: 2023-07-14 10:53+0200\n"
 "PO-Revision-Date: 2021-05-10 09:48+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -10,7 +10,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Poedit 3.3.1\n"
 "X-Poedit-Basepath: ../..\n"
 "X-Poedit-Flags-xgettext: --add-comments=translators:\n"
 "X-Poedit-WPHeader: one-stop-shop-woocommerce.php\n"
@@ -24,45 +24,45 @@ msgstr ""
 "X-Poedit-SearchPathExcluded-2: node_modules\n"
 "X-Poedit-SearchPathExcluded-3: build\n"
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:312
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:318
 msgid "Reduced rate"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:313
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:319
 msgctxt "tax-helper-tax-class-name"
 msgid "Greater reduced rate"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:314
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:320
 msgctxt "tax-helper-tax-class-name"
 msgid "Super reduced rate"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:315
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:321
 msgid "Zero rate"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:725
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:743
 msgctxt "tax-helper"
 msgid "Madeira"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:732
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:750
 msgctxt "tax-helper"
 msgid "Acores"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:768
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:786
 msgctxt "tax-helper"
 msgid "Northern Ireland"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:781
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:799
 msgctxt "tax-helper-rate-import"
 msgid "Exempt"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:850
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:870
 #, php-format
 msgctxt "tax-helper-rate-import"
 msgid "VAT %1$s %% %2$s"
@@ -651,7 +651,7 @@ msgctxt "oss"
 msgid "Learn More"
 msgstr ""
 
-#: src/Tax.php:297 src/Tax.php:375
+#: src/Tax.php:297 src/Tax.php:385
 #, php-format
 msgctxt "oss"
 msgid "Tax class (%s)"
@@ -662,22 +662,23 @@ msgctxt "oss"
 msgid "Same as parent"
 msgstr ""
 
-#: src/Tax.php:300 src/Tax.php:333 src/Tax.php:377 src/Tax.php:411
+#: src/Tax.php:300 src/Tax.php:333 src/Tax.php:387 src/Tax.php:421
 msgctxt "oss"
 msgid "remove"
 msgstr ""
 
-#: src/Tax.php:310 src/Tax.php:388
+#: src/Tax.php:310 src/Tax.php:398
 msgctxt "oss"
 msgid "Add country specific tax class (OSS)"
 msgstr ""
 
-#: src/Tax.php:317 src/Tax.php:395
+#: src/Tax.php:317 src/Tax.php:405
 msgctxt "oss"
 msgid "Select country"
 msgstr ""
 
-#: src/Tax.php:342 src/Tax.php:352
+#: src/Tax.php:351 src/Tax.php:352 src/Tax.php:363 src/Tax.php:364
+#: src/Tax.php:485
 msgctxt "oss"
 msgid "EU-wide"
 msgstr ""
