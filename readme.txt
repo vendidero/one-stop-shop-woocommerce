@@ -4,8 +4,8 @@ Tags: one stop shop, woocommerce, OSS, EU, compliance
 Requires at least: 5.4
 Tested up to: 6.2
 WC requires at least: 3.9
-WC tested up to: 7.7
-Stable tag: 1.3.8
+WC tested up to: 7.8
+Stable tag: 1.3.9
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -60,6 +60,10 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 3. Create a new report
 
 == Changelog ==
+= 1.3.9 =
+* Fix: Tax rate type detection (standard vs. reduced)
+* Fix: Tax class formatting during import
+
 = 1.3.8 =
 * Improvement: Prevent tax rate cache under certain circumstances
 
