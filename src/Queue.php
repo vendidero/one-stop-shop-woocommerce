@@ -146,7 +146,7 @@ class Queue {
 		return apply_filters( 'oss_woocommerce_valid_order_statuses', $statuses );
 	}
 
-	public static function build_query( $args ) {
+	public static function build_posts_query( $args ) {
 		global $wpdb;
 
 		$joins = array(
@@ -163,7 +163,7 @@ class Queue {
 			$where_country_sql = "( {$wpdb->posts}.post_parent > 0 AND (mt1_parent.meta_value IN {$taxable_countries_in}) ) OR ( mt1.meta_value IN {$taxable_countries_in} )";
 		}
 
-		$where_date_sql = $wpdb->prepare( "{$wpdb->posts}.post_date >= %s AND {$wpdb->posts}.post_date <= %s", $args['start'], $args['end'] );
+		$where_date_sql = $wpdb->prepare( "DATE({$wpdb->posts}.post_date) >= %s AND DATE({$wpdb->posts}.post_date) <= %s", $args['start'], $args['end'] );
 
 		if ( 'date_paid' === $args['date_field'] ) {
 			/**
@@ -181,11 +181,15 @@ class Queue {
 			$joins[] = "LEFT JOIN {$wpdb->postmeta} AS mt3 ON ( {$wpdb->posts}.ID = mt3.post_id AND mt3.meta_key = '_date_paid' )";
 
 			$where_date_sql = $wpdb->prepare(
-				"( {$wpdb->posts}.post_date >= %s AND {$wpdb->posts}.post_date <= %s ) AND NOT mt3.post_id IS NULL AND (
-			  		mt3.meta_key = '_date_paid' AND mt3.meta_value >= %s AND mt3.meta_value <= %s
-			  	) OR {$wpdb->posts}.post_parent > 0 AND (
-			  	    {$wpdb->posts}.post_date >= %s AND {$wpdb->posts}.post_date <= %s
-			  	)",
+				"( DATE({$wpdb->posts}.post_date) >= %s AND DATE({$wpdb->posts}.post_date) <= %s ) 
+					AND ( 
+						( NOT mt3.post_id IS NULL AND (
+			  		        mt3.meta_key = '_date_paid' AND mt3.meta_value >= %s AND mt3.meta_value <= %s
+			  	        ) ) OR ( {$wpdb->posts}.post_parent > 0 AND (
+			  	            DATE({$wpdb->posts}.post_date) >= %s AND DATE({$wpdb->posts}.post_date) <= %s
+	                    ) )
+                    )
+                ",
 				$args['start'],
 				$max_end->format( 'Y-m-d' ),
 				strtotime( $args['start'] ),
@@ -200,7 +204,7 @@ class Queue {
 		// @codingStandardsIgnoreStart
 		$sql = $wpdb->prepare(
 			"
-			SELECT {$wpdb->posts}.* FROM {$wpdb->posts}  
+			SELECT {$wpdb->posts}.ID as order_id FROM {$wpdb->posts}  
 			$join_sql
 			WHERE 1=1 
 				AND ( {$wpdb->posts}.post_type IN {$post_type_in} ) AND ( {$wpdb->posts}.post_status IN {$post_status_in} ) AND ( {$where_date_sql} )
@@ -214,6 +218,102 @@ class Queue {
 		// @codingStandardsIgnoreEnd
 
 		return $sql;
+	}
+
+	public static function build_hpos_query( $args ) {
+		global $wpdb;
+
+		if ( ! Package::is_hpos_enabled() || ! class_exists( '\Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableDataStore' ) ) {
+			return self::build_posts_query( $args );
+		}
+
+		$orders_table_name      = \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableDataStore::get_orders_table_name();
+		$addresses_table_name   = \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableDataStore::get_addresses_table_name();
+		$operational_table_name = \Automattic\WooCommerce\Internal\DataStores\Orders\OrdersTableDataStore::get_operational_data_table_name();
+
+		$joins = array(
+			"LEFT JOIN {$addresses_table_name} AS billing_address ON {$orders_table_name}.id = billing_address.order_id AND billing_address.address_type = 'billing'",
+			"LEFT JOIN {$addresses_table_name} AS shipping_address ON {$orders_table_name}.id = shipping_address.order_id AND shipping_address.address_type = 'shipping'",
+			"LEFT JOIN {$operational_table_name} AS operational_data ON {$orders_table_name}.id = operational_data.order_id",
+		);
+
+		$taxable_countries_in = self::generate_in_query_sql( Helper::get_non_base_eu_countries( true ) );
+		$order_status_in      = self::generate_in_query_sql( $args['status'] );
+		$order_type_in        = self::generate_in_query_sql( isset( $args['order_types'] ) ? (array) $args['order_types'] : array( 'shop_order' ) );
+		$where_country_sql    = "((NOT shipping_address.country IS NULL AND (shipping_address.country IN {$taxable_countries_in})) or billing_address.country IN {$taxable_countries_in})";
+
+		if ( in_array( 'shop_order_refund', $args['order_types'], true ) ) {
+			$joins = array_merge(
+				$joins,
+				array(
+					"LEFT JOIN {$addresses_table_name} AS billing_parent_address ON {$orders_table_name}.parent_order_id = billing_parent_address.order_id AND billing_parent_address.address_type = 'billing'",
+					"LEFT JOIN {$addresses_table_name} AS shipping_parent_address ON {$orders_table_name}.parent_order_id = shipping_parent_address.order_id AND shipping_parent_address.address_type = 'shipping'",
+					"LEFT JOIN {$operational_table_name} AS operational_parent_data ON {$orders_table_name}.parent_order_id = operational_data.order_id",
+				)
+			);
+
+			$where_country_sql = $where_country_sql . " OR ( {$orders_table_name}.parent_order_id > 0 AND ((NOT shipping_parent_address.country IS NULL AND (shipping_parent_address.country IN {$taxable_countries_in})) OR billing_parent_address.country IN {$taxable_countries_in}))";
+		}
+
+		$where_date_sql = $wpdb->prepare( "DATE({$orders_table_name}.date_created_gmt) >= %s AND DATE({$orders_table_name}.date_created_gmt) <= %s", $args['start'], $args['end'] ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		if ( 'date_paid' === $args['date_field'] ) {
+			/**
+			 * Use a max end date to limit potential query results in case date_paid meta field is used.
+			 * This way we will only register payments made max 2 month after the order created date.
+			 */
+			$max_end = new \WC_DateTime( $args['end'] );
+			$max_end->modify( '+2 months' );
+
+			// @codingStandardsIgnoreStart
+			$where_date_sql = $wpdb->prepare(
+				"( DATE({$orders_table_name}.date_created_gmt) >= %s AND DATE({$orders_table_name}.date_created_gmt) <= %s ) 
+				AND (
+					( NOT operational_data.date_paid_gmt IS NULL AND (
+		                DATE(operational_data.date_paid_gmt) >= %s AND DATE(operational_data.date_paid_gmt) <= %s
+	                ) ) OR (
+	                    {$orders_table_name}.parent_order_id > 0 AND (
+		                    DATE({$orders_table_name}.date_created_gmt) >= %s AND DATE({$orders_table_name}.date_created_gmt) <= %s
+	                    )
+                    )
+			  	)",
+				$args['start'],
+				$max_end->format( 'Y-m-d' ),
+				$args['start'],
+				$args['end'],
+				$args['start'],
+				$args['end']
+			);
+			// @codingStandardsIgnoreEnd
+		}
+
+		$join_sql = implode( ' ', $joins );
+
+		// @codingStandardsIgnoreStart
+		$sql = $wpdb->prepare(
+			"
+			SELECT {$orders_table_name}.id as order_id FROM {$orders_table_name}  
+			$join_sql
+			WHERE 1=1 
+				AND ( {$orders_table_name}.type IN {$order_type_in} ) AND ( {$orders_table_name}.status IN {$order_status_in} ) AND ( {$where_date_sql} )
+				AND ( {$where_country_sql} )
+			GROUP BY {$orders_table_name}.id 
+			ORDER BY {$orders_table_name}.date_created_gmt ASC 
+			LIMIT %d, %d",
+			$args['offset'],
+			$args['limit']
+		);
+		// @codingStandardsIgnoreEnd
+
+		return $sql;
+	}
+
+	public static function build_query( $args ) {
+		if ( Package::is_hpos_enabled() ) {
+			return self::build_hpos_query( $args );
+		} else {
+			return self::build_posts_query( $args );
+		}
 	}
 
 	private static function generate_in_query_sql( $values ) {

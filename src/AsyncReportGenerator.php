@@ -91,7 +91,31 @@ class AsyncReportGenerator {
 		$taxable_country_type = ! empty( $order->get_shipping_country() ) ? 'shipping' : 'billing';
 		$taxable_country      = 'shipping' === $taxable_country_type ? $order->get_shipping_country() : $order->get_billing_country();
 
-		return $taxable_country;
+		if ( $this->has_local_pickup( $order ) ) {
+			$taxable_country = Helper::get_base_country();
+		}
+
+		return apply_filters( 'oss_woocommerce_order_taxable_country', $taxable_country, $order );
+	}
+
+	/**
+	 * @param \WC_Order $order
+	 *
+	 * @return boolean
+	 */
+	protected function has_local_pickup( $order ) {
+		$shipping_methods = $order->get_shipping_methods();
+		$has_pickup       = false;
+		$pickup_methods   = apply_filters( 'oss_local_pickup_shipping_methods', array( 'local_pickup' ) );
+
+		foreach ( $shipping_methods as $shipping_method ) {
+			if ( in_array( $shipping_method->get_method_id(), $pickup_methods, true ) ) {
+				$has_pickup = true;
+				break;
+			}
+		}
+
+		return apply_filters( 'oss_woocommerce_order_has_local_pickup', $has_pickup, $order );
 	}
 
 	/**
@@ -103,7 +127,11 @@ class AsyncReportGenerator {
 		$taxable_type     = ! empty( $order->get_shipping_postcode() ) ? 'shipping' : 'billing';
 		$taxable_postcode = 'shipping' === $taxable_type ? $order->get_shipping_postcode() : $order->get_billing_postcode();
 
-		return $taxable_postcode;
+		if ( $this->has_local_pickup( $order ) ) {
+			$taxable_postcode = WC()->countries ? WC()->countries->get_base_postcode() : '';
+		}
+
+		return apply_filters( 'oss_woocommerce_order_taxable_postcode', $taxable_postcode, $order );
 	}
 
 	/**
@@ -160,7 +188,7 @@ class AsyncReportGenerator {
 
 		if ( ! empty( $results ) ) {
 			foreach ( $results as $result ) {
-				if ( $order = wc_get_order( $result->ID ) ) {
+				if ( $order = wc_get_order( $result->order_id ) ) {
 					$forced_parent_order = false;
 
 					/**

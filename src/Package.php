@@ -209,6 +209,14 @@ class Package {
 		return apply_filters( 'oss_woocommerce_delivery_notification_threshold', self::get_delivery_threshold() * 0.95 );
 	}
 
+	public static function is_hpos_enabled() {
+		if ( ! is_callable( array( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) ) {
+			return false;
+		}
+
+		return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+	}
+
 	public static function get_delivery_threshold_left() {
 		$net_total = 0;
 
