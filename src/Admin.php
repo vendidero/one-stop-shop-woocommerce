@@ -246,6 +246,14 @@ class Admin {
 			update_option( 'woocommerce_tax_based_on', 'shipping' );
 			update_option( 'oss_use_oss_procedure', 'yes' );
 
+			/**
+			 * Make sure to update the default gross price option as this
+             * option was not set during install.
+			 */
+            if ( 'no' !== get_option( 'oss_fixed_gross_prices', '' ) && wc_prices_include_tax() ) {
+                update_option( 'oss_fixed_gross_prices', 'yes' );
+            }
+
 			Helper::import_oss_tax_rates();
 
 			do_action( 'woocommerce_oss_enabled_oss_procedure' );
