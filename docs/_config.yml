@@ -1,6 +1,6 @@
 title: One Stop Shop
 description: A helper plugin to improve your WooCommerce shops compliance with the EU One Stop Shop procedure
-remote_theme: pmarsceill/just-the-docs
+remote_theme: pmarsceill/just-the-docs@v0.6.1
 color_scheme: oss
 permalink: /:slug
 plugins:
