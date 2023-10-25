@@ -687,6 +687,10 @@ class Package {
 				Admin::delete_wc_admin_note( $oss_note );
 			}
 		}
+
+		if ( $queue = Queue::get_queue() ) {
+			$queue->cancel_all( '', array(), 'oss_woocommerce' );
+		}
 	}
 
 	public static function install_integration() {
