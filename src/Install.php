@@ -21,9 +21,9 @@ class Install {
 
 				wp_die( wp_kses_post( $notice ) );
 			}
-
-			self::add_options();
 		}
+
+		self::add_options();
 	}
 
 	private static function add_options() {

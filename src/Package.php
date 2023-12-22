@@ -41,6 +41,7 @@ class Package {
 
 	protected static function init_hooks() {
 		add_action( 'init', array( __CLASS__, 'load_plugin_textdomain' ) );
+		add_action( 'init', array( __CLASS__, 'check_version' ), 10 );
 
 		/**
 		 * Listen to action scheduler hooks for report generation
@@ -766,6 +767,14 @@ class Package {
 	public static function install() {
 		self::init();
 		Install::install();
+	}
+
+	public static function check_version() {
+		if ( self::has_dependencies() && ! defined( 'IFRAME_REQUEST' ) && ( get_option( 'one_stop_shop_woocommerce' ) !== self::get_version() ) ) {
+			Install::install();
+
+			do_action( 'oss_woocommerce_updated' );
+		}
 	}
 
 	public static function deactivate() {
