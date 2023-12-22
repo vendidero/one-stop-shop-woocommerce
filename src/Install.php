@@ -13,14 +13,12 @@ class Install {
 		$current_version = get_option( 'one_stop_shop_woocommerce', null );
 		update_option( 'one_stop_shop_woocommerce', Package::get_version() );
 
-		if ( ! Package::is_integration() ) {
-			if ( ! Package::has_dependencies() ) {
-				ob_start();
-				Package::dependency_notice();
-				$notice = ob_get_clean();
+		if ( ! Package::has_dependencies() ) {
+			ob_start();
+			Package::dependency_notice();
+			$notice = ob_get_clean();
 
-				wp_die( wp_kses_post( $notice ) );
-			}
+			wp_die( wp_kses_post( $notice ) );
 		}
 
 		self::add_options();
