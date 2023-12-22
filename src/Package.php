@@ -692,15 +692,20 @@ class Package {
 			}
 
 			if ( self::enable_tax_rate_observer() ) {
-				// Schedule once per day at 0:00
+				// Schedule once per day at 0:00 in local timezone
 				if ( null === $queue->get_next( 'oss_woocommerce_tax_rate_observer', array(), 'oss_woocommerce' ) ) {
-					$timestamp = strtotime( 'tomorrow midnight' );
-					$date      = new \WC_DateTime();
-
-					$date->setTimestamp( $timestamp );
+					/**
+					 * Use WC helper method which calculates the date in current
+					 * local timezone.
+					 */
+					$date = wc_string_to_datetime( 'tomorrow midnight' );
 					$date->modify( '+1 second' );
 
 					$queue->cancel_all( 'oss_woocommerce_tax_rate_observer', array(), 'oss_woocommerce' );
+
+					/**
+					 * Action scheduler expects the time in UTC.
+					 */
 					$queue->schedule_recurring( $date->getTimestamp(), DAY_IN_SECONDS, 'oss_woocommerce_tax_rate_observer', array(), 'oss_woocommerce' );
 				}
 			} else {
