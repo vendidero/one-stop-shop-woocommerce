@@ -8,7 +8,7 @@
  * Version: 1.4.0
  * Requires PHP: 5.6
  * License: GPLv3
- * Tested up to: 6.3
+ * Tested up to: 6.4
  *
  * Text Domain: one-stop-shop-woocommerce
  * Domain Path: /i18n/languages/

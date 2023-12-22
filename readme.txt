@@ -2,9 +2,9 @@
 Contributors: vendidero, vdwoocommercesupport
 Tags: one stop shop, woocommerce, OSS, EU, compliance
 Requires at least: 5.4
-Tested up to: 6.3
+Tested up to: 6.4
 WC requires at least: 3.9
-WC tested up to: 8.0
+WC tested up to: 8.5
 Stable tag: 1.4.0
 Requires PHP: 5.6
 License: GPLv3
