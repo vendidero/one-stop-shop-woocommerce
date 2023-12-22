@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: One Stop Shop for WooCommerce\n"
-"POT-Creation-Date: 2023-07-14 10:53+0200\n"
-"PO-Revision-Date: 2023-07-14 10:53+0200\n"
+"POT-Creation-Date: 2023-12-22 12:31+0100\n"
+"PO-Revision-Date: 2023-12-22 12:40+0100\n"
 "Last-Translator: Dennis Nissle <info@vendidero.de>\n"
 "Language-Team: \n"
 "Language: de_DE\n"
@@ -10,7 +10,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.3.1\n"
+"X-Generator: Poedit 3.4\n"
 "X-Poedit-Basepath: ../..\n"
 "X-Poedit-Flags-xgettext: --add-comments=translators:\n"
 "X-Poedit-WPHeader: one-stop-shop-woocommerce.php\n"
@@ -42,27 +42,27 @@ msgstr "Stark reduzierter Preis"
 msgid "Zero rate"
 msgstr ""
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:743
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:798
 msgctxt "tax-helper"
 msgid "Madeira"
 msgstr "Madeira"
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:750
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:805
 msgctxt "tax-helper"
 msgid "Acores"
 msgstr "Azoren"
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:786
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:841
 msgctxt "tax-helper"
 msgid "Northern Ireland"
 msgstr "Nordirland"
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:799
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:875
 msgctxt "tax-helper-rate-import"
 msgid "Exempt"
 msgstr "Ausnahme"
 
-#: libs/woocommerce-eu-tax-helper/src/Helper.php:870
+#: libs/woocommerce-eu-tax-helper/src/Helper.php:961
 #, php-format
 msgctxt "tax-helper-rate-import"
 msgid "VAT %1$s %% %2$s"
@@ -116,125 +116,125 @@ msgctxt "oss"
 msgid "Delivery threshold reached (OSS)"
 msgstr "Lieferschwelle erreicht (OSS)"
 
-#: src/Admin.php:448 src/SettingsPage.php:17
+#: src/Admin.php:456 src/SettingsPage.php:17
 msgctxt "oss"
 msgid "OSS"
 msgstr "OSS"
 
-#: src/Admin.php:448 src/Admin.php:566 src/SettingsPage.php:23
+#: src/Admin.php:456 src/Admin.php:574 src/SettingsPage.php:23
 msgctxt "oss"
 msgid "One Stop Shop"
 msgstr "One Stop Shop"
 
-#: src/Admin.php:469 src/Package.php:363
+#: src/Admin.php:477 src/Package.php:443
 #, php-format
 msgctxt "oss"
 msgid "Q%1$s/%2$s"
 msgstr "Q%1$s/%2$s"
 
-#: src/Admin.php:478 src/Package.php:368
+#: src/Admin.php:486 src/Package.php:448
 #, php-format
 msgctxt "oss"
 msgid "%1$s/%2$s"
 msgstr "%1$s/%2$s"
 
-#: src/Admin.php:486
+#: src/Admin.php:494
 msgctxt "oss"
 msgid "New Report"
 msgstr "Neuer Bericht"
 
-#: src/Admin.php:493
+#: src/Admin.php:501
 msgctxt "oss"
 msgid "Type"
 msgstr "Typ"
 
-#: src/Admin.php:505
+#: src/Admin.php:513
 msgctxt "oss"
 msgid "Year"
 msgstr "Jahr"
 
-#: src/Admin.php:517
+#: src/Admin.php:525
 msgctxt "oss"
 msgid "Quarter"
 msgstr "Quartal"
 
-#: src/Admin.php:529
+#: src/Admin.php:537
 msgctxt "oss"
 msgid "Month"
 msgstr "Monat"
 
-#: src/Admin.php:541
+#: src/Admin.php:549
 msgctxt "oss"
 msgid "Date range"
 msgstr "Zeitraum"
 
-#: src/Admin.php:553
+#: src/Admin.php:561
 msgctxt "oss"
 msgid "Start report"
 msgstr "Bericht starten"
 
-#: src/Admin.php:567
+#: src/Admin.php:575
 msgctxt "oss"
 msgid "New report"
 msgstr "Neuer Bericht"
 
-#: src/Admin.php:609
+#: src/Admin.php:617
 msgctxt "oss"
 msgid "View"
 msgstr "Ansehen"
 
-#: src/Admin.php:613
+#: src/Admin.php:621
 msgctxt "oss"
 msgid "Export"
 msgstr "Exportieren"
 
-#: src/Admin.php:617
+#: src/Admin.php:625
 msgctxt "oss"
 msgid "Export BOP"
 msgstr "BOP-CSV exportieren"
 
-#: src/Admin.php:621
+#: src/Admin.php:629
 msgctxt "oss"
 msgid "Refresh"
 msgstr "Aktualisieren"
 
-#: src/Admin.php:625
+#: src/Admin.php:633
 msgctxt "oss"
 msgid "Delete"
 msgstr "Löschen"
 
-#: src/Admin.php:631
+#: src/Admin.php:639
 msgctxt "oss"
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: src/Admin.php:669
+#: src/Admin.php:677
 msgctxt "oss"
 msgid "Country"
 msgstr "Land"
 
-#: src/Admin.php:670
+#: src/Admin.php:678
 msgctxt "oss"
 msgid "Tax Rate"
 msgstr "Steuersatz"
 
-#: src/Admin.php:671
+#: src/Admin.php:679
 msgctxt "oss"
 msgid "Net Total"
 msgstr "Nettobetrag"
 
-#: src/Admin.php:672
+#: src/Admin.php:680
 msgctxt "oss"
 msgid "Tax Total"
 msgstr "Steuerbertrag"
 
-#: src/Admin.php:703
+#: src/Admin.php:711
 #, php-format
 msgctxt "oss"
 msgid "%1$s %%"
 msgstr "%1$s %%"
 
-#: src/Admin.php:716
+#: src/Admin.php:724
 #, php-format
 msgctxt "oss"
 msgid ""
@@ -244,12 +244,12 @@ msgstr ""
 "Aktuell %1$s Bestellung verarbeitet. Nächster Durchlauf planmäßig am %2$s. "
 "<a href=\"%3$s\">Offene Aktionen finden</a>"
 
-#: src/Admin.php:716
+#: src/Admin.php:724
 msgctxt "oss"
 msgid "Not yet known"
 msgstr "Noch nicht bekannt"
 
-#: src/Admin.php:747 src/ReportTable.php:39 src/SettingsPage.php:23
+#: src/Admin.php:755 src/ReportTable.php:39 src/SettingsPage.php:23
 msgctxt "oss"
 msgid "Reports"
 msgstr "Berichte"
@@ -259,7 +259,7 @@ msgctxt "oss"
 msgid "Dismiss"
 msgstr "Ausblenden"
 
-#: src/AsyncReportGenerator.php:258
+#: src/AsyncReportGenerator.php:286
 msgctxt "oss"
 msgid "No orders found."
 msgstr "Keine Bestellungen gefunden."
@@ -325,7 +325,7 @@ msgctxt "oss"
 msgid "See details"
 msgstr "Details ansehen"
 
-#: src/Package.php:176
+#: src/Package.php:244
 msgctxt "oss"
 msgid ""
 "To use the OSS for WooCommerce plugin please make sure that WooCommerce is "
@@ -334,65 +334,65 @@ msgstr ""
 "Um das OSS für WooCommerce Plugin nutzen zu können muss WooCommerce "
 "installiert und aktiviert sein."
 
-#: src/Package.php:348 src/ReportTable.php:40
+#: src/Package.php:428 src/ReportTable.php:40
 msgctxt "oss"
 msgid "Report"
 msgstr "Bericht"
 
-#: src/Package.php:372
+#: src/Package.php:452
 #, php-format
 msgctxt "oss"
 msgid "%1$s"
 msgstr "%1$s"
 
-#: src/Package.php:377
+#: src/Package.php:457
 #, php-format
 msgctxt "oss"
 msgid "%1$s - %2$s"
 msgstr "%1$s - %2$s"
 
-#: src/Package.php:382
+#: src/Package.php:462
 #, php-format
 msgctxt "oss"
 msgid "Observer %1$s"
 msgstr "Beobachter %1$s"
 
-#: src/Package.php:634
+#: src/Package.php:729
 msgctxt "oss"
 msgid "Quarterly"
 msgstr "Quartalsweise"
 
-#: src/Package.php:635
+#: src/Package.php:730
 msgctxt "oss"
 msgid "Yearly"
 msgstr "Jährlich"
 
-#: src/Package.php:636
+#: src/Package.php:731
 msgctxt "oss"
 msgid "Monthly"
 msgstr "Monatlich"
 
-#: src/Package.php:637
+#: src/Package.php:732
 msgctxt "oss"
 msgid "Custom"
 msgstr "Individuell"
 
-#: src/Package.php:641
+#: src/Package.php:736
 msgctxt "oss"
 msgid "Observer"
 msgstr "Beobachter"
 
-#: src/Package.php:655
+#: src/Package.php:750
 msgctxt "oss"
 msgid "Pending"
 msgstr "In Bearbeitung"
 
-#: src/Package.php:656
+#: src/Package.php:751
 msgctxt "oss"
 msgid "Completed"
 msgstr "Fertiggestellt"
 
-#: src/Package.php:657
+#: src/Package.php:752
 msgctxt "oss"
 msgid "Failed"
 msgstr "Fehlgeschlagen"
@@ -526,22 +526,44 @@ msgstr ""
 "nachberechnet wird. Der Bericht wird nur für die Tage nachberechnet, für die "
 "aktuell noch keine Überwachung stattfindet."
 
-#: src/Settings.php:59
+#: src/Settings.php:54
+msgctxt "oss"
+msgid "Tax rates"
+msgstr "Steuersätze"
+
+#: src/Settings.php:55
+msgctxt "oss"
+msgid "Automatically refresh tax rates in case scheduled changes exist."
+msgstr "Aktualisiere Steuersätze automatisch falls Änderungen existieren."
+
+#: src/Settings.php:55
+msgctxt "oss"
+msgid ""
+"EU tax rates may change from time to time, e.g. tax rates for Estonia "
+"change(d) on 2024-01-01. Enabling this option will automatically refresh "
+"your tax rates based on scheduled changesets once per day."
+msgstr ""
+"Steuersätze in der EU können sich von Zeit zu Zeit verändern, z.B. ändert(e) "
+"sich der Steuersatz für Estland am 01.01.2024. Mit der Aktivierung dieser "
+"Option werden Steuersätze anhand vorgefertigter Änderungsvorgaben einmal "
+"täglich geprüft und falls notwendig angepasst."
+
+#: src/Settings.php:67
 msgctxt "oss"
 msgid "Delivery threshold"
 msgstr "Lieferschwelle"
 
-#: src/Settings.php:72
+#: src/Settings.php:80
 msgctxt "oss"
 msgid "Participation"
 msgstr "Teilnahme"
 
-#: src/Settings.php:79
+#: src/Settings.php:87
 msgctxt "oss"
 msgid "Report Order Date"
 msgstr "Bericht Bestelldatum"
 
-#: src/Settings.php:80
+#: src/Settings.php:88
 msgctxt "oss"
 msgid ""
 "Select the relevant order date to be used to determine whether to include an "
@@ -550,27 +572,27 @@ msgstr ""
 "Wähle das relevante Bestelldatum aus auf Basis dessen entschieden wird ob "
 "eine Bestellung in einen Bericht inkludiert wird."
 
-#: src/Settings.php:85
+#: src/Settings.php:93
 msgctxt "oss"
 msgid "Date paid"
 msgstr "Zahlungsdatum"
 
-#: src/Settings.php:86
+#: src/Settings.php:94
 msgctxt "oss"
 msgid "Date created"
 msgstr "Erstellungsdatum"
 
-#: src/Settings.php:97
+#: src/Settings.php:105
 msgctxt "oss"
 msgid "Fixed gross prices"
 msgstr "Feste Bruttopreise"
 
-#: src/Settings.php:98
+#: src/Settings.php:106
 msgctxt "oss"
 msgid "Apply the same gross price regardless of the tax rate for EU countries."
 msgstr "Verwende den Bruttopreis für EU-Länder unabhängig vom Steuersatz."
 
-#: src/Settings.php:98
+#: src/Settings.php:106
 msgctxt "oss"
 msgid ""
 "This option will make sure that your customers pay the same price no matter "
@@ -579,42 +601,42 @@ msgstr ""
 "Diese Option bewirkt, dass Kunden, unabhängig vom Land und damit vom "
 "Steuersatz den selben Bruttopreis bezahlen."
 
-#: src/Settings.php:104
+#: src/Settings.php:112
 msgctxt "oss"
 msgid "Third countries"
 msgstr "Drittländer"
 
-#: src/Settings.php:105
+#: src/Settings.php:113
 msgctxt "oss"
 msgid "Apply the same gross price for third countries too."
 msgstr "Verwende den Bruttopreis auch für Drittländer."
 
-#: src/Settings.php:138 src/Settings.php:139
+#: src/Settings.php:146 src/Settings.php:147
 msgctxt "oss"
 msgid "Are you sure? Please backup your tax rates before proceeding."
 msgstr "Bist du sicher? Bitte erstelle vorab ein Backup deiner Steuersätze."
 
-#: src/Settings.php:138
+#: src/Settings.php:146
 msgctxt "oss"
 msgid "End OSS participation"
 msgstr "OSS Teilnahme beenden"
 
-#: src/Settings.php:138
+#: src/Settings.php:146
 msgctxt "oss"
 msgid "Start OSS participation"
 msgstr "OSS Teilnahme starten"
 
-#: src/Settings.php:139
+#: src/Settings.php:147
 msgctxt "oss"
 msgid "refresh VAT rates"
 msgstr "Steuersätze erneuern"
 
-#: src/Settings.php:140
+#: src/Settings.php:148
 msgctxt "oss"
 msgid "learn more"
 msgstr "Mehr erfahren"
 
-#: src/Settings.php:142
+#: src/Settings.php:150
 msgctxt "oss"
 msgid ""
 "Use this option to automatically adjust tax-related options in WooCommerce. "
@@ -625,45 +647,45 @@ msgstr ""
 "anpassen zu lassen. Achtung: Diese Option löscht deine aktuellen Steuersätze "
 "und fügt neue Steuersätze basierend auf deinem OSS Status hinzu."
 
-#: src/Settings.php:174
+#: src/Settings.php:182
 msgctxt "oss"
 msgid "See status"
 msgstr "Status ansehen"
 
-#: src/Settings.php:174
+#: src/Settings.php:182
 msgctxt "oss"
 msgid "Start initial report"
 msgstr "Initialen Bericht erstellen"
 
-#: src/Settings.php:175
+#: src/Settings.php:183
 #, php-format
 msgctxt "oss"
 msgid "Report not yet completed. %s"
 msgstr "Bericht noch nicht abgeschlossen. %s"
 
-#: src/Settings.php:175
+#: src/Settings.php:183
 #, php-format
 msgctxt "oss"
 msgid "Report not yet started. %s"
 msgstr "Bericht noch nicht gestartet. %s"
 
-#: src/Settings.php:193
+#: src/Settings.php:201
 msgctxt "oss-amounts"
 msgid "of"
 msgstr "von"
 
-#: src/Settings.php:193
+#: src/Settings.php:201
 #, php-format
 msgctxt "oss"
 msgid "As of: %s"
 msgstr "Stand: %s"
 
-#: src/Settings.php:193
+#: src/Settings.php:201
 msgctxt "oss"
 msgid "see details"
 msgstr "Details ansehen"
 
-#: src/Settings.php:194
+#: src/Settings.php:202
 #, php-format
 msgctxt "oss"
 msgid ""

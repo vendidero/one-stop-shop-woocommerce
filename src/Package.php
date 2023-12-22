@@ -2,6 +2,8 @@
 
 namespace Vendidero\OneStopShop;
 
+use Vendidero\EUTaxHelper\Helper;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -14,7 +16,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.4.0';
+	const VERSION = '1.5.0';
 
 	/**
 	 * Init the package
@@ -65,6 +67,7 @@ class Package {
 		// Setup or cancel recurring observer task
 		add_action( 'init', array( __CLASS__, 'setup_recurring_actions' ), 10 );
 		add_action( 'oss_woocommerce_daily_cleanup', array( __CLASS__, 'cleanup' ), 10 );
+		add_action( 'oss_woocommerce_tax_rate_observer', array( __CLASS__, 'observe_tax_rates' ), 10 );
 
 		if ( self::enable_auto_observer() ) {
 			add_action( 'oss_woocommerce_daily_observer', array( __CLASS__, 'update_observer_report' ), 10 );
@@ -77,6 +80,71 @@ class Package {
 		add_action( 'woocommerce_note_updated', array( '\Vendidero\OneStopShop\Admin', 'on_wc_admin_note_update' ) );
 
 		add_filter( 'woocommerce_eu_tax_helper_oss_procedure_is_enabled', array( __CLASS__, 'oss_procedure_is_enabled' ) );
+	}
+
+	public static function observe_tax_rates() {
+		if ( self::enable_tax_rate_observer() ) {
+			$changes                   = Helper::get_eu_tax_rate_changesets();
+			$last_applied_changes_date = null;
+			$today                     = new \WC_DateTime();
+
+			if ( $last_applied_changes = get_option( 'oss_observed_tax_rate_last_changeset' ) ) {
+				$last_applied_changes_date = wc_string_to_datetime( $last_applied_changes . ' 00:00:00' );
+			}
+
+			self::log( sprintf( 'Checking for tax rate changes @ %1$s. Last applied changes: %2$s', $today->date_i18n( 'Y-m-d' ), ( $last_applied_changes_date ? $last_applied_changes_date->date_i18n( 'Y-m-d' ) : '-' ) ) );
+
+			foreach ( $changes as $date => $changeset ) {
+				$changeset_date = wc_string_to_datetime( $date . ' 00:00:00' );
+
+				if ( ! $last_applied_changes_date || $changeset_date > $last_applied_changes_date ) {
+					$is_oss    = self::oss_procedure_is_enabled();
+					$countries = array_keys( $changeset );
+
+					if ( $today >= $changeset_date ) {
+						self::log( sprintf( 'Updating tax rates changes for %1$s @ %2$s: %3$s', $changeset_date->date_i18n( 'Y-m-d' ), $today->date_i18n( 'Y-m-d' ), wc_print_r( $changeset, true ) ) );
+
+						if ( $is_oss ) {
+							foreach ( $countries as $country ) {
+								Helper::delete_tax_rates_by_country( $country );
+							}
+
+							$tax_rates = Helper::generate_tax_rates( true, array(), $changeset, false );
+
+							self::log( sprintf( 'New tax rates: %1$s', wc_print_r( $tax_rates, true ) ) );
+
+							foreach ( $tax_rates as $tax_class_type => $tax_rate_data ) {
+								$class = $tax_rate_data['tax_class'];
+								$rates = $tax_rate_data['rates'];
+
+								Helper::import_rates( $rates, $class, $tax_class_type, false );
+							}
+						} else {
+							if ( in_array( Helper::get_base_country(), $countries, true ) ) {
+								$eu_rates = Helper::get_eu_tax_rates( false );
+
+								foreach ( $changeset as $country => $tax_rates ) {
+									$eu_rates[ $country ] = $tax_rates;
+								}
+
+								$tax_rates = Helper::generate_tax_rates( false, array(), $eu_rates, false );
+
+								self::log( sprintf( 'New tax rates: %1$s', wc_print_r( $tax_rates, true ) ) );
+
+								foreach ( $tax_rates as $tax_class_type => $tax_rate_data ) {
+									$class = $tax_rate_data['tax_class'];
+									$rates = $tax_rate_data['rates'];
+
+									Helper::import_rates( $rates, $class, $tax_class_type );
+								}
+							}
+						}
+
+						update_option( 'oss_observed_tax_rate_last_changeset', $date );
+					}
+				}
+			}
+		}
 	}
 
 	public static function cleanup() {
@@ -179,6 +247,10 @@ class Package {
 
 	public static function oss_procedure_is_enabled() {
 		return 'yes' === get_option( 'oss_use_oss_procedure' );
+	}
+
+	public static function enable_tax_rate_observer() {
+		return 'yes' === get_option( 'oss_enable_auto_tax_rate_observation' );
 	}
 
 	public static function enable_auto_observer() {
@@ -606,7 +678,6 @@ class Package {
 
 	public static function setup_recurring_actions() {
 		if ( $queue = Queue::get_queue() ) {
-
 			// Schedule once per day at 2:00
 			if ( null === $queue->get_next( 'oss_woocommerce_daily_cleanup', array(), 'oss_woocommerce' ) ) {
 				$timestamp = strtotime( 'tomorrow midnight' );
@@ -617,6 +688,22 @@ class Package {
 
 				$queue->cancel_all( 'oss_woocommerce_daily_cleanup', array(), 'oss_woocommerce' );
 				$queue->schedule_recurring( $date->getTimestamp(), DAY_IN_SECONDS, 'oss_woocommerce_daily_cleanup', array(), 'oss_woocommerce' );
+			}
+
+			if ( self::enable_tax_rate_observer() ) {
+				// Schedule once per day at 0:00
+				if ( null === $queue->get_next( 'oss_woocommerce_tax_rate_observer', array(), 'oss_woocommerce' ) ) {
+					$timestamp = strtotime( 'tomorrow midnight' );
+					$date      = new \WC_DateTime();
+
+					$date->setTimestamp( $timestamp );
+					$date->modify( '+1 second' );
+
+					$queue->cancel_all( 'oss_woocommerce_tax_rate_observer', array(), 'oss_woocommerce' );
+					$queue->schedule_recurring( $date->getTimestamp(), DAY_IN_SECONDS, 'oss_woocommerce_tax_rate_observer', array(), 'oss_woocommerce' );
+				}
+			} else {
+				$queue->cancel( 'oss_woocommerce_tax_rate_observer', array(), 'oss_woocommerce' );
 			}
 
 			if ( self::enable_auto_observer() ) {

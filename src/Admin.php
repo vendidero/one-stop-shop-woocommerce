@@ -248,11 +248,11 @@ class Admin {
 
 			/**
 			 * Make sure to update the default gross price option as this
-             * option was not set during install.
+			 * option was not set during install.
 			 */
-            if ( 'no' !== get_option( 'oss_fixed_gross_prices', '' ) && wc_prices_include_tax() ) {
-                update_option( 'oss_fixed_gross_prices', 'yes' );
-            }
+			if ( 'no' !== get_option( 'oss_fixed_gross_prices', '' ) && wc_prices_include_tax() ) {
+				update_option( 'oss_fixed_gross_prices', 'yes' );
+			}
 
 			Helper::import_oss_tax_rates();
 
