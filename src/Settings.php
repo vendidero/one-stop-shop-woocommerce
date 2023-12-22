@@ -49,14 +49,6 @@ class Settings {
 				'type'    => Package::is_integration() ? 'gzd_toggle' : 'checkbox',
 				'default' => 'yes',
 			),
-
-			array(
-				'title'   => _x( 'Tax rates', 'oss', 'one-stop-shop-woocommerce' ),
-				'desc'    => _x( 'Automatically refresh tax rates in case scheduled changes exist.', 'oss', 'one-stop-shop-woocommerce' ) . '<p class="oss-woocommerce-additional-desc wc-gzd-additional-desc">' . _x( 'EU tax rates may change from time to time, e.g. tax rates for Estonia change(d) on 2024-01-01. Enabling this option will automatically refresh your tax rates based on scheduled changesets once per day.', 'oss', 'one-stop-shop-woocommerce' ) . '</p>',
-				'id'      => 'oss_enable_auto_tax_rate_observation',
-				'type'    => Package::is_integration() ? 'gzd_toggle' : 'checkbox',
-				'default' => 'yes',
-			),
 		);
 
 		if ( Package::enable_auto_observer() ) {
