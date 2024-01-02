@@ -5,7 +5,7 @@ Requires at least: 5.4
 Tested up to: 6.4
 WC requires at least: 3.9
 WC tested up to: 8.5
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -61,6 +61,9 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 3. Create a new report
 
 == Changelog ==
+= 1.5.1 =
+* Improvement: Refresh luxembourg tax rate
+
 = 1.5.0 =
 * New: Automatically refresh tax rates once per day based on changesets
 
