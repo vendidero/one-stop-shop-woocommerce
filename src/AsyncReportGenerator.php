@@ -88,7 +88,7 @@ class AsyncReportGenerator {
 			return Helper::get_base_country();
 		}
 
-		$taxable_country_type = ! empty( $order->get_shipping_country() ) ? 'shipping' : 'billing';
+		$taxable_country_type = $order->has_shipping_address() ? 'shipping' : 'billing';
 		$taxable_country      = 'shipping' === $taxable_country_type ? $order->get_shipping_country() : $order->get_billing_country();
 
 		if ( $this->has_local_pickup( $order ) ) {
@@ -124,7 +124,7 @@ class AsyncReportGenerator {
 	 * @return mixed
 	 */
 	protected function get_order_taxable_postcode( $order ) {
-		$taxable_type     = ! empty( $order->get_shipping_postcode() ) ? 'shipping' : 'billing';
+		$taxable_type     = $order->has_shipping_address() ? 'shipping' : 'billing';
 		$taxable_postcode = 'shipping' === $taxable_type ? $order->get_shipping_postcode() : $order->get_billing_postcode();
 
 		if ( $this->has_local_pickup( $order ) ) {
@@ -142,9 +142,19 @@ class AsyncReportGenerator {
 	protected function include_order( $order ) {
 		$taxable_country  = $this->get_order_taxable_country( $order );
 		$taxable_postcode = $this->get_order_taxable_postcode( $order );
+		$has_company      = Tax::order_has_taxable_company( $order );
 		$included         = true;
 
 		if ( ! Helper::is_eu_vat_country( $taxable_country, $taxable_postcode ) || Helper::get_base_country() === $taxable_country ) {
+			$included = false;
+		}
+
+		/**
+		 * Do not include b2b orders as only consumer-related orders are relevant for OSS.
+		 */
+		if ( $has_company ) {
+			Package::extended_log( sprintf( 'Order #%1$s is a b2b order.', $this->get_order_number( $order ) ) );
+
 			$included = false;
 		}
 
