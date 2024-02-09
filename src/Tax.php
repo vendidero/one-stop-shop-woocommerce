@@ -21,8 +21,8 @@ class Tax {
 			add_action( 'woocommerce_before_save_order_item', array( __CLASS__, 'maybe_filter_order_item_tax_class' ) );
 
 			add_filter( 'woocommerce_adjust_non_base_location_prices', array( __CLASS__, 'disable_location_price' ), 250 );
-			add_filter( 'woocommerce_customer_taxable_address', array( __CLASS__, 'b2b_taxable_customer_location' ), 10 );
-			add_filter( 'woocommerce_order_get_tax_location', array( __CLASS__, 'b2b_taxable_order_location' ), 10, 2 );
+			add_filter( 'woocommerce_customer_taxable_address', array( __CLASS__, 'b2b_eu_taxable_customer_location' ), 10 );
+			add_filter( 'woocommerce_order_get_tax_location', array( __CLASS__, 'b2b_eu_taxable_order_location' ), 10, 2 );
 
 			add_action( 'woocommerce_before_calculate_totals', array( __CLASS__, 'invalidate_shipping_session' ), 100 );
 		}
@@ -101,17 +101,19 @@ class Tax {
 	 *
 	 * @return array|mixed
 	 */
-	public static function b2b_taxable_customer_location( $location ) {
-		if (
-			( Helper::current_request_has_vat_exempt() && apply_filters( 'oss_woocommerce_force_base_tax_rate_for_vat_exempt_net_calculation', true ) ) ||
-			( Helper::current_request_is_b2b() && apply_filters( 'oss_woocommerce_force_base_tax_rate_for_b2b', true ) )
-		) {
-			$location = array(
-				WC()->countries->get_base_country(),
-				WC()->countries->get_base_state(),
-				WC()->countries->get_base_postcode(),
-				WC()->countries->get_base_city(),
-			);
+	public static function b2b_eu_taxable_customer_location( $location ) {
+		if ( Helper::is_eu_vat_country( $location[0], $location[2] ) ) {
+			if (
+				( Helper::current_request_has_vat_exempt() && apply_filters( 'oss_woocommerce_force_base_tax_rate_for_vat_exempt_net_calculation', true ) ) ||
+				( Helper::current_request_is_b2b() && apply_filters( 'oss_woocommerce_force_base_tax_rate_for_b2b', true ) )
+			) {
+				$location = array(
+					WC()->countries->get_base_country(),
+					WC()->countries->get_base_state(),
+					WC()->countries->get_base_postcode(),
+					WC()->countries->get_base_city(),
+				);
+			}
 		}
 
 		return $location;
@@ -148,24 +150,34 @@ class Tax {
 	 *
 	 * @return array
 	 */
-	public static function b2b_taxable_order_location( $args, $order ) {
-		$has_vat_exempt = apply_filters( 'woocommerce_order_is_vat_exempt', 'yes' === $order->get_meta( 'is_vat_exempt' ), $order );
+	public static function b2b_eu_taxable_order_location( $args, $order ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'country'  => '',
+				'postcode' => '',
+			)
+		);
 
-		if ( isset( $args['company'] ) ) {
-			$has_company = apply_filters( 'oss_woocommerce_order_has_taxable_company', ! empty( $args['company'] ), $order );
-		} else {
-			$has_company = self::order_has_taxable_company( $order );
-		}
+		if ( Helper::is_eu_vat_country( $args['country'], $args['postcode'] ) ) {
+			$has_vat_exempt = apply_filters( 'woocommerce_order_is_vat_exempt', 'yes' === $order->get_meta( 'is_vat_exempt' ), $order );
 
-		if (
-			( $has_vat_exempt && apply_filters( 'oss_woocommerce_force_base_tax_rate_for_vat_exempt_net_calculation', true ) ) ||
-			( $has_company && apply_filters( 'oss_woocommerce_force_base_tax_rate_for_b2b', true ) )
-		) {
-			$args['country'] = Helper::get_base_country();
+			if ( isset( $args['company'] ) ) {
+				$has_company = apply_filters( 'oss_woocommerce_order_has_taxable_company', ! empty( $args['company'] ), $order );
+			} else {
+				$has_company = self::order_has_taxable_company( $order );
+			}
 
-			$args['state']    = WC()->countries->get_base_state();
-			$args['postcode'] = WC()->countries->get_base_postcode();
-			$args['city']     = WC()->countries->get_base_city();
+			if (
+				( $has_vat_exempt && apply_filters( 'oss_woocommerce_force_base_tax_rate_for_vat_exempt_net_calculation', true ) ) ||
+				( $has_company && apply_filters( 'oss_woocommerce_force_base_tax_rate_for_b2b', true ) )
+			) {
+				$args['country'] = Helper::get_base_country();
+
+				$args['state']    = WC()->countries->get_base_state();
+				$args['postcode'] = WC()->countries->get_base_postcode();
+				$args['city']     = WC()->countries->get_base_city();
+			}
 		}
 
 		return $args;
