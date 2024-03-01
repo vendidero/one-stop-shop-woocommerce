@@ -28,6 +28,17 @@ class Tax {
 		}
 	}
 
+    public static function set_customer_taxable_base_country( $location ) {
+	    $location = array(
+		    WC()->countries->get_base_country(),
+		    WC()->countries->get_base_state(),
+		    WC()->countries->get_base_postcode(),
+		    WC()->countries->get_base_city(),
+	    );
+
+        return $location;
+    }
+
 	public static function disable_location_price() {
 		$fixed_gross_prices = 'yes' === get_option( 'oss_fixed_gross_prices' );
 
@@ -105,7 +116,7 @@ class Tax {
 		if ( Helper::is_eu_vat_country( $location[0], $location[2] ) ) {
 			if (
 				( Helper::current_request_has_vat_exempt() && apply_filters( 'oss_woocommerce_force_base_tax_rate_for_vat_exempt_net_calculation', true ) ) ||
-				( Helper::current_request_is_b2b() && apply_filters( 'oss_woocommerce_force_base_tax_rate_for_b2b', true ) )
+				( Helper::current_request_is_b2b() && Helper::exclude_b2b_without_vat_id_from_oss() )
 			) {
 				$location = array(
 					WC()->countries->get_base_country(),
@@ -137,10 +148,6 @@ class Tax {
 			$has_taxable_company = true;
 		}
 
-		if ( ! apply_filters( 'oss_woocommerce_force_base_tax_rate_for_b2b', true ) ) {
-			$has_taxable_company = false;
-		}
-
 		return apply_filters( 'oss_woocommerce_order_has_taxable_company', $has_taxable_company, $order );
 	}
 
@@ -170,7 +177,7 @@ class Tax {
 
 			if (
 				( $has_vat_exempt && apply_filters( 'oss_woocommerce_force_base_tax_rate_for_vat_exempt_net_calculation', true ) ) ||
-				( $has_company && apply_filters( 'oss_woocommerce_force_base_tax_rate_for_b2b', true ) )
+				( $has_company && Helper::exclude_b2b_without_vat_id_from_oss() )
 			) {
 				$args['country'] = Helper::get_base_country();
 

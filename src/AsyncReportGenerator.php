@@ -149,10 +149,7 @@ class AsyncReportGenerator {
 			$included = false;
 		}
 
-		/**
-		 * Do not include b2b orders as only consumer-related orders are relevant for OSS.
-		 */
-		if ( $has_company ) {
+		if ( $has_company && Helper::exclude_b2b_without_vat_id_from_oss() ) {
 			Package::extended_log( sprintf( 'Order #%1$s is a b2b order.', $this->get_order_number( $order ) ) );
 
 			$included = false;

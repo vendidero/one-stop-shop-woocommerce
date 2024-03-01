@@ -4,8 +4,8 @@ Tags: one stop shop, woocommerce, OSS, EU, compliance
 Requires at least: 5.4
 Tested up to: 6.4
 WC requires at least: 3.9
-WC tested up to: 8.5
-Stable tag: 1.6.1
+WC tested up to: 8.6
+Stable tag: 1.6.2
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -61,6 +61,10 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 3. Create a new report
 
 == Changelog ==
+= 1.6.2 =
+* Fix: Revert (default) exclusion of (potential) b2b orders without vat id as it is highly controversial
+* Improvement: Added woocommerce_eu_tax_helper_exclude_b2b_without_vat_id_from_oss filter to allow b2b exclusion
+
 = 1.6.1 =
 * Fix: Apply base taxes for EU-wide b2b orders (without UID/vat exempt) only
 
