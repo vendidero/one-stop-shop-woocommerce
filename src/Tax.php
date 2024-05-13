@@ -212,7 +212,7 @@ class Tax {
 							'city'     => isset( $taxable_address[3] ) ? $taxable_address[3] : '',
 						);
 
-						if ( WC()->countries->get_base_country() !== $address['country'] && Helper::is_eu_vat_country( $address['country'], $address['postcode'] ) ) {
+						if ( Helper::get_base_country() !== $address['country'] && Helper::is_eu_vat_country( $address['country'], $address['postcode'] ) ) {
 							$tax_class = self::get_product_tax_class_by_country( $product, $address );
 
 							if ( $tax_class !== $item->get_tax_class() && apply_filters( 'oss_woocommerce_switch_order_item_tax_class', true, $tax_class, $item ) ) {
@@ -240,7 +240,7 @@ class Tax {
 				'city'     => isset( $taxable_address[3] ) ? $taxable_address[3] : '',
 			);
 
-			if ( WC()->countries->get_base_country() !== $address['country'] && Helper::is_eu_vat_country( $address['country'], $address['postcode'] ) ) {
+			if ( Helper::get_base_country() !== $address['country'] && Helper::is_eu_vat_country( $address['country'], $address['postcode'] ) ) {
 				$tax_class = self::get_product_tax_class_by_country( $product, $address, $tax_class );
 			}
 		}
@@ -285,7 +285,7 @@ class Tax {
 		 * Remove tax classes which match the products main tax class or the base country
 		 */
 		foreach ( $tax_classes as $country => $tax_class ) {
-			if ( $tax_class === $product_tax_class || WC()->countries->get_base_country() === $country ) {
+			if ( $tax_class === $product_tax_class || Helper::get_base_country() === $country ) {
 				unset( $tax_classes[ $country ] );
 			} elseif ( isset( $parent_tax_classes[ $country ] ) && $parent_tax_classes[ $country ] === $tax_class ) {
 				unset( $tax_classes[ $country ] );
@@ -335,7 +335,7 @@ class Tax {
 		 * Remove tax classes which match the products main tax class or the base country
 		 */
 		foreach ( $tax_classes as $country => $tax_class ) {
-			if ( $tax_class === $product_tax_class || WC()->countries->get_base_country() === $country ) {
+			if ( $tax_class === $product_tax_class || Helper::get_base_country() === $country ) {
 				unset( $tax_classes[ $country ] );
 			}
 		}
