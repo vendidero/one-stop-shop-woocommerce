@@ -519,7 +519,6 @@ class Package {
 
 		$locale = apply_filters( 'plugin_locale', $locale, 'one-stop-shop-woocommerce' );
 
-		unload_textdomain( 'one-stop-shop-woocommerce' );
 		load_textdomain( 'one-stop-shop-woocommerce', trailingslashit( WP_LANG_DIR ) . 'one-stop-shop-woocommerce/one-stop-shop-woocommerce-' . $locale . '.mo' );
 		load_plugin_textdomain( 'one-stop-shop-woocommerce', false, plugin_basename( self::get_path() ) . '/i18n/languages/' );
 	}
