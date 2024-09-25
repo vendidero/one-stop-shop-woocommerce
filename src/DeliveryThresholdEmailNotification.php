@@ -2,14 +2,11 @@
 
 namespace Vendidero\OneStopShop;
 
-/**
- * Include dependencies.
- */
+defined( 'ABSPATH' ) || exit;
+
 if ( ! class_exists( 'WC_Email', false ) ) {
 	require_once WC_ABSPATH . 'includes/emails/class-wc-email.php';
 }
-
-defined( 'ABSPATH' ) || exit;
 
 class DeliveryThresholdEmailNotification extends \WC_Email {
 

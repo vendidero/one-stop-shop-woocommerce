@@ -28,16 +28,16 @@ class Tax {
 		}
 	}
 
-    public static function set_customer_taxable_base_country( $location ) {
-	    $location = array(
-		    WC()->countries->get_base_country(),
-		    WC()->countries->get_base_state(),
-		    WC()->countries->get_base_postcode(),
-		    WC()->countries->get_base_city(),
-	    );
+	public static function set_customer_taxable_base_country( $location ) {
+		$location = array(
+			WC()->countries->get_base_country(),
+			WC()->countries->get_base_state(),
+			WC()->countries->get_base_postcode(),
+			WC()->countries->get_base_city(),
+		);
 
-        return $location;
-    }
+		return $location;
+	}
 
 	public static function disable_location_price() {
 		$fixed_gross_prices = 'yes' === get_option( 'oss_fixed_gross_prices' );
@@ -94,7 +94,7 @@ class Tax {
 				 * Make sure totals have already been calculated (for all items) to prevent missing array key warnings
 				 * while calling WC_Cart::get_shipping_packages()
 				 */
-				if ( count( $items ) > 0 && $items == $items_calculated ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+				if ( count( $items ) > 0 && $items == $items_calculated ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseEqual
 					foreach ( $cart->get_shipping_packages() as $package_key => $package ) {
 						$session_key = "shipping_for_package_{$package_key}";
 
@@ -505,7 +505,7 @@ class Tax {
 	/**
 	 * @param \WC_Product $product
 	 */
-	public static function get_product_tax_class_by_country( $product, $address = array(), $default = false ) {
+	public static function get_product_tax_class_by_country( $product, $address = array(), $default_tax_class = false ) {
 		$address = wp_parse_args(
 			$address,
 			array(
@@ -516,7 +516,7 @@ class Tax {
 			)
 		);
 
-		$tax_class          = false !== $default ? $default : $product->get_tax_class();
+		$tax_class          = false !== $default_tax_class ? $default_tax_class : $product->get_tax_class();
 		$original_tax_class = $tax_class;
 		$postcode           = wc_normalize_postcode( $address['postcode'] );
 		$filter_tax_class   = true;
@@ -528,7 +528,7 @@ class Tax {
 			$filter_tax_class = false;
 		}
 
-		if ( apply_filters( 'oss_woocommerce_switch_product_tax_class', $filter_tax_class, $product, $address['country'], $postcode, $default ) ) {
+		if ( apply_filters( 'oss_woocommerce_switch_product_tax_class', $filter_tax_class, $product, $address['country'], $postcode, $default_tax_class ) ) {
 			$cache_suffix      = '_oss_tax_class_' . md5( sprintf( '%s+%s+%s+%s+%s', $address['country'], $address['state'], $address['city'], $postcode, $product->get_id() ) );
 			$cache_key         = \WC_Cache_Helper::get_cache_prefix( 'product_' . $product->get_id() ) . $cache_suffix;
 			$cache_key_tax     = \WC_Cache_Helper::get_cache_prefix( 'taxes' ) . $cache_suffix;
@@ -649,7 +649,7 @@ class Tax {
 	/**
 	 * @param \WC_Product $product
 	 */
-	public static function get_product_tax_classes( $product, $parent = false, $context = 'view' ) {
+	public static function get_product_tax_classes( $product, $parent_product = false, $context = 'view' ) {
 		$tax_classes = $product->get_meta( '_tax_class_by_countries', true );
 		$tax_classes = ( ! is_array( $tax_classes ) || empty( $tax_classes ) ) ? array() : $tax_classes;
 
@@ -657,10 +657,10 @@ class Tax {
 		 * Merge with parent tax classes
 		 */
 		if ( is_a( $product, 'WC_Product_Variation' ) ) {
-			$parent = $parent ? $parent : wc_get_product( $product->get_parent_id() );
+			$parent_product = $parent_product ? $parent_product : wc_get_product( $product->get_parent_id() );
 
-			if ( $parent ) {
-				$parent_tax_classes = self::get_product_tax_classes( $parent );
+			if ( $parent_product ) {
+				$parent_tax_classes = self::get_product_tax_classes( $parent_product );
 				$tax_classes        = array_replace_recursive( $parent_tax_classes, $tax_classes );
 
 				foreach ( $tax_classes as $country => $tax_class ) {

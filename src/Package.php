@@ -57,7 +57,7 @@ class Package {
 
 			add_action(
 				'oss_woocommerce_' . $id,
-				function( $args ) use ( $type ) {
+				function ( $args ) use ( $type ) {
 					Queue::next( $type, $args );
 				},
 				10,
@@ -102,11 +102,9 @@ class Package {
 				}
 
 				$running[] = $report_id;
-			} else {
-				if ( $report = self::get_report( $report_id ) ) {
-					if ( 'completed' !== $report->get_status() ) {
-						$report->delete();
-					}
+			} elseif ( $report = self::get_report( $report_id ) ) {
+				if ( 'completed' !== $report->get_status() ) {
+					$report->delete();
 				}
 			}
 		}
@@ -450,7 +448,7 @@ class Package {
 		if ( array_key_exists( $args['orderby'], array( 'date_start', 'date_end' ) ) ) {
 			usort(
 				$reports_sorted,
-				function( $a, $b ) use ( $args ) {
+				function ( $a, $b ) use ( $args ) {
 					if ( $a[ $args['orderby'] ] === $b[ $args['orderby'] ] ) {
 						return 0;
 					}
@@ -574,8 +572,8 @@ class Package {
 		return $emails;
 	}
 
-	protected static function sanitize_email_class( $class ) {
-		return 'oss_woocommerce_' . sanitize_key( str_replace( __NAMESPACE__ . '\\', '', $class ) );
+	protected static function sanitize_email_class( $classname ) {
+		return 'oss_woocommerce_' . sanitize_key( str_replace( __NAMESPACE__ . '\\', '', $classname ) );
 	}
 
 	public static function observer_report_needs_notification() {

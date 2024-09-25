@@ -107,6 +107,7 @@ class AsyncReportGenerator {
 		$shipping_methods = $order->get_shipping_methods();
 		$has_pickup       = false;
 		$pickup_methods   = apply_filters( 'oss_local_pickup_shipping_methods', array( 'local_pickup' ) );
+		$apply_base_tax   = true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true );
 
 		foreach ( $shipping_methods as $shipping_method ) {
 			if ( in_array( $shipping_method->get_method_id(), $pickup_methods, true ) ) {
@@ -115,7 +116,7 @@ class AsyncReportGenerator {
 			}
 		}
 
-		return apply_filters( 'oss_woocommerce_order_has_local_pickup', $has_pickup, $order );
+		return apply_filters( 'oss_woocommerce_order_has_local_pickup', $has_pickup && $apply_base_tax, $order );
 	}
 
 	/**
@@ -279,7 +280,7 @@ class AsyncReportGenerator {
 						$tax_data[ $country_iso ][ "$tax_percent" ]['net_total']  = (float) $tax_data[ $country_iso ][ "$tax_percent" ]['net_total'];
 						$tax_data[ $country_iso ][ "$tax_percent" ]['net_total'] += $net_total;
 
-						$orders_processed++;
+						++$orders_processed;
 					}
 				}
 			}

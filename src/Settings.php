@@ -162,7 +162,6 @@ class Settings {
 	}
 
 	public static function after_save() {
-
 	}
 
 	protected static function get_observer_report_html() {

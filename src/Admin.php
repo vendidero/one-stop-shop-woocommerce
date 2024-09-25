@@ -721,7 +721,7 @@ class Admin {
 			else :
 				$details = Queue::get_queue_details( $report_id );
 				?>
-				<p class="summary"><?php printf( _x( 'Currently processed %1$s orders. Next iteration is scheduled for %2$s. <a href="%3$s">Find pending actions</a>', 'oss', 'one-stop-shop-woocommerce' ), esc_html( $details['order_count'] ), ( $details['next_date'] ? esc_html( $details['next_date']->date_i18n( wc_date_format() . ' @ ' . wc_time_format() ) ) : esc_html_x( 'Not yet known', 'oss', 'one-stop-shop-woocommerce' ) ), esc_url( $details['link'] ) ); ?></p>
+				<p class="summary"><?php echo wp_kses_post( sprintf( _x( 'Currently processed %1$s orders. Next iteration is scheduled for %2$s. <a href="%3$s">Find pending actions</a>', 'oss', 'one-stop-shop-woocommerce' ), esc_html( $details['order_count'] ), ( $details['next_date'] ? esc_html( $details['next_date']->date_i18n( wc_date_format() . ' @ ' . wc_time_format() ) ) : esc_html_x( 'Not yet known', 'oss', 'one-stop-shop-woocommerce' ) ), esc_url( $details['link'] ) ) ); ?></p>
 			<?php endif; ?>
 		</div>
 		<?php
