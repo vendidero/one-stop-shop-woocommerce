@@ -106,7 +106,7 @@ class AsyncReportGenerator {
 	protected function has_local_pickup( $order ) {
 		$shipping_methods = $order->get_shipping_methods();
 		$has_pickup       = false;
-		$pickup_methods   = apply_filters( 'oss_local_pickup_shipping_methods', array( 'local_pickup' ) );
+		$pickup_methods   = apply_filters( 'oss_local_pickup_shipping_methods', array( 'local_pickup', 'pickup_location' ) );
 		$apply_base_tax   = true === apply_filters( 'woocommerce_apply_base_tax_for_local_pickup', true );
 
 		foreach ( $shipping_methods as $shipping_method ) {
