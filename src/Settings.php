@@ -18,7 +18,7 @@ class Settings {
 	}
 
 	public static function get_description() {
-		return sprintf( _x( 'Find useful options regarding the <a href="https://ec.europa.eu/taxation_customs/business/vat/oss_en" target="_blank" rel="noopener">One Stop Shop procedure</a> here.', 'oss', 'one-stop-shop-woocommerce' ) );
+		return sprintf( _x( 'Find useful options regarding the <a href="https://vat-one-stop-shop.ec.europa.eu" target="_blank" rel="noopener">One Stop Shop procedure</a> here.', 'oss', 'one-stop-shop-woocommerce' ) );
 	}
 
 	public static function get_help_url() {
