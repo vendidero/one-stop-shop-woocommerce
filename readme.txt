@@ -4,8 +4,8 @@ Tags: one stop shop, woocommerce, OSS, EU, compliance
 Requires at least: 5.4
 Tested up to: 6.7
 WC requires at least: 3.9
-WC tested up to: 9.4.3
-Stable tag: 1.6.3
+WC tested up to: 9.6
+Stable tag: 1.6.4
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -61,6 +61,9 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 3. Create a new report
 
 == Changelog ==
+= 1.6.4 =
+* Improvement: Updated FI tax rates
+
 = 1.6.3 =
 * New: Indicate WP latest + Woo latest support
 * Improvement: Local pickup detection

@@ -11,7 +11,7 @@
   "require": {
     "composer/installers": "^1.9.0",
     "automattic/jetpack-autoloader": "2.11.18",
-    "vendidero/woocommerce-eu-tax-helper": "2.0.5"
+    "vendidero/woocommerce-eu-tax-helper": "2.0.6"
   },
   "require-dev": {
     "woocommerce/woocommerce-sniffs": "^1.0.0"
