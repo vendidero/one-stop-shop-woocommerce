@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cd0b44910caa76f7cc0f1b5fcfeb3b4e",
+    "content-hash": "cb01c4c650fa9bbf66f131c4fee3ad83",
     "packages": [
         {
             "name": "automattic/jetpack-autoloader",
@@ -210,16 +210,16 @@
         },
         {
             "name": "vendidero/woocommerce-eu-tax-helper",
-            "version": "2.0.6",
+            "version": "2.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vendidero/woocommerce-eu-tax-helper.git",
-                "reference": "cae237ba7128b5b28029111ca7096e156d684553"
+                "reference": "a6861d57e49ed01a85a2020b84042305d17766e4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vendidero/woocommerce-eu-tax-helper/zipball/cae237ba7128b5b28029111ca7096e156d684553",
-                "reference": "cae237ba7128b5b28029111ca7096e156d684553",
+                "url": "https://api.github.com/repos/vendidero/woocommerce-eu-tax-helper/zipball/a6861d57e49ed01a85a2020b84042305d17766e4",
+                "reference": "a6861d57e49ed01a85a2020b84042305d17766e4",
                 "shasum": ""
             },
             "require": {
@@ -256,10 +256,10 @@
             "description": "EU tax helper for WooCommerce",
             "homepage": "https://vendidero.de/",
             "support": {
-                "source": "https://github.com/vendidero/woocommerce-eu-tax-helper/tree/v2.0.6",
+                "source": "https://github.com/vendidero/woocommerce-eu-tax-helper/tree/v2.0.7",
                 "issues": "https://github.com/vendidero/woocommerce-eu-tax-helper/issues"
             },
-            "time": "2025-01-23T10:33:57+00:00"
+            "time": "2025-02-07T10:21:15+00:00"
         }
     ],
     "packages-dev": [
@@ -713,16 +713,16 @@
         },
         {
             "name": "squizlabs/php_codesniffer",
-            "version": "3.11.2",
+            "version": "3.11.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPCSStandards/PHP_CodeSniffer.git",
-                "reference": "1368f4a58c3c52114b86b1abe8f4098869cb0079"
+                "reference": "ba05f990e79cbe69b9f35c8c1ac8dca7eecc3a10"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/1368f4a58c3c52114b86b1abe8f4098869cb0079",
-                "reference": "1368f4a58c3c52114b86b1abe8f4098869cb0079",
+                "url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/ba05f990e79cbe69b9f35c8c1ac8dca7eecc3a10",
+                "reference": "ba05f990e79cbe69b9f35c8c1ac8dca7eecc3a10",
                 "shasum": ""
             },
             "require": {
@@ -787,9 +787,13 @@
                 {
                     "url": "https://opencollective.com/php_codesniffer",
                     "type": "open_collective"
+                },
+                {
+                    "url": "https://thanks.dev/phpcsstandards",
+                    "type": "thanks_dev"
                 }
             ],
-            "time": "2024-12-11T16:04:26+00:00"
+            "time": "2025-01-23T17:04:15+00:00"
         },
         {
             "name": "woocommerce/woocommerce-sniffs",

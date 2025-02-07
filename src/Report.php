@@ -117,7 +117,7 @@ class Report {
 		$this->set_id_part( $date->format( 'Y-m-d' ), 'date_start' );
 	}
 
-	public function get_date_end() {
+	public function get_date_end( $context = 'view' ) {
 		return $this->date_end;
 	}
 
@@ -180,7 +180,7 @@ class Report {
 
 		$this->set_net_total( 0 );
 		$this->set_tax_total( 0 );
-		$this->set_date_requested( new \WC_DateTime() );
+		$this->set_date_requested( 'now' );
 		$this->set_status( 'pending' );
 		$this->set_version( Package::get_version() );
 

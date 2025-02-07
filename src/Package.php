@@ -16,7 +16,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.6.4';
+	const VERSION = '1.7.0';
 
 	/**
 	 * Init the package
@@ -276,9 +276,8 @@ class Package {
 
 		if ( $observer = self::get_observer_report() ) {
 			$date_end = $observer->get_date_end();
-			$now      = new \WC_DateTime();
-
-			$diff = $now->diff( $date_end );
+			$now      = self::string_to_datetime( 'now' );
+			$diff     = $now->diff( $date_end );
 
 			if ( $diff->days <= 1 ) {
 				$is_outdated = false;
@@ -288,22 +287,49 @@ class Package {
 		return $is_outdated;
 	}
 
-	public static function string_to_datetime( $time_string ) {
+	public static function local_time_to_gmt( $time_string ) {
 		if ( is_string( $time_string ) && ! is_numeric( $time_string ) ) {
-			$time_string = strtotime( $time_string );
+			// The date string should be in local site timezone. Convert to UTC
+			$time_string = wc_string_to_timestamp( get_gmt_from_date( $time_string ) );
 		}
 
-		$date_time = $time_string;
+		$datetime = $time_string;
 
-		if ( is_numeric( $date_time ) ) {
-			$date_time = new \WC_DateTime( "@{$date_time}", new \DateTimeZone( 'UTC' ) );
+		if ( is_numeric( $datetime ) ) {
+			$datetime = new \WC_DateTime( "@{$time_string}", new \DateTimeZone( 'UTC' ) );
 		}
 
-		if ( ! is_a( $date_time, 'WC_DateTime' ) ) {
+		if ( ! is_a( $datetime, 'WC_DateTime' ) ) {
 			return null;
 		}
 
-		return $date_time;
+		return $datetime;
+	}
+
+	public static function string_to_datetime( $time_string ) {
+		if ( is_string( $time_string ) && ! is_numeric( $time_string ) ) {
+			// The date string should be in local site timezone. Convert to UTC
+			$time_string = wc_string_to_timestamp( get_gmt_from_date( $time_string ) );
+		}
+
+		$datetime = $time_string;
+
+		if ( is_numeric( $datetime ) ) {
+			$datetime = new \WC_DateTime( "@{$time_string}", new \DateTimeZone( 'UTC' ) );
+
+			// Set local timezone or offset.
+			if ( get_option( 'timezone_string' ) ) {
+				$datetime->setTimezone( new \DateTimeZone( wc_timezone_string() ) );
+			} else {
+				$datetime->set_utc_offset( wc_timezone_offset() );
+			}
+		}
+
+		if ( ! is_a( $datetime, 'WC_DateTime' ) ) {
+			return null;
+		}
+
+		return $datetime;
 	}
 
 	/**
@@ -631,7 +657,7 @@ class Package {
 
 			$days = (int) self::get_observer_backdating_days();
 
-			$date_start = new \WC_DateTime();
+			$date_start = self::string_to_datetime( 'now' );
 			$date_start->modify( "-{$days} day" . ( $days > 1 ? 's' : '' ) );
 
 			Queue::start( 'observer', $date_start );

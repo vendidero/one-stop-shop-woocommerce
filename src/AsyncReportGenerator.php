@@ -14,8 +14,8 @@ class AsyncReportGenerator {
 
 	public function __construct( $type = 'quarterly', $args = array() ) {
 		$this->type    = $type;
-		$default_end   = new \WC_DateTime();
-		$default_start = new \WC_DateTime( 'now' );
+		$default_end   = Package::string_to_datetime( 'now' );
+		$default_start = Package::string_to_datetime( 'now' );
 		$default_start->modify( '-1 year' );
 
 		$args = wp_parse_args(
