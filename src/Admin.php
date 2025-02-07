@@ -99,10 +99,10 @@ class Admin {
 	public static function html_field( $value ) {
 		?>
 		<tr valign="top">
-			<th class="forminp forminp-html" id="<?php echo esc_attr( $value['id'] ); ?>">
+			<th class="titledesc titledesc-html" id="<?php echo esc_attr( $value['id'] ); ?>" scope="row">
 				<label><?php echo esc_attr( $value['title'] ); ?><?php echo( isset( $value['desc_tip'] ) && ! empty( $value['desc_tip'] ) ? wc_help_tip( $value['desc_tip'] ) : '' ); ?></label>
 			</th>
-			<td class="forminp"><?php echo wp_kses_post( $value['html'] ); ?></td>
+			<td class="forminp forminp-html"><?php echo wp_kses_post( $value['html'] ); ?></td>
 		</tr>
 		<?php
 	}
