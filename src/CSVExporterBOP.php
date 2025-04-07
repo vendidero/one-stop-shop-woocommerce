@@ -113,7 +113,7 @@ class CSVExporterBOP extends CSVExporter {
 	protected function export_column_headers() {
 		$buffer = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 		ob_start();
-		fwrite( $buffer, '#v1.1' . PHP_EOL ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+		fwrite( $buffer, '#v2.0' . PHP_EOL ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
 		$content = ob_get_clean();
 
 		return $content;
