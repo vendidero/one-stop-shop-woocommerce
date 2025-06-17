@@ -69,18 +69,6 @@ class Package {
 		add_action( 'init', array( __CLASS__, 'setup_recurring_actions' ), 10 );
 		add_action( 'oss_woocommerce_daily_cleanup', array( __CLASS__, 'cleanup' ), 10 );
 
-		add_action(
-			'admin_init1',
-			function () {
-				$observer   = self::get_observer_report();
-				$days       = (int) self::get_observer_backdating_days();
-				$date_start = self::string_to_datetime( 'now' );
-				$date_start->modify( "-{$days} day" . ( $days > 1 ? 's' : '' ) );
-
-				Queue::start( 'observer', $date_start );
-			}
-		);
-
 		if ( self::enable_auto_observer() ) {
 			add_action( 'oss_woocommerce_daily_observer', array( __CLASS__, 'update_observer_report' ), 10 );
 			add_action( 'oss_woocommerce_updated_observer', array( __CLASS__, 'maybe_send_notification' ), 10 );
