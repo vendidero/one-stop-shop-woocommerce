@@ -21,8 +21,8 @@ class AsyncReportGenerator {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'start'            => $default_start->format( 'Y-m-d' ),
-				'end'              => $default_end->format( 'Y-m-d' ),
+				'start'            => $default_start->date_i18n( 'Y-m-d' ),
+				'end'              => $default_end->date_i18n( 'Y-m-d' ),
 				'limit'            => Queue::get_batch_size(),
 				'status'           => Queue::get_order_statuses(),
 				'offset'           => 0,
@@ -41,10 +41,10 @@ class AsyncReportGenerator {
 
 		foreach ( array( 'start', 'end' ) as $date_field ) {
 			if ( is_a( $args[ $date_field ], 'WC_DateTime' ) ) {
-				$args[ $date_field ] = $args[ $date_field ]->format( 'Y-m-d' );
+				$args[ $date_field ] = $args[ $date_field ]->date_i18n( 'Y-m-d' );
 			} elseif ( is_numeric( $args[ $date_field ] ) ) {
 				$date                = new \WC_DateTime( '@' . $args[ $date_field ] );
-				$args[ $date_field ] = $date->format( 'Y-m-d' );
+				$args[ $date_field ] = $date->date_i18n( 'Y-m-d' );
 			}
 		}
 

@@ -450,7 +450,7 @@ class Queue {
 	 */
 	protected static function update_observer( $report ) {
 		$end  = $report->get_date_end();
-		$year = $end->date( 'Y' );
+		$year = $end->date_i18n( 'Y' );
 
 		if ( ! $observer_report = Package::get_observer_report( $year ) ) {
 			$observer_report = $report;
@@ -528,6 +528,27 @@ class Queue {
 		return (array) get_option( 'oss_woocommerce_reports_running', array() );
 	}
 
+	/**
+	 * PHP's +1 month only adds 31 days - we do not want that.
+	 * We want to add +X month and find the last day of this month.
+	 *
+	 * @see https://stackoverflow.com/questions/3602405/php-datetimemodify-adding-and-subtracting-months
+	 *
+	 * @param \WC_DateTime $datetime
+	 * @param integer $number_of_months
+	 *
+	 * @return \WC_DateTime
+	 */
+	protected static function add_months_to_datetime( $datetime, $number_of_months ) {
+		$datetime  = clone $datetime;
+		$month_str = 1 === $number_of_months ? 'month' : 'months';
+
+		$datetime->modify( "first day of +{$number_of_months} {$month_str}" );
+		$datetime->modify( '+' . ( $datetime->format( 't' ) - 1 ) . ' days' );
+
+		return $datetime;
+	}
+
 	public static function get_timeframe( $type, $date = null, $date_end = null ) {
 		$date_start      = null;
 		$date_end        = is_null( $date_end ) ? null : $date_end;
@@ -554,33 +575,33 @@ class Queue {
 				$start_month = 'Oct';
 			}
 
-			$date_start = Package::string_to_datetime( 'first day of ' . $start_month . ' ' . $start_indicator->format( 'Y' ) . ' midnight' );
+			$date_start = Package::string_to_datetime( 'first day of ' . $start_month . ' ' . $start_indicator->date( 'Y' ) . ' midnight' );
 			$date_end   = clone( $date_start );
-			$date_end->modify( '+3 month' );
+			$date_end   = self::add_months_to_datetime( $date_end, 3 );
 		} elseif ( 'monthly' === $type ) {
-			$month = $start_indicator->format( 'M' );
+			$month      = $start_indicator->date( 'M' );
+			$date_start = Package::string_to_datetime( 'first day of ' . $month . ' ' . $start_indicator->date( 'Y' ) . ' midnight' );
 
-			$date_start = Package::string_to_datetime( 'first day of ' . $month . ' ' . $start_indicator->format( 'Y' ) . ' midnight' );
-			$date_end   = clone $date_start;
-			$date_end->modify( '+1 month' );
+			$date_end = clone $date_start;
+			$date_end = self::add_months_to_datetime( $date_end, 1 );
 		} elseif ( 'yearly' === $type ) {
 			$date_start = clone $start_indicator;
-			$date_start->modify( 'first day of jan ' . $start_indicator->format( 'Y' ) . ' midnight' );
+			$date_start->modify( 'first day of jan ' . $start_indicator->date( 'Y' ) . ' midnight' );
 
 			$date_end = clone $date_start;
 			$date_end->modify( '+1 year' );
 		} elseif ( 'observer' === $type ) {
 			$date_start = clone $start_indicator;
-			$report     = Package::get_observer_report( $date_start->format( 'Y' ) );
+			$report     = Package::get_observer_report( $date_start->date( 'Y' ) );
 
 			if ( ! $report ) {
 				// Calculate starting with the first day of the current year until yesterday
 				$date_end   = clone $date_start;
-				$date_start = Package::string_to_datetime( 'first day of jan ' . $start_indicator->format( 'Y' ) . ' midnight' );
+				$date_end   = Package::string_to_datetime( $date_end->date( 'Y-m-d' ) . ' midnight' );
+				$date_start = Package::string_to_datetime( 'first day of jan ' . $start_indicator->date( 'Y' ) . ' midnight' );
 			} else {
 				// In case a report has already been generated lets do only calculate the timeframe between the end of the last report and yesterday
-				$date_end = clone $date_start;
-				$date_end->setTime( 0, 0 );
+				$date_end = Package::string_to_datetime( $start_indicator->date( 'Y-m-d' ) . ' midnight' );
 
 				$date_start = clone $report->get_date_end();
 				$date_start->modify( '+1 day' );
@@ -596,17 +617,6 @@ class Queue {
 			}
 
 			$date_start = clone $start_indicator;
-		}
-
-		/**
-		 * Always set start and end time to midnight
-		 */
-		if ( $date_start ) {
-			$date_start->setTime( 0, 0 );
-		}
-
-		if ( $date_end ) {
-			$date_end->setTime( 0, 0 );
 		}
 
 		return array(

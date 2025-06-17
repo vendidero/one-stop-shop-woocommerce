@@ -159,21 +159,30 @@ class ReportTable extends WP_List_Table {
 		$paged        = $this->get_pagenum();
 		$report_type  = isset( $_REQUEST['type'] ) ? wc_clean( wp_unslash( $_REQUEST['type'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$report_type  = in_array( $report_type, array_keys( Package::get_available_report_types( true ) ), true ) ? $report_type : '';
+		$order_by     = isset( $_REQUEST['orderby'] ) ? wc_clean( wp_unslash( $_REQUEST['orderby'] ) ) : 'date_start'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$order        = isset( $_REQUEST['order'] ) ? wc_clean( wp_unslash( $_REQUEST['order'] ) ) : 'DESC'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		$args = array(
 			'limit'            => $per_page,
 			'paginate'         => true,
 			'offset'           => ( $paged - 1 ) * $per_page,
 			'count_total'      => true,
+			'orderby'          => $order_by,
+			'order'            => strtoupper( $order ),
 			'type'             => $report_type,
 			'include_observer' => 'observer' === $report_type ? true : false,
 		);
 
 		$this->items = $this->get_reports( $args );
+		$total_items = empty( $args['type'] ) ? array_sum( $this->counts ) : $this->counts[ $args['type'] ];
+
+		if ( 'observer' !== $args['type'] ) {
+			$total_items -= $this->counts['observer'];
+		}
 
 		$this->set_pagination_args(
 			array(
-				'total_items' => empty( $args['type'] ) ? array_sum( $this->counts ) : $this->counts[ $args['type'] ],
+				'total_items' => $total_items,
 				'per_page'    => $per_page,
 			)
 		);

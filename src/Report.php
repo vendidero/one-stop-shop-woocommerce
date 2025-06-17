@@ -114,7 +114,7 @@ class Report {
 	public function set_date_start( $date ) {
 		$date = Package::string_to_datetime( $date );
 
-		$this->set_id_part( $date->format( 'Y-m-d' ), 'date_start' );
+		$this->set_id_part( $date->date_i18n( 'Y-m-d' ), 'date_start' );
 	}
 
 	public function get_date_end( $context = 'view' ) {
@@ -124,7 +124,7 @@ class Report {
 	public function set_date_end( $date ) {
 		$date = Package::string_to_datetime( $date );
 
-		$this->set_id_part( $date->format( 'Y-m-d' ), 'date_end' );
+		$this->set_id_part( $date->date_i18n( 'Y-m-d' ), 'date_end' );
 	}
 
 	public function get_status() {
@@ -152,7 +152,7 @@ class Report {
 			$date = Package::string_to_datetime( $date );
 		}
 
-		$this->args['meta']['date_requested'] = is_a( $date, 'WC_DateTime' ) ? $date->date( 'Y-m-d' ) : null;
+		$this->args['meta']['date_requested'] = is_a( $date, 'WC_DateTime' ) ? $date->date_i18n( 'Y-m-d' ) : null;
 	}
 
 	public function get_tax_total( $round = true ) {
@@ -279,7 +279,7 @@ class Report {
 		Package::remove_report( $this );
 
 		if ( 'observer' === $this->get_type() ) {
-			delete_option( 'oss_woocommerce_observer_report_' . $this->get_date_start()->format( 'Y' ) );
+			delete_option( 'oss_woocommerce_observer_report_' . $this->get_date_start()->date_i18n( 'Y' ) );
 		}
 
 		Package::clear_caches();
