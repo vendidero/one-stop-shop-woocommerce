@@ -543,8 +543,8 @@ class Queue {
 		$datetime  = clone $datetime;
 		$month_str = 1 === $number_of_months ? 'month' : 'months';
 
-		$datetime->modify( "first day of +{$number_of_months} {$month_str}" );
-		$datetime->modify( '+' . ( $datetime->format( 't' ) - 1 ) . ' days' );
+		$datetime->modify( "first day of +{$number_of_months} {$month_str} midnight" );
+		$datetime->modify( '+' . ( $datetime->format( 't' ) ) . ' days' );
 
 		return $datetime;
 	}
@@ -576,20 +576,42 @@ class Queue {
 			}
 
 			$date_start = Package::string_to_datetime( 'first day of ' . $start_month . ' ' . $start_indicator->date( 'Y' ) . ' midnight' );
-			$date_end   = clone( $date_start );
-			$date_end   = self::add_months_to_datetime( $date_end, 3 );
+
+			/**
+			 * Always calculate offsets based on local time to prevent timezone issues.
+			 * Remove one day from the first day of next month (= last day of last month).
+			 */
+			$date_end_local = new \WC_DateTime( $date_start->date_i18n() );
+			$date_end_local->modify( '-1 day' );
+			$date_end_local = self::add_months_to_datetime( $date_end_local, 3 );
+
+			$date_end = Package::string_to_datetime( $date_end_local->date_i18n( 'Y-m-d H:i:s' ) );
 		} elseif ( 'monthly' === $type ) {
 			$month      = $start_indicator->date( 'M' );
 			$date_start = Package::string_to_datetime( 'first day of ' . $month . ' ' . $start_indicator->date( 'Y' ) . ' midnight' );
 
-			$date_end = clone $date_start;
-			$date_end = self::add_months_to_datetime( $date_end, 1 );
+			/**
+			 * Always calculate offsets based on local time to prevent timezone issues.
+			 * Remove one day from the first day of next month (= last day of last month).
+			 */
+			$date_end_local = new \WC_DateTime( $date_start->date_i18n() );
+			$date_end_local->modify( '-1 day' );
+			$date_end_local = self::add_months_to_datetime( $date_end_local, 1 );
+
+			$date_end = Package::string_to_datetime( $date_end_local->date_i18n( 'Y-m-d H:i:s' ) );
 		} elseif ( 'yearly' === $type ) {
 			$date_start = clone $start_indicator;
 			$date_start->modify( 'first day of jan ' . $start_indicator->date( 'Y' ) . ' midnight' );
 
-			$date_end = clone $date_start;
-			$date_end->modify( '+1 year' );
+			/**
+			 * Always calculate offsets based on local time to prevent timezone issues.
+			 * Remove one day from the first day of next month (= last day of last month).
+			 */
+			$date_end_local = new \WC_DateTime( $date_start->date_i18n() );
+			$date_end_local->modify( '-1 day' );
+			$date_end_local = self::add_months_to_datetime( $date_end_local, 12 );
+
+			$date_end = Package::string_to_datetime( $date_end_local->date_i18n( 'Y-m-d H:i:s' ) );
 		} elseif ( 'observer' === $type ) {
 			$date_start = clone $start_indicator;
 			$report     = Package::get_observer_report( $date_start->date( 'Y' ) );
