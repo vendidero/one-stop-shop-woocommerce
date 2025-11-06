@@ -4,8 +4,8 @@ Tags: one stop shop, woocommerce, OSS, EU, compliance
 Requires at least: 5.4
 Tested up to: 6.8
 WC requires at least: 3.9
-WC tested up to: 10.1
-Stable tag: 1.8.1
+WC tested up to: 10.3
+Stable tag: 1.8.2
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -61,6 +61,9 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 3. Create a new report
 
 == Changelog ==
+= 1.8.2 =
+* Fix: Edge case reporting when date paid is greater than date created
+
 = 1.8.1 =
 * Improvement: New tax rates for RO, EE
 

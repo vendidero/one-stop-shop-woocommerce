@@ -175,6 +175,13 @@ class Queue {
 			$end_gmt_timestamp   = Package::local_time_to_gmt( $args['end'] )->getTimestamp();
 
 			/**
+			 * Use a min start date to make sure we are including orders that have been created earlier
+			 * than they have been paid, e.g. created at 2025-06-30, paid at 2025-07-02 should be included in Q3.
+			 */
+			$min_start = Package::local_time_to_gmt( $args['start'] );
+			$min_start->modify( '-1 month' );
+
+			/**
 			 * Use a max end date to limit potential query results in case date_paid meta field is used.
 			 * This way we will only register payments made max 2 month after the order created date.
 			 */
@@ -193,7 +200,7 @@ class Queue {
 	                    ) )
                     )
                 ",
-				$start_gmt,
+				$min_start->format( 'Y-m-d H:i:s' ),
 				$max_end->format( 'Y-m-d H:i:s' ),
 				$start_gmt_timestamp,
 				$end_gmt_timestamp,
@@ -264,6 +271,13 @@ class Queue {
 
 		if ( 'date_paid' === $args['date_field'] ) {
 			/**
+			 * Use a min start date to make sure we are including orders that have been created earlier
+			 * than they have been paid, e.g. created at 2025-06-30, paid at 2025-07-02 should be included in Q3.
+			 */
+			$min_start = Package::local_time_to_gmt( $args['start'] );
+			$min_start->modify( '-1 month' );
+
+			/**
 			 * Use a max end date to limit potential query results in case date_paid meta field is used.
 			 * This way we will only register payments made max 2 month after the order created date.
 			 */
@@ -282,7 +296,7 @@ class Queue {
 	                    )
                     )
 			  	)",
-				$start_gmt,
+				$min_start->format( 'Y-m-d H:i:s' ),
 				$max_end->format( 'Y-m-d H:i:s' ),
 				$start_gmt,
 				$end_gmt,
