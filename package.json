@@ -1,44 +1,45 @@
 {
   "name": "one-stop-shop-woocommerce",
   "title": "One Stop Shop for WooCommerce",
-  "version": "1.8.3",
-  "homepage": "https://vendidero.de",
+  "version": "1.8.4",
+  "homepage": "https://vendidero.com",
   "repository": {
     "type": "git",
     "url": "https://github.com/vendidero/one-stop-shop-woocommerce.git"
   },
   "license": "GPL-3.0+",
-  "main": "Gruntfile.js",
+  "main": "build/index.js",
+  "sideEffects": [
+    "*.css",
+    "*.scss",
+    "./assets/js/**"
+  ],
   "scripts": {
-    "build": "grunt",
-    "build-watch": "grunt watch"
+    "build": "wp-scripts build",
+    "format": "wp-scripts format",
+    "lint:css": "wp-scripts lint-style",
+    "lint:js": "wp-scripts lint-js",
+    "start": "wp-scripts start",
+    "deploy": "sh ./bin/deploy.sh"
   },
   "devDependencies": {
-    "config": "^3.2.2",
-    "cross-env": "^5.2.0",
-    "grunt": "1.3.0",
-    "autoprefixer": "^9.0.0",
-    "grunt-contrib-clean": "2.0.0",
-    "grunt-contrib-concat": "1.0.1",
-    "grunt-contrib-copy": "1.0.0",
-    "grunt-contrib-cssmin": "3.0.0",
-    "grunt-contrib-uglify": "4.0.1",
-    "grunt-contrib-watch": "1.1.0",
-    "grunt-newer": "1.3.0",
-    "grunt-phpcs": "0.4.0",
-    "grunt-postcss": "0.9.0",
-    "grunt-rtlcss": "2.0.2",
-    "grunt-sass": "3.1.0",
-    "grunt-shell": "3.0.1",
-    "grunt-stylelint": "0.11.1",
-    "grunt-wp-i18n": "1.0.3",
-    "node-sass": "^6.0.1",
-    "set-value": ">=4.0.1",
-    "glob-parent": ">=5.1.2",
-    "trim": ">=0.0.3"
+    "@woocommerce/dependency-extraction-webpack-plugin": "^2.2.0",
+    "@woocommerce/eslint-plugin": "^2.2.0",
+    "@wordpress/prettier-config": "^2.25.5",
+    "@wordpress/scripts": "30.13.0",
+    "copy-webpack-plugin": "6.4.1",
+    "css-loader": "^6.11.X",
+    "css-minimizer-webpack-plugin": "^5.0.1",
+    "mini-css-extract-plugin": "2.7.6",
+    "sass-loader": "^13.3.2",
+    "terser-webpack-plugin": "^2.3.8",
+    "webpack": "5.97.X",
+    "webpack-bundle-analyzer": "4.9.X",
+    "webpack-cli": "5.1.X"
+  },
+  "dependencies": {
   },
   "engines": {
-    "node": "^10.22.0",
-    "npm": "^6.14.6"
+    "node": "^20.11.1"
   }
 }

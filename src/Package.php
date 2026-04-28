@@ -16,7 +16,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.8.3';
+	const VERSION = '1.8.4';
 
 	/**
 	 * Init the package
@@ -218,6 +218,23 @@ class Package {
 		}
 
 		return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+	}
+
+	public static function get_assets_build_url( $script_or_style ) {
+		$assets_url = self::get_url() . '/build';
+		$is_debug   = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG;
+		$is_style   = '.css' === substr( $script_or_style, -4 );
+		$is_static  = strstr( $script_or_style, 'static/' );
+
+		if ( $is_style && ! strstr( $script_or_style, '-styles' ) ) {
+			$script_or_style = str_replace( '.css', '-styles.css', $script_or_style );
+		}
+
+		if ( $is_debug && $is_static && ! $is_style ) {
+			$assets_url = self::get_url() . '/assets/js';
+		}
+
+		return trailingslashit( $assets_url ) . $script_or_style;
 	}
 
 	public static function get_delivery_threshold_left() {

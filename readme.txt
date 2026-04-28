@@ -2,10 +2,10 @@
 Contributors: vendidero, vdwoocommercesupport
 Tags: one stop shop, woocommerce, OSS, EU, compliance
 Requires at least: 5.4
-Tested up to: 6.9
+Tested up to: 7.0
 WC requires at least: 3.9
-WC tested up to: 10.4
-Stable tag: 1.8.3
+WC tested up to: 10.7
+Stable tag: 1.8.4
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -61,6 +61,11 @@ Bug reports may be filed via our [GitHub repository](https://github.com/vendider
 3. Create a new report
 
 == Changelog ==
+= 1.8.4 =
+* Improvement: WP 7.0 compatibility
+* Improvement: Asset bundling
+* Fix: Determine tax type (reduced vs standard)
+
 = 1.8.3 =
 * Improvement: Latest tax rate changes for 2026
 

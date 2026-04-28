@@ -5,7 +5,7 @@
 # Variables
 RELEASER_VERSION="1.4.3"
 RELEASER_PATH=$(pwd)
-BUILD_PATH="${RELEASER_PATH}/build"
+BUILD_PATH="${RELEASER_PATH}/release"
 PLUGIN_SLUG="one-stop-shop-woocommerce"
 GITHUB_ORG="vendidero"
 IS_PRE_RELEASE=false
@@ -237,6 +237,10 @@ bin/bump-version.sh -s -c -v ${PLUGIN_VERSION}
 output 2 "Installing autoload packages..."
 # Install composer packages
 composer install --no-dev || exit "$?"
+# Run JS build
+output 2 "Running JS Build..."
+npm install
+npm run build || exit "$?"
 
 # Create GH branch with build and commit before doing a GH release
 if ! $SKIP_GH_BUILD; then
@@ -250,15 +254,15 @@ if ! $SKIP_GH_BUILD; then
   git add .
   git commit -m "Adding /vendor directory to release" --no-verify
 
+  # Force vendor directory to be part of release branch
+  git add build/. --force
+  git add .
+  git commit -m "Adding /build directory to release" --no-verify
+
   # Force libs directory to be part of release branch
   git add libs/. --force
   git add .
   git commit -m "Adding /libs directory to release" --no-verify
-
-  # Force assets directory with compiled and minified files to part of release branch
-  git add assets/. --force
-  git add .
-  git commit -m "Adding /assets directory with compiled and minified files to release" --no-verify
 
   # Push build branch to git
   git push origin $BUILD_BRANCH

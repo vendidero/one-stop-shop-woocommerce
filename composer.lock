@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e33cfd43f2539be73c949ce85d312eed",
+    "content-hash": "a30f33bc72a9a5b6f90ba9520f696750",
     "packages": [
         {
             "name": "automattic/jetpack-autoloader",
@@ -210,16 +210,16 @@
         },
         {
             "name": "vendidero/woocommerce-eu-tax-helper",
-            "version": "2.0.9",
+            "version": "2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/vendidero/woocommerce-eu-tax-helper.git",
-                "reference": "02a24d598aedf138da1e1b73d80bbfd4b28eb0ca"
+                "reference": "7c28a2090116f381d7ae2814dcd62c87a06319d7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vendidero/woocommerce-eu-tax-helper/zipball/02a24d598aedf138da1e1b73d80bbfd4b28eb0ca",
-                "reference": "02a24d598aedf138da1e1b73d80bbfd4b28eb0ca",
+                "url": "https://api.github.com/repos/vendidero/woocommerce-eu-tax-helper/zipball/7c28a2090116f381d7ae2814dcd62c87a06319d7",
+                "reference": "7c28a2090116f381d7ae2814dcd62c87a06319d7",
                 "shasum": ""
             },
             "require": {
@@ -256,10 +256,10 @@
             "description": "EU tax helper for WooCommerce",
             "homepage": "https://vendidero.de/",
             "support": {
-                "source": "https://github.com/vendidero/woocommerce-eu-tax-helper/tree/v2.0.9",
+                "source": "https://github.com/vendidero/woocommerce-eu-tax-helper/tree/v2.1.0",
                 "issues": "https://github.com/vendidero/woocommerce-eu-tax-helper/issues"
             },
-            "time": "2026-01-05T10:43:35+00:00"
+            "time": "2026-04-28T09:48:35+00:00"
         }
     ],
     "packages-dev": [

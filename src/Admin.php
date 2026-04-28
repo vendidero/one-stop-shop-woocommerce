@@ -807,9 +807,8 @@ class Admin {
 	public static function admin_styles() {
 		$screen    = get_current_screen();
 		$screen_id = $screen ? $screen->id : '';
-		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
-		wp_register_style( 'oss_woo', Package::get_url() . '/assets/css/admin' . $suffix . '.css', array(), Package::get_version() );
+		wp_register_style( 'oss_woo', Package::get_assets_build_url( 'admin.css' ), array(), Package::get_version() );
 
 		// Admin styles for WC pages only.
 		if ( in_array( $screen_id, self::get_screen_ids(), true ) ) {
@@ -829,7 +828,7 @@ class Admin {
 			$deps[] = 'jquery-ui-datepicker';
 		}
 
-		wp_register_script( 'oss-admin', Package::get_assets_url() . '/js/admin' . $suffix . '.js', $deps, Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'oss-admin', Package::get_assets_build_url( 'admin.js' ), $deps, Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 
 		if ( in_array( $screen_id, self::get_screen_ids(), true ) ) {
 			wp_enqueue_script( 'oss-admin' );
