@@ -64,6 +64,7 @@ copy_dest_files() {
     --exclude=docs/ \
     --exclude=CHANGELOG.txt \
     --exclude=Gruntfile.js \
+    --exclude=webpack.config.js \
     --exclude=node_modules/ \
     --exclude=none \
     --exclude=auth.json \
