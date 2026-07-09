@@ -42,17 +42,17 @@ After the installation you may easily adapt the settings to your own needs.
 [One Stop Shop Documentation](https://vendidero.github.io/one-stop-shop-woocommerce/)
 
 = Need help? =
-
 You may ask your questions regarding One Stop Shop for WooCommerce within our free [WordPress Support Forum](https://wordpress.org/support/plugin/one-stop-shop-woocommerce).
 
 = The reports never finish =
-
 Reports are created with the help of the [WooCommerce Action Scheduler](https://actionscheduler.org/). Batch requests are used to make sure that your server may incrementally generate reports for all applicable orders.
 You will need to make sure the [WP Cron](https://developer.wordpress.org/plugins/cron/) (which is being used by the WooCommerce Action Scheduler) works within your setup.
 
 = Want to file a bug or improve the plugin? =
-
 Bug reports may be filed via our [GitHub repository](https://github.com/vendidero/one-stop-shop-woocommerce).
+
+= Where do I report security bugs found in this plugin? =
+Please report security bugs found in the source code of the One Stop Shop for WooCommerce plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/c871de9d-95a9-43bf-86f0-cc4167c2a18f). The Patchstack team will assist you with verification, CVE assignment, and notify the developers of this plugin.
 
 == Screenshots ==
 
