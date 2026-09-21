@@ -16,7 +16,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.8.4';
+	const VERSION = '1.8.5';
 
 	/**
 	 * Init the package
@@ -80,8 +80,39 @@ class Package {
 		add_action( 'woocommerce_note_updated', array( '\Vendidero\OneStopShop\Admin', 'on_wc_admin_note_update' ) );
 
 		add_filter( 'woocommerce_eu_tax_helper_oss_procedure_is_enabled', array( __CLASS__, 'oss_procedure_is_enabled' ) );
+		add_filter( 'woocommerce_eu_tax_helper_tax_rate_class_slugs', array( __CLASS__, 'apply_tax_class_map' ), 10 );
+		add_filter( 'woocommerce_eu_tax_helper_enable_tax_rate_observer', array( __CLASS__, 'enable_tax_rate_observer' ), 500 );
 
 		Helper::init();
+	}
+
+	public static function enable_tax_rate_observer() {
+		return 'yes' === get_option( 'oss_auto_update_tax_rates' );
+	}
+
+	public static function apply_tax_class_map( $slugs ) {
+		$slug_map  = array();
+		$woo_slugs = \WC_Tax::get_tax_class_slugs();
+
+		foreach ( $slugs as $internal_slug => $slug ) {
+			$val                 = get_option( "oss_tax_class_map_{$internal_slug}", false );
+			$is_unknown_standard = ( '' === $val && 'standard' !== $internal_slug );
+			$is_duplicate_slug   = ( 'unassigned' !== $val && in_array( $val, $slug_map, true ) );
+			$is_available        = ( ! in_array( $val, array( 'unassigned', '' ), true ) && in_array( $val, $woo_slugs, true ) );
+
+			if ( false === $val || $is_duplicate_slug || $is_unknown_standard || $is_available ) {
+				continue;
+			}
+
+			if ( 'unassigned' === $val ) {
+				$val = false;
+			}
+
+			$slugs[ $internal_slug ] = $val;
+			$slug_map[]              = $val;
+		}
+
+		return $slugs;
 	}
 
 	public static function cleanup() {

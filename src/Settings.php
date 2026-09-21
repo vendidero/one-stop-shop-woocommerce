@@ -43,11 +43,12 @@ class Settings {
 			),
 
 			array(
-				'title'   => _x( 'Observation', 'oss', 'one-stop-shop-woocommerce' ),
-				'desc'    => _x( 'Automatically observe the delivery threshold of the current year.', 'oss', 'one-stop-shop-woocommerce' ) . '<p class="oss-woocommerce-additional-desc wc-gzd-additional-desc">' . _x( 'This option will automatically calculate the amount applicable for the OSS procedure delivery threshold once per day for the current year. The report will only recalculated for the days which are not yet subject to the observation to save processing time.', 'oss', 'one-stop-shop-woocommerce' ) . '</p>',
-				'id'      => 'oss_enable_auto_observation',
-				'type'    => Package::is_integration() ? 'gzd_toggle' : 'checkbox',
-				'default' => 'yes',
+				'title'    => _x( 'Observation', 'oss', 'one-stop-shop-woocommerce' ),
+				'desc'     => _x( 'Automatically observe the delivery threshold of the current year.', 'oss', 'one-stop-shop-woocommerce' ) . '<p class="oss-woocommerce-additional-desc wc-gzd-additional-desc">' . _x( 'This option will automatically calculate the amount applicable for the OSS procedure delivery threshold once per day for the current year. The report will only recalculated for the days which are not yet subject to the observation to save processing time.', 'oss', 'one-stop-shop-woocommerce' ) . '</p>',
+				'id'       => 'oss_enable_auto_observation',
+				'autoload' => false,
+				'type'     => Package::is_integration() ? 'gzd_toggle' : 'checkbox',
+				'default'  => 'yes',
 			),
 		);
 
@@ -76,12 +77,13 @@ class Settings {
 				),
 
 				array(
-					'title'   => _x( 'Report Order Date', 'oss', 'one-stop-shop-woocommerce' ),
-					'desc'    => '<p class="oss-woocommerce-additional-desc wc-gzd-additional-desc">' . _x( 'Select the relevant order date to be used to determine whether to include an order in a report.', 'oss', 'one-stop-shop-woocommerce' ) . '</p>',
-					'id'      => 'oss_report_date_type',
-					'type'    => 'select',
-					'default' => 'date_paid',
-					'options' => array(
+					'title'    => _x( 'Report Order Date', 'oss', 'one-stop-shop-woocommerce' ),
+					'desc'     => '<p class="oss-woocommerce-additional-desc wc-gzd-additional-desc">' . _x( 'Select the relevant order date to be used to determine whether to include an order in a report.', 'oss', 'one-stop-shop-woocommerce' ) . '</p>',
+					'id'       => 'oss_report_date_type',
+					'type'     => 'select',
+					'default'  => 'date_paid',
+					'autoload' => false,
+					'options'  => array(
 						'date_paid'    => _x( 'Date paid', 'oss', 'one-stop-shop-woocommerce' ),
 						'date_created' => _x( 'Date created', 'oss', 'one-stop-shop-woocommerce' ),
 					),
@@ -113,6 +115,63 @@ class Settings {
 				)
 			);
 		}
+
+		$settings = array_merge(
+			$settings,
+			array(
+				array(
+					'title'    => _x( 'Tax rates', 'oss', 'one-stop-shop-woocommerce' ),
+					'desc_tip' => _x( 'This option automatically updates your tax rates whenever there are changes.', 'oss', 'one-stop-shop-woocommerce' ),
+					'desc'     => _x( 'Automatically update tax rates.', 'oss', 'one-stop-shop-woocommerce' ) . '<p class="oss-woocommerce-additional-desc wc-gzd-additional-desc">' . _x( 'The plugin updates tax rates based on a list (changeset) shipped within the plugin itself (no third-party service needed). To update your tax rates automatically, map the internal tax classes with the tax classes you\'ve configured in WooCommerce. If an internal tax class is unassigned or cannot be matched automatically during an update, a new tax class will be created.', 'oss', 'one-stop-shop-woocommerce' ) . '</p>',
+					'id'       => 'oss_auto_update_tax_rates',
+					'default'  => 'yes',
+					'type'     => Package::is_integration() ? 'gzd_toggle' : 'checkbox',
+				),
+			)
+		);
+
+		$tax_class_map_settings = array();
+
+		$tax_class_options = array(
+			''           => _x( 'Standard rate', 'tax-helper-tax-class-name', 'one-stop-shop-woocommerce' ),
+			'unassigned' => _x( 'To be created upon update', 'tax-helper-tax-class-name', 'one-stop-shop-woocommerce' ),
+		);
+
+		foreach ( \WC_Tax::get_tax_rate_classes() as $rate_class ) {
+			$tax_class_options[ $rate_class->slug ] = esc_html( $rate_class->name );
+		}
+
+		$relevant_tax_classes = array(
+			'reduced'         => _x( 'Reduced rate', 'tax-helper-tax-class-name', 'one-stop-shop-woocommerce' ),
+			'greater-reduced' => _x( 'Greater reduced rate', 'tax-helper-tax-class-name', 'one-stop-shop-woocommerce' ),
+			'super-reduced'   => _x( 'Super reduced rate', 'tax-helper-tax-class-name', 'one-stop-shop-woocommerce' ),
+			'zero'            => _x( 'Zero rate', 'tax-helper-tax-class-name', 'one-stop-shop-woocommerce' ),
+			'standard'        => _x( 'Standard rate', 'tax-helper-tax-class-name', 'one-stop-shop-woocommerce' ),
+		);
+
+		foreach ( \Vendidero\EUTaxHelper\Helper::get_tax_class_slugs() as $internal_slug => $slug ) {
+			$tax_class_title = array_key_exists( $internal_slug, $relevant_tax_classes ) ? $relevant_tax_classes[ $internal_slug ] : '';
+
+			if ( false === $slug ) {
+				$slug = 'unassigned';
+			}
+
+			$tax_class_map_settings[] = array(
+				'title'             => $tax_class_title,
+				'id'                => 'oss_tax_class_map_' . $internal_slug,
+				'default'           => $slug,
+				'value'             => $slug,
+                'skip_install'      => true,
+				'type'              => 'select',
+				'autoload'          => false,
+				'options'           => $tax_class_options,
+				'custom_attributes' => array(
+					'data-show_if_oss_auto_update_tax_rates' => '',
+				),
+			);
+		}
+
+		$settings = array_merge( $settings, $tax_class_map_settings );
 
 		$settings = array_merge(
 			$settings,

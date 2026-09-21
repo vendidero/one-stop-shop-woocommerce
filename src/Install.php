@@ -39,10 +39,20 @@ class Install {
 	private static function add_options() {
 		foreach ( Settings::get_sections() as $section ) {
 			foreach ( Settings::get_settings( $section ) as $setting ) {
-				if ( isset( $setting['default'] ) && isset( $setting['id'] ) ) {
+				$setting = wp_parse_args(
+					$setting,
+					array(
+						'id'           => '',
+						'default'      => null,
+						'skip_install' => false,
+						'autoload'     => true,
+					)
+				);
+
+				if ( $setting['default'] && ! empty( $setting['id'] ) && ! $setting['skip_install'] ) {
 					wp_cache_delete( $setting['id'], 'options' );
 
-					$autoload = isset( $setting['autoload'] ) ? (bool) $setting['autoload'] : true;
+					$autoload = (bool) $setting['autoload'];
 					add_option( $setting['id'], $setting['default'], '', ( $autoload ? 'yes' : 'no' ) );
 				}
 			}

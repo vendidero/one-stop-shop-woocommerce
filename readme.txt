@@ -2,10 +2,10 @@
 Contributors: vendidero, vdwoocommercesupport
 Tags: one stop shop, woocommerce, OSS, EU, compliance
 Requires at least: 5.4
-Tested up to: 7.0
+Tested up to: 7.1
 WC requires at least: 3.9
-WC tested up to: 10.7
-Stable tag: 1.8.4
+WC tested up to: 11.1
+Stable tag: 1.8.5
 Requires PHP: 5.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -61,6 +61,10 @@ Please report security bugs found in the source code of the One Stop Shop for Wo
 3. Create a new report
 
 == Changelog ==
+= 1.8.5 =
+* Improvement: Explicitly add settings to enable/disable automatic tax rate updates and map tax classes with internal classes
+* Fix: Prevent updating tax rates in case non-standard tax class is wrongfully mapped to standard class
+
 = 1.8.4 =
 * Improvement: WP 7.0 compatibility
 * Improvement: Asset bundling
