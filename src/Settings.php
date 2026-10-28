@@ -149,7 +149,26 @@ class Settings {
 			'standard'        => _x( 'Standard rate', 'tax-helper-tax-class-name', 'one-stop-shop-woocommerce' ),
 		);
 
-		foreach ( \Vendidero\EUTaxHelper\Helper::get_tax_class_slugs() as $internal_slug => $slug ) {
+		/**
+		 * Temporarily apply the tax class map in settings context only to make sure
+		 * that subsequent imports within the same request use the default mapping.
+		 */
+		$settings_tax_class_map = function ( $slugs ) {
+			return Package::apply_tax_class_map( $slugs, 'settings' );
+		};
+
+		$has_tax_class_map = remove_filter( 'woocommerce_eu_tax_helper_tax_rate_class_slugs', array( Package::class, 'apply_tax_class_map' ), 10 );
+		add_filter( 'woocommerce_eu_tax_helper_tax_rate_class_slugs', $settings_tax_class_map, 10 );
+
+		$tax_class_slugs = \Vendidero\EUTaxHelper\Helper::get_tax_class_slugs();
+
+		remove_filter( 'woocommerce_eu_tax_helper_tax_rate_class_slugs', $settings_tax_class_map, 10 );
+
+		if ( $has_tax_class_map ) {
+			add_filter( 'woocommerce_eu_tax_helper_tax_rate_class_slugs', array( Package::class, 'apply_tax_class_map' ), 10 );
+		}
+
+		foreach ( $tax_class_slugs as $internal_slug => $slug ) {
 			$tax_class_title = array_key_exists( $internal_slug, $relevant_tax_classes ) ? $relevant_tax_classes[ $internal_slug ] : '';
 
 			if ( false === $slug ) {
@@ -161,7 +180,7 @@ class Settings {
 				'id'                => 'oss_tax_class_map_' . $internal_slug,
 				'default'           => $slug,
 				'value'             => $slug,
-                'skip_install'      => true,
+				'skip_install'      => true,
 				'type'              => 'select',
 				'autoload'          => false,
 				'options'           => $tax_class_options,

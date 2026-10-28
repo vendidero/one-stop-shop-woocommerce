@@ -5,10 +5,10 @@
  * Description: Comply with the One Stop Shop procedure while using WooCommerce.
  * Author: vendidero
  * Author URI: https://vendidero.de
- * Version: 1.8.5
+ * Version: 1.8.6
  * Requires PHP: 5.6
  * License: GPLv3
- * Tested up to: 7.1
+ * Tested up to: 7.2
  *
  * Text Domain: one-stop-shop-woocommerce
  * Domain Path: /i18n/languages/

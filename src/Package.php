@@ -16,7 +16,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '1.8.5';
+	const VERSION = '1.8.6';
 
 	/**
 	 * Init the package
@@ -90,22 +90,32 @@ class Package {
 		return 'yes' === get_option( 'oss_auto_update_tax_rates' );
 	}
 
-	public static function apply_tax_class_map( $slugs ) {
+	public static function apply_tax_class_map( $slugs, $context = '' ) {
 		$slug_map  = array();
 		$woo_slugs = \WC_Tax::get_tax_class_slugs();
 
 		foreach ( $slugs as $internal_slug => $slug ) {
-			$val                 = get_option( "oss_tax_class_map_{$internal_slug}", false );
-			$is_unknown_standard = ( '' === $val && 'standard' !== $internal_slug );
-			$is_duplicate_slug   = ( 'unassigned' !== $val && in_array( $val, $slug_map, true ) );
-			$is_available        = ( ! in_array( $val, array( 'unassigned', '' ), true ) && in_array( $val, $woo_slugs, true ) );
+			$val = get_option( "oss_tax_class_map_{$internal_slug}", false );
 
-			if ( false === $val || $is_duplicate_slug || $is_unknown_standard || $is_available ) {
+			if ( 'settings' === $context && 'unassigned' === $val && 'standard' !== $internal_slug ) {
+				$slugs[ $internal_slug ] = $val;
 				continue;
 			}
 
-			if ( 'unassigned' === $val ) {
-				$val = false;
+			/**
+			 * Unassigned tax classes fall back to the automatic detection which
+			 * allows newly created tax classes to be detected during an update.
+			 */
+			if ( false === $val || 'unassigned' === $val ) {
+				continue;
+			}
+
+			$is_unknown_standard = ( '' === $val && 'standard' !== $internal_slug );
+			$is_duplicate_slug   = in_array( $val, $slug_map, true );
+			$is_unavailable      = ( '' !== $val && ! in_array( $val, $woo_slugs, true ) );
+
+			if ( $is_duplicate_slug || $is_unknown_standard || $is_unavailable ) {
+				continue;
 			}
 
 			$slugs[ $internal_slug ] = $val;
